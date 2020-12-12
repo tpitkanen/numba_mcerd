@@ -1,0 +1,19 @@
+Type of simulation: ERD
+Beam ion: 35Cl
+Beam energy: 10.0 MeV
+Target description file: C:\kurssit\gradu\koodi\numba_mcerd\Cl-Default.erd_target
+Detector description file: C:\kurssit\gradu\koodi\numba_mcerd\Cl-Default.erd_detector
+Recoiling atom: Cl
+Recoiling material distribution: C:\kurssit\gradu\koodi\numba_mcerd\Cl-Default.recoil
+Target angle: 20.5 deg
+Beam spot size: 3.0 5.0 mm
+Minimum angle of scattering: 0.05 deg
+Minimum main scattering angle: 20.0 deg
+Minimum energy of ions: 1.0 MeV
+Average number of recoils per primary ion: 10
+Recoil angle width (wide or narrow): narrow
+Presimulation * result file: C:\kurssit\gradu\koodi\numba_mcerd\Cl-Default.pre
+Number of real ions per each scaling ion: 5
+Number of ions: 1000000
+Number of ions in the presimulation: 100000
+Seed number of the random number generator: 101
