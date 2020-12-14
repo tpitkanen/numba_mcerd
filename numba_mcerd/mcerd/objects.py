@@ -8,6 +8,7 @@ from . import constants
 
 @dataclass
 class Point:  # TODO: should this be Point3?
+    """3D point"""
     x: float = 0.0
     y: float = 0.0
     z: float = 0.0
@@ -15,6 +16,7 @@ class Point:  # TODO: should this be Point3?
 
 @dataclass
 class Point2:
+    """2D point"""
     x: float = 0.0
     y: float = 0.0
 
@@ -38,6 +40,9 @@ class Master:
     # argc
     # fpout?
     # fpdebug
+
+    def __post_init__(self):
+        self.args = []
 
 
 @dataclass
@@ -91,7 +96,7 @@ class Global:
 
 @dataclass
 class Ion_opt:
-    valid: bool  # Boolean for the validity of these opt-variables
+    valid: bool  # Validity of opt-variable
     cos_theta: float  # Cosinus of laboratory theta-angle [-1,1]
     sin_theta: float  # Sinus of laboratory theta-angle [-1,1]
     e: float  # Dimensionless energy for the next scattering
