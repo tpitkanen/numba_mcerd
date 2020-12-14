@@ -134,14 +134,14 @@ class TargetType(Enum):
 # FALSE = 0
 
 
-# TODO: What is this? Something for erd_detector
-class PointPlane(Enum):
+# TODO: What is this? Used in erd_detector
+class PlaneType(Enum):
     GENERAL_PLANE = 0
     X_PLANE = 1
     Z_PLANE = 2
 
 
-# TODO: What is this? Something for erd_detector
+# TODO: What is this? Used in erd_detector
 class LineType(Enum):
     L_GENERAL = 0
     L_XYPLANE = 1
