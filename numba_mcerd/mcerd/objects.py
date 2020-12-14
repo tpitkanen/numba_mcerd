@@ -8,22 +8,22 @@ from . import constants
 
 @dataclass
 class Point:  # TODO: should this be Point3?
-    x: float
-    y: float
-    z: float
+    x: float = 0.0
+    y: float = 0.0
+    z: float = 0.0
 
 
 @dataclass
 class Point2:
-    x: float
-    y: float
+    x: float = 0.0
+    y: float = 0.0
 
 
 @dataclass
 class Presimu:
     depth: float = 0.0
     angle: float = 0.0
-    layer: int = 0.0
+    layer: int = 0
 
 
 @dataclass
@@ -42,45 +42,51 @@ class Master:
 
 @dataclass
 class Global:
-    mpi: bool  # Boolean for parallel simulation
-    E0: float  # Energy of the primary ion beam
-    nions: int  # Number of different ions in simulation, 1 or 2
-    ncascades: int
-    nsimu: int  # Total number of the simulated ions
-    emin: float  # Minimum energy of the simulation
-    ionemax: float  # Maximum possible ion energy in simulation
-    minangle: float  # Minimum angle of the scattering
-    seed: int  # Seed number of the random number generator  # Positive
-    cion: int  # Number of the current ion
-    simtype: constants.SimType  # Type of the simulation
-    beamangle: float  # Angle between target surface normal and beam
-    bspot: Point2  # Size of the beam spot
-    simstage: constants.SimStage  # Presimulation or real simulation
-    npresimu: int  # Number of simulated ions in the presimulation
-    nscale: int  # Number of simulated ions per scaling ions
-    nrecave: int  # Average number of recoils per primary ion
-    cpresimu: int  # Counter of simulated ions the the presimulation
-    presimu: Presimu  # Data structure for the presimulation
-    predata: int  # Presimulation data given in a file
-    master: Master  # Data structure for the MPI-master
-    frecmin: float
-    costhetamax: float
-    costhetamin: float
-    recwidth: constants.RecWidth  # Recoiling angle width type
-    virtualdet: bool  # Do we use the virtual detector
-    basename: str  # len NFILE
-    finstat: List[List[int]]  # len [SECONDARY + 1][NIONSTATUS]
-    beamdiv: int  # Angular divergence of the beam, width or FWHM
-    beamprof: constants.BeamProf  # Beam profile: flat, gaussian, given distribution
-    rough: bool  # Rough or non-rough sample surface
-    nmclarge: int  # Number of rejected (large) MC scatterings (RBS)
-    nmc: int  # Number of all MC-scatterings
-    output_trackpoints: bool
-    output_misses: bool
-    cascades: bool
-    advanced_output: bool
+    mpi: bool = False  # Boolean for parallel simulation
+    E0: float = 0.0  # Energy of the primary ion beam
+    nions: int = 0  # Number of different ions in simulation, 1 or 2
+    ncascades: int = 0
+    nsimu: int = 0  # Total number of the simulated ions
+    emin: float = 0.0  # Minimum energy of the simulation
+    ionemax: float = 0.0  # Maximum possible ion energy in simulation
+    minangle: float = 0.0  # Minimum angle of the scattering
+    seed: int = 0  # Seed number of the random number generator  # Positive
+    cion: int = 0  # Number of the current ion
+    simtype: constants.SimType = None  # Type of the simulation
+    beamangle: float = 0.0  # Angle between target surface normal and beam
+    bspot: Point2 = None  # Size of the beam spot
+    simstage: constants.SimStage = None  # Presimulation or real simulation
+    npresimu: int = 0  # Number of simulated ions in the presimulation
+    nscale: int = 0  # Number of simulated ions per scaling ions
+    nrecave: int = 0  # Average number of recoils per primary ion
+    cpresimu: int = 0  # Counter of simulated ions the the presimulation
+    presimu: Presimu = None  # Data structure for the presimulation
+    predata: int = 0  # Presimulation data given in a file
+    master: Master = None  # Data structure for the MPI-master
+    frecmin: float = 0.0
+    costhetamax: float = 0.0
+    costhetamin: float = 0.0
+    recwidth: constants.RecWidth = None  # Recoiling angle width type
+    virtualdet: bool = False  # Do we use the virtual detector
+    basename: str = None  # len NFILE
+    finstat: List[List[int]] = None  # len [SECONDARY + 1][NIONSTATUS]
+    beamdiv: int = 0  # Angular divergence of the beam, width or FWHM  # TODO: Should this be int or float?
+    beamprof: constants.BeamProf = None  # Beam profile: flat, gaussian, given distribution
+    rough: bool = False  # Rough or non-rough sample surface
+    nmclarge: int = 0  # Number of rejected (large) MC scatterings (RBS)
+    nmc: int = 0  # Number of all MC-scatterings
+    output_trackpoints: bool = False
+    output_misses: bool = False
+    cascades: bool = False
+    advanced_output: bool = False
     # jibal: jibal  # TODO
-    nomc: bool
+    nomc: bool = False
+
+    def __post_init__(self):
+        self.bspot = Point2()
+        self.presimu = Presimu()
+        self.master = Master()
+        # self.jibal = Jibal()
 
 
 @dataclass
