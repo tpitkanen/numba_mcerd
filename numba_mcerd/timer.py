@@ -79,41 +79,18 @@ class SplitTimer(Timer):
         super().__init__()
         self.splits = []
 
-    @property
-    def previous_split(self) -> float:
-        """Return previous split"""
-        if self.splits:
-            return self.splits[-1]
-        if self.start_time is not None:
-            return self.start_time
-        return 0.0  # TODO: TimerException instead?
+    def __str__(self):
+        """Return string representation"""
+        return f"{type(self).__name__} (start={self.start_time} stop={self.stop_time} elapsed={self.elapsed} splits={self.splits})"
 
     @property
-    def elapsed_previous_split(self) -> float:
-        """Return elapsed time since last split or start"""
-        if self.running:
-            return timeit.default_timer() - self.previous_split
-        if self.splits:
-            return self.stop_time - self.splits[-1]
-        return self.stop_time - self.start_time
-
-    def split(self) -> float:
-        """Add a split to timer
-
-        Returns:
-            Elapsed time since last split
-        """
-        self.splits.append(timeit.default_timer())
-        return self.elapsed_previous_split
+    def elapsed_splits(self) -> [float]:
+        """Return splits as elapsed time"""
+        return [(split - self.start_time) for split in self.splits] + [self.elapsed]
 
     @property
-    def split_times(self) -> [float]:
-        """Return splits (normalized to start from 0)"""
-        return [0.0] + [(split - self.start_time) for split in self.splits] + [self.elapsed]
-
-    @property
-    def lap_times(self) -> [float]:
-        """Return splits as laps"""
+    def elapsed_laps(self) -> [float]:
+        """Return laps as elapsed time"""
         times = []
         previous = self.start_time
         for split in self.splits:
@@ -122,6 +99,11 @@ class SplitTimer(Timer):
         times.append(self.stop_time - previous)
         return times
 
-    def __str__(self):
-        """Return string representation"""
-        return f"{type(self).__name__} (start={self.start_time} stop={self.stop_time} elapsed={self.elapsed} splits={self.splits})"
+    def split(self) -> float:
+        """Add a split to timer
+
+        Returns:
+            Elapsed time
+        """
+        self.splits.append(timeit.default_timer())
+        return self.elapsed

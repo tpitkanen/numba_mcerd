@@ -1,3 +1,4 @@
+import itertools
 import unittest
 import time
 
@@ -50,14 +51,39 @@ class TestTimer(unittest.TestCase):
 
     def test_elapsed(self):
         """This is a timing-based test. Slow execution may cause failure."""
+        time.sleep(0.1)
         timer = Timer()
         self.assertEqual(0.0, timer.elapsed)
         timer.start()
-        time.sleep(1.5)
-        self.assertAlmostEqual(1.5, timer.elapsed, places=2)
+        time.sleep(0.2)
+        self.assertAlmostEqual(0.2, timer.elapsed, places=2)
         timer.stop()
-        self.assertAlmostEqual(1.5, timer.elapsed, places=2)
+        self.assertAlmostEqual(0.2, timer.elapsed, places=2)
+
+    def test_str(self):
+        timer = Timer()
+        self.assertEqual("Timer (start=None stop=None elapsed=0.0)", str(timer))
 
 
 class TestSplitTimer(unittest.TestCase):
-    pass  # TODO
+    def test_split(self):
+        timer = SplitTimer()
+        self.assertEqual([], timer.splits)
+        timer.start()
+        time.sleep(0.1)
+        self.assertAlmostEqual(0.1, timer.split(), places=1)
+        time.sleep(0.2)
+        self.assertAlmostEqual(0.3, timer.split(), places=1)
+        time.sleep(0.3)
+        self.assertAlmostEqual(0.6, timer.elapsed, places=1)
+        timer.stop()
+
+        for target_time, split_time in itertools.zip_longest([0.1, 0.3, 0.6], timer.elapsed_splits, fillvalue=None):
+            self.assertAlmostEqual(target_time, split_time, places=1)
+
+        for target_time, lap_time in itertools.zip_longest([0.1, 0.2, 0.3], timer.elapsed_laps, fillvalue=None):
+            self.assertAlmostEqual(target_time, lap_time, places=1)
+
+    def test_str(self):
+        timer = SplitTimer()
+        self.assertEqual("SplitTimer (start=None stop=None elapsed=0.0 splits=[])", str(timer))
