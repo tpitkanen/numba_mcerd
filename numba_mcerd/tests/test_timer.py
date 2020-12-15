@@ -67,6 +67,7 @@ class TestTimer(unittest.TestCase):
 
 class TestSplitTimer(unittest.TestCase):
     def test_split(self):
+        """This is a timing-based test. Slow execution may cause failure."""
         timer = SplitTimer()
         self.assertEqual([], timer.splits)
         timer.start()
