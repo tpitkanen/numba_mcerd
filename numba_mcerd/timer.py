@@ -9,6 +9,10 @@ class TimerException(BaseException):
 class Timer:
     """Timer for benchmarking. Timer cannot be restarted."""
 
+    MSG_TIMER_RUNNING = "Timer already running"
+    MSG_TIMER_FINISHED = "Timer already finished"
+    MSG_TIMER_NOT_STARTED = "Timer not started"
+
     def __init__(self) -> None:
         self.start_time = None
         self.stop_time = None
@@ -19,9 +23,14 @@ class Timer:
         return self.start_time is not None and self.stop_time is None
 
     @property
+    def finished(self) -> bool:
+        """Return whether timer is finished"""
+        return self.start_time is not None and self.stop_time is not None
+
+    @property
     def elapsed(self) -> float:
         """Return elapsed time"""
-        if not self.running:
+        if self.finished:
             return self.stop_time - self.start_time
         if self.start_time is not None:
             return timeit.default_timer() - self.start_time
@@ -33,10 +42,10 @@ class Timer:
 
     def start(self) -> None:
         """Start timer"""
-        if self.start_time is not None:
-            raise TimerException("Timer already running")
+        if self.finished:
+            raise TimerException(self.MSG_TIMER_FINISHED)
         if self.running:
-            raise TimerException("Timer already stopped")
+            raise TimerException(self.MSG_TIMER_RUNNING)
         self.start_time = timeit.default_timer()
 
     def stop(self) -> float:
@@ -46,9 +55,9 @@ class Timer:
             Elapsed time
         """
         if self.start_time is None:
-            raise TimerException("Timer not started")
-        if not self.running:
-            raise TimerException("Timer already stopped")
+            raise TimerException(self.MSG_TIMER_NOT_STARTED)
+        if self.finished:
+            raise TimerException(self.MSG_TIMER_FINISHED)
         self.stop_time = timeit.default_timer()
         return self.elapsed
 
