@@ -7,17 +7,19 @@ from enum import Enum
 # Lines 16 .. 143 (roughly)
 ################################################################################
 
-# # RNG
-# RND_CLOSED = 0
-# RND_OPEN = 1
-# RND_LEFT = 2
-# RND_RIGHT = 3
-# RND_SEED = 4  # Set the seed number for random number generator
-# RND_CONT = 1  # Do not reset random number generator
+
+class RndPeriod(Enum):
+    """Random number generator value ranges"""
+    RND_CLOSED = 0  # [a, b] (both closed)
+    RND_OPEN = 1    # ]a, b[ (both open)
+    RND_LEFT = 2    # ]a, b] (left open)
+    RND_RIGHT = 3   # [a, b[ (right open)
+    # TODO: Is this really used for settings the random seed?
+    #       random.rnd doesn't seem like it.
+    RND_SEED = 4  # Set the seed number for random number generator
+    # RND_CONT = 1  # Do not reset random number generator
 
 # SMALLNUM = 1e-10
-
-# RNG type
 
 
 class IonStatus(Enum):

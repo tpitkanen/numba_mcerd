@@ -1,5 +1,8 @@
+from numba_mcerd.mcerd import random
+
+
 def main():
-    print("hello world")
+    random.seed_rnd(1)
 
 
 if __name__ == '__main__':
