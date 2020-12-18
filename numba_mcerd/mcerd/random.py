@@ -20,7 +20,7 @@ def rnd(low: float, high: float, period: c.RndPeriod = c.RndPeriod.RND_CLOSED) -
     length = high - low
 
     if length < 0.0:
-        RndError("Length negative or zero")
+        raise RndError("Length negative or zero")
 
     return length * random.random() + low
 
