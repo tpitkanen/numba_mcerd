@@ -20,8 +20,9 @@ def create_ion(g: o.Global, ion: o.Ion, target: o.Target) -> None:
     - ion: z-axis is along the direction of ion movement
     - detector: z-axis is along the detector direction
     """
-    # TODO: raise IonSimulation instead?
-    assert g.simtype == c.SimType.SIM_ERD or g.simtype == c.SimType.SIM_RBS
+    # assert g.simtype == c.SimType.SIM_ERD or g.simtype == c.SimType.SIM_RBS
+    if g.simtype != c.SimType.SIM_ERD and g.simtype != c.SimType.SIM_RBS:
+        raise IonSimulationError("Unsupported simulation type")
 
     x = random.rnd(-g.bspot.x, g.bspot.x, c.RndPeriod.RND_CLOSED)
     y = random.rnd(-g.bspot.y, g.bspot.y, c.RndPeriod.RND_CLOSED)
