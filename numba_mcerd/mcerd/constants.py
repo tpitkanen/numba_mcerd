@@ -1,6 +1,7 @@
 """Constants from general.h"""
 
 from enum import Enum
+import math
 
 
 ################################################################################
@@ -74,13 +75,18 @@ class IonType(Enum):
     TARGET_ATOM = 2
     GAS_RECOIL = 3
 
-# TODO:
-# FORW = 1
-# BACK = 2
 
-# TODO:
-# STOPPING = 0
-# STRAGGLING = 1
+class CoordTransformDirection(Enum):
+    """Direction for coordinate transform"""
+    FORW = 1  # Forwards
+    BACK = 2  # Backwards
+
+
+# TODO: What does this mean?
+class IonMode(Enum):
+    """Ion mode (?)"""
+    STOPPING = 0
+    STRAGGLING = 1
 
 
 class ScatteringType(Enum):
@@ -189,3 +195,51 @@ class FoilType(Enum):
     """Foil type/shape"""
     FOIL_CIRC = 0
     FOIL_RECT = 1
+
+
+################################################################################
+# Jibal: jibal_units.h
+# Lines  22 .. 86
+################################################################################
+
+C_US = 1.0e-6
+C_NS = 1.0e-9
+C_PS = 1.0e-12
+C_CM2 = 1.0e-4
+C_CM3 = 1.0e-6
+C_CM = 1.0e-2
+C_MM = 1.0e-3
+C_UM = 1.0e-6
+C_NM = 1.0e-9
+C_ANGSTROM = 1.0e-10
+C_G = 1.0e-3
+C_UG = 1.0e-9
+C_G_CM3 = 1.0e3
+C_MSR = 1.0e-3
+
+C_PI = math.pi
+C_DEG = 2.0*C_PI/360.0  # degree
+C_FWHM = 2.35482004503
+C_PERCENT = 0.01
+C_U = 1.66053906660e-27  # atomic mass unit, kg
+C_C = 299792458.0  # speed of light, in m/s, exact.
+C_C2 = C_C*C_C  # speed of light, squared
+C_E = 1.602176634e-19  # elementary charge, in C, exact.
+C_UC = 1.0e-6/C_E
+C_EV = C_E  # electronvolt, in J
+C_KEV = 1.0e3*C_EV  # keV
+C_MEV = 1.0e6*C_EV  # MeV
+
+C_H = 6.62607015e-34  # Planck constant, exact.
+C_HBAR = C_H/(2*C_PI)
+C_ALPHA = 0.0072973525693  # fine structure constant. Using CODATA 2018 recommended value.
+C_MU0 = 2*C_ALPHA*C_H/(C_E*C_E*C_C)  # vacuum permeability
+C_EPSILON0 = 1.0/(C_MU0*C_C2)  # vacuum permittivity
+C_ME = 9.1093837015e-31  # electron mass, kg
+C_BOHR_RADIUS = C_HBAR/(C_ALPHA*C_ME*C_C)  # Bohr radius
+
+C_TFU = 1.0e19  # Thin film units, i.e. 1e15 at./cm2 is actually 1e19/m^2 in SI-units
+C_EV_TFU = C_EV/C_TFU  # Units for stopping cross sections (eV/(1e15 at./cm2))
+
+C_BARN = 1.0e-28
+C_MB_SR = 1.0e-3*C_BARN  # millibarns/sr
