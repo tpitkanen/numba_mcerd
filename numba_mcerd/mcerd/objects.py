@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import List
 
 # from . import constants
-from numba_mcerd.mcerd import constants, jibal
+from numba_mcerd.mcerd import constants
+from numba_mcerd.mcerd.jibal import Jibal
 
 
 # TODO: Dataclasses can't be optimized with @njit
@@ -91,7 +92,7 @@ class Global:
     output_misses: bool = False
     cascades: bool = False
     advanced_output: bool = False
-    jibal: jibal.Jibal = None  # TODO
+    jibal: Jibal = None  # TODO
     nomc: bool = False
 
     def __post_init__(self):
@@ -102,7 +103,7 @@ class Global:
         if self.master is None:
             self.master = Master()
         if self.jibal is None:
-            self.jibal = jibal.Jibal()
+            self.jibal = Jibal()
 
 
 @dataclass
