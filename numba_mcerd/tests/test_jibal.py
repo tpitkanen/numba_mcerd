@@ -14,7 +14,7 @@ class TestJibal(unittest.TestCase):
         He = jibal.get_element(2)
         self.assertEqual("He", He.name)
         self.assertEqual(2, He.Z)
-        # TODO: avg_mass
+        self.assertAlmostEqual(4.002601026852, He.avg_mass)
         self.assertEqual(8, len(He.isotopes))
 
         He2 = jibal.get_isotope(2, 1)
@@ -23,6 +23,12 @@ class TestJibal(unittest.TestCase):
         self.assertEqual(1, He2.N)
         self.assertEqual(3, He2.A)
         self.assertEqual(3.016029, He2.mass)
-        # TODO: abundance
+        self.assertEqual(0.000002, He2.abundance)
 
-
+        He3 = jibal.get_isotope(2, 2)
+        self.assertEqual("He", He3.name)
+        self.assertEqual(2, He3.Z)
+        self.assertEqual(2, He3.N)
+        self.assertEqual(4, He3.A)
+        self.assertEqual(4.002603, He3.mass)
+        self.assertEqual(0.999998, He3.abundance)

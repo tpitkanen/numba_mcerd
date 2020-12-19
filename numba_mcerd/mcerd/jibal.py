@@ -9,6 +9,10 @@ MASSES_FILE = f"{config.PROJECT_ROOT}/data/constants/masses.dat"
 ABUNDANCES_FILE = f"{config.PROJECT_ROOT}/data/constants/abundances.dat"
 
 
+class JibalError(Exception):
+    """Error in Jibal"""
+
+
 @dataclass
 class JibalIsotope:
     """Single isotope"""
@@ -20,6 +24,7 @@ class JibalIsotope:
     abundance: float = 0.0
 
 
+# noinspection PyPep8Naming
 @dataclass
 class JibalElement:
     """Element and its isotopes"""
@@ -48,6 +53,7 @@ class JibalElement:
         self.isotopes[isotope.N] = isotope
 
 
+# noinspection PyPep8Naming
 @dataclass
 class Jibal:
     # elements: List[JibalElement] = None  # Original idea
@@ -59,8 +65,8 @@ class Jibal:
 
     def initialize(self):
         self.load_elements()
-        # self.load_abundances()
-        # self.update_avg_masses()
+        self.load_abundances()
+        self.update_avg_masses()
 
     def get_element(self, Z: int) -> Optional[JibalElement]:
         """Get element with specific Z (proton number)"""
@@ -100,7 +106,21 @@ class Jibal:
 
     def load_abundances(self, abundances_file: str = ABUNDANCES_FILE) -> None:
         """Load abundances for elements from abundances_file"""
-        raise NotImplementedError
+        file = Path(abundances_file)
+        with file.open() as f:
+            lines = f.readlines()
+
+        for line in lines:
+            # The last 2 values per line in abundances.dat are skipped in Jibal
+            Z, A, abundance, _, _ = line.split(maxsplit=4)
+            Z = int(Z)
+            A = int(A)
+            N = A - Z
+            abundance = float(abundance)
+            isotope = self.get_isotope(Z, N)
+            if isotope is None:
+                raise JibalError(f"Tried to add abundance for missing isotope: '{Z=}, {N=}, {A=}'")
+            isotope.abundance = abundance
 
     def update_avg_masses(self) -> None:
         """Updates avg_mass for each element. Elements and abundances must be loaded."""
@@ -111,6 +131,7 @@ class Jibal:
 def main():
     jibal = Jibal()
     jibal.initialize()
+    pass
 
 
 if __name__ == '__main__':
