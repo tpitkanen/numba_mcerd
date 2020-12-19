@@ -32,17 +32,25 @@ class JibalElement:
     Z: int = 0
     # n_isotopes: int = 0  # len(isotopes)
     # isotopes: List[JibalIsotope] = None  # original idea
+    # concs: List[float] = None  # original idea
     isotopes: Dict[int, JibalIsotope] = None
-    # concs: List[float] = None  # TODO: what is this?
-    avg_mass: float = 0.0  # TODO:
+    concs: Dict[int, float] = None  # Concentrations
+    avg_mass: float = 0.0
 
     def __post_init__(self):
         if self.isotopes is None:
             self.isotopes = {}
+        if self.concs is None:
+            self.concs = {}
 
-    def get_isotope(self, N: int) -> Optional[JibalIsotope]:
+    def get_isotope_by_neutron_number(self, N: int) -> Optional[JibalIsotope]:
         """Get isotope by N (neutron number)"""
         return self.isotopes.get(N, None)
+
+    def get_isotope_by_mass_number(self, A: int) -> Optional[JibalIsotope]:
+        """Get isotope by A (mass number)"""
+        N = A - self.Z
+        return self.get_isotope_by_neutron_number(N)
 
     def update_avg_mass(self) -> None:
         """Calculate average mass weighted by abundance"""
@@ -72,12 +80,24 @@ class Jibal:
         """Get element with specific Z (proton number)"""
         return self.elements.get(Z, None)
 
-    def get_isotope(self, Z, N) -> Optional[JibalIsotope]:
+    def get_element_by_name(self, name: str) -> Optional[JibalElement]:
+        """Get element by name (e.g. 'Cl')"""
+        for element in self.elements.values():
+            if element.name == name:
+                return element
+        return None
+
+    def get_isotope_by_neutron_number(self, Z, N) -> Optional[JibalIsotope]:
         """Get isotope with specific Z and N (proton number and neutron number)"""
         element = self.get_element(Z)
         if element is None:
-            return element
-        return element.get_isotope(N)
+            return None
+        return element.get_isotope_by_neutron_number(N)
+
+    def get_isotope_by_mass_number(self, Z, A) -> Optional[JibalIsotope]:
+        """Get isotope with specific Z and A (proton number and mass number)"""
+        N = A - Z
+        return self.get_isotope_by_neutron_number(Z, N)
 
     def add_isotope(self, isotope: JibalIsotope) -> None:
         """Add isotope to its parent element. The parent element is
@@ -117,7 +137,7 @@ class Jibal:
             A = int(A)
             N = A - Z
             abundance = float(abundance)
-            isotope = self.get_isotope(Z, N)
+            isotope = self.get_isotope_by_neutron_number(Z, N)
             if isotope is None:
                 raise JibalError(f"Tried to add abundance for missing isotope: '{Z=}, {N=}, {A=}'")
             isotope.abundance = abundance
@@ -126,6 +146,10 @@ class Jibal:
         """Updates avg_mass for each element. Elements and abundances must be loaded."""
         for element in self.elements.values():
             element.update_avg_mass()
+
+
+# TODO: Add methods that copy the element and calculate concentrations
+#       (JIBAL_NAT_ISOTOPES, JIBAL_ALL_ISOTOPES, default)
 
 
 def main():
