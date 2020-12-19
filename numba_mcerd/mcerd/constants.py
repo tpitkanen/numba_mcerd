@@ -43,29 +43,29 @@ class IonStatus(Enum):
 MAXANGLE = 177  # Minimum of maximum scattering angles
 
 
-# Maximums for arrays etc. Probably not needed
-#
-# EPSNUM = 50  # Number of energies in scattering angle table
-# YNUM = 100  # Number of impact factors in scattering angle table
-# EPSIMP = 200  # Number of points in maximum impact factor array
-# N_RAND_DIST = 500  # Number of points in random distribution
-# N_INPUT = 20000  # Maximum number of lines in input file
-# LINE = 1024  # Maximum length of line in input files
-# PATH = ""  # Path for input files
-# NFILE = 512  # Maximum name length of the input file
-# MAXSTO = 500  # Maximum number of values in stopping power array
-# MAXELOSS = 0.01  # Maximum relative change in electonic energy loss
-# MAXENEFF = 2000  # Maximum number of point in the energy eff. curve
-# NSURFDATA = 520  # Maximum width of the surface topography image
-#
-# NRECDIST = 500
-#
-# MAXLAYERS = 50  # Number of different target layers
-# MAXATOMS = 20  # Number of different atoms in the target layer
-# MAXELEMENTS = 20  # Maximum total number of different atoms in the target
-# NANGDIST = 200  # Number of points in reaction angular distribution
-#
-# MAXISOTOPES = 20
+# Maximums for arrays etc.
+
+EPSNUM = 50  # Number of energies in scattering angle table
+YNUM = 100  # Number of impact factors in scattering angle table
+EPSIMP = 200  # Number of points in maximum impact factor array
+N_RAND_DIST = 500  # Number of points in random distribution
+N_INPUT = 20000  # Maximum number of lines in input file
+LINE = 1024  # Maximum length of line in input files
+PATH = ""  # Path for input files
+NFILE = 512  # Maximum name length of the input file
+MAXSTO = 500  # Maximum number of values in stopping power array
+MAXELOSS = 0.01  # Maximum relative change in electonic energy loss
+MAXENEFF = 2000  # Maximum number of point in the energy eff. curve
+NSURFDATA = 520  # Maximum width of the surface topography image
+
+NRECDIST = 500
+
+MAXLAYERS = 50  # Number of different target layers
+MAXATOMS = 20  # Number of different atoms in the target layer
+MAXELEMENTS = 20  # Maximum total number of different atoms in the target
+NANGDIST = 200  # Number of points in reaction angular distribution
+
+MAXISOTOPES = 20
 
 
 class IonType(Enum):
