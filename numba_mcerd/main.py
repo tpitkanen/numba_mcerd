@@ -1,5 +1,6 @@
 import logging
 
+from numba_mcerd import config
 from numba_mcerd.mcerd import random, init_params, read_input
 import numba_mcerd.mcerd.objects as o
 
@@ -32,7 +33,7 @@ def main(args):
     g = o.Global()
     ion = o.Ion()  # TODO: are these ions pointers or separate objects?
     cur_ion = o.Ion()
-    previous_trackpoint_ion = o.Ion()
+    previous_trackpoint_ion = o.Ion()  # TODO: Delete this if not RBS
     ions_moving = []  # TODO: Initialize a list of ions?
     target = o.Target()
     scat = []  # TODO: Initialize a matrix of scatterings?
@@ -55,6 +56,8 @@ def main(args):
     # Preprocessing
 
     logging.debug("Starting preprocessing")
+    logging.info("Initializing Jibal")
+    g.jibal.initialize()
     logging.info("Initializing parameters")
     init_params.init_params(g, target, args)
 
@@ -67,5 +70,5 @@ def main(args):
 if __name__ == '__main__':
     # Path to data is hardcoded, change it to match your location
     # mcerd.exe is unused but included for similarity with original MCERD
-    main_args = ["mcerd.exe", r"C:\kurssit\gradu\koodi\numba_mcerd\data\input\Cl-Default"]
+    main_args = ["mcerd.exe", f"{config.PROJECT_ROOT}/data/input/Cl-Default"]
     main(main_args)
