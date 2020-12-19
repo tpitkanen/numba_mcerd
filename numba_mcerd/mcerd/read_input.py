@@ -1,7 +1,9 @@
 from array import array
 from enum import Enum
+from pathlib import Path
 
 import numba_mcerd.mcerd.constants as c
+import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.symbols as s
 
 
@@ -126,7 +128,102 @@ class Fvalue:
         self.c = array("d")
 
 
-def read_input():
+class ReadInputError(Exception):
+    """Error while reading input"""
+
+
+def read_input(g: o.Global, ion: o.Ion, target: o.Target, detector: o.Detector) -> None:
+    # FILE *fp, *fout;
+    p1 = o.Point()
+    p2 = o.Point()
+    p3 = o.Point()
+    # char buf[MAXLEN], *c, *word;
+    lines = None
+    number = 0.0
+    unit = 0.0
+    rec_dist_unit = 0.0
+    M = 0.0
+    # int i, j, rinput[NINPUT], n;  # rinput unused
+
+    if len(g.master.args) <= 1:
+        raise ReadInputError("No command file given")
+    fp = Path(g.master.args[1])
+    if not fp.exists():
+        raise ReadInputError(f"Command file '{fp}' doesn't exist")
+
+    with fp.open("r") as f:
+        lines = f.readlines()
+
+    keys = []
+    values = []
+    for line in lines:
+        key, value = line.split(sep=":", maxsplit=1)
+        keys.append(key.strip() + ":")
+        values.append(value.strip())
+
+    for key, value in zip(keys, values):
+        if key == SettingsLine.I_TYPE.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_ION.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_ENERGY.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_TARGET.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_DETECTOR.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_RECOIL.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_RECDIST.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_TANGLE.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_SPOTSIZE.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_MINANGLE.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_MINENERGY.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_NIONS.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_NPREIONS.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_RECAVE.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_SEED.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_RECWIDTH.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_PREDATA.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_MINSCAT.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_BDIV.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_BPROF.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_SURFACE.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_SURFSIZE.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_NSCALE.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_TRACKP.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_MISSES.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_CASCADES.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_NCASCADES.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_ADVANCED.value:
+            raise NotImplementedError
+        elif key == SettingsLine.I_NOMC.value:
+            raise NotImplementedError
+        else:
+            raise NotImplementedError
+
+    # TODO
     raise NotImplementedError
 
 

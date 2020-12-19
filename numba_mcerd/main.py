@@ -1,6 +1,6 @@
 import logging
 
-from numba_mcerd.mcerd import random, init_params
+from numba_mcerd.mcerd import random, init_params, read_input
 import numba_mcerd.mcerd.objects as o
 
 
@@ -55,7 +55,11 @@ def main(args):
     # Preprocessing
 
     logging.debug("Starting preprocessing")
+    logging.info("Initializing parameters")
     init_params.init_params(g, target, args)
+
+    logging.info("Initializing input files")
+    read_input.read_input(g, ion, target, detector)
 
     # TODO
 
