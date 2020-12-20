@@ -1,6 +1,9 @@
+import copy
+import logging
 from array import array
 from enum import Enum
 from pathlib import Path
+from typing import Optional
 
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
@@ -132,7 +135,9 @@ class ReadInputError(Exception):
     """Error while reading input"""
 
 
-def read_input(g: o.Global, ion: o.Ion, target: o.Target, detector: o.Detector) -> None:
+# TODO: ion is actually an array of ions in this and 2 other functions
+def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion: o.Ion,
+               target: o.Target, detector: o.Detector) -> None:
     # FILE *fp, *fout;
     p1 = o.Point()
     p2 = o.Point()
@@ -163,9 +168,19 @@ def read_input(g: o.Global, ion: o.Ion, target: o.Target, detector: o.Detector) 
 
     for key, value in zip(keys, values):
         if key == SettingsLine.I_TYPE.value:
-            raise NotImplementedError
+            if value == "ERD":
+                g.simtype = c.SimType.SIM_ERD
+                g.nions = 2  # Incident and recoil
+            elif value == "RBS":
+                g.simtype = c.SimType.SIM_RBS
+                g.nions = 3  # Incident, target and scattered incident
+            else:
+                raise ValueError(f"No such type for simulation: '{value}'")
+            # (Ions are already initialized)
         elif key == SettingsLine.I_ION.value:
-            raise NotImplementedError
+            get_ion(g.jibal, value, ion)
+            ion.type = c.IonType.PRIMARY
+            logging.info(f"Beam ion: {ion.Z=}, M={ion.A / c.C_U}")
         elif key == SettingsLine.I_ENERGY.value:
             raise NotImplementedError
         elif key == SettingsLine.I_TARGET.value:
@@ -235,8 +250,69 @@ def get_atom():
     raise NotImplementedError
 
 
-def get_ion():
-    raise NotImplementedError
+def get_ion(jibal: o.Jibal, line: str, ion: o.Ion) -> None:
+    symbol = None
+    A = None
+    found = False
+    n = 0
+    number = 0.0
+    Amax = -1.0
+
+    # TODO: 'A' was originally 'number' and a double
+    A, symbol = split_element_string(line.strip())
+
+    element = jibal.get_element_by_name(symbol)
+    element = copy.deepcopy(element)  # TODO: Replace with real Jibal copying
+
+    if element is None:
+        raise ReadInputError(f"Element '{symbol}' not found")
+
+    ion.Z = element.Z
+
+    if A is not None:
+        isotope = element.get_isotope_by_mass_number(A)
+        ion.A = isotope.mass
+        ion.I.c_sum = 1.0
+        found = True
+    else:
+        raise NotImplementedError
+        # for isotope in element.isotopes.values():
+        #     found = True
+        #     ion.I.A.append(isotope.mass)
+        #     # TODO: Get the real concentrations
+        #     # ion.I.c.append(conc
+        #     # ion.I.c_sum += conc
+        #     if isotope.abundance > Amax:
+        #         Amax = isotope.abundance
+        #         ion.I.Am = isotope.mass
+        #         ion.A = isotope.mass  # TODO: This seems to be far too big (see log message)
+        #     n += 1
+
+    ion.I.n = n
+    if n and ion.I.c_sum != 0.0:
+        logging.warning(f"Concentrations of element '{symbol}' sum up to {ion.I.c_sum * 100.0}% instead of 100%")
+    if not found:
+        raise ReadInputError(f"Isotope for '{line}' not found")
+
+
+def split_element_string(element_string: str) -> (Optional[int], str):
+    """Split element string into mass number and symbol.
+
+    Example: "35Cl" -> 35, "Cl"
+    """
+    # TODO: Add error checking
+    i = 0
+    for i in range(len(element_string)):
+        if not element_string[i].isdigit():
+            break
+    mass_number = element_string[:i].strip()
+    if mass_number:
+        mass_number = int(mass_number)
+    else:
+        mass_number = None
+
+    symbol = element_string[i:].strip()
+    return mass_number, symbol
 
 
 # def get_string(): pass

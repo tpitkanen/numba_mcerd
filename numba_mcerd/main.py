@@ -62,7 +62,7 @@ def main(args):
     init_params.init_params(g, target, args)
 
     logging.info("Initializing input files")
-    read_input.read_input(g, ion, target, detector)
+    read_input.read_input(g, ion, cur_ion, previous_trackpoint_ion, target, detector)
 
     # TODO
 
