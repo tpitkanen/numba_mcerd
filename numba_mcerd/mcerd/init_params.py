@@ -29,8 +29,10 @@ def init_params(g: o.Global, target: o.Target, argv: List[str]) -> None:
     target.nlayers = 0
     # target.natoms = 0  # TODO: This is repeated twice in the original, why?
 
-    g.finstat = [[0 for _ in range(len(c.IonStatus))]
-                 for _ in range(c.IonType.SECONDARY.value + 1)]  # '<=' in source
+    # Not needed, values are already zero
+    # for i in range(len(g.finstat)):
+    #     for j in range(len(g.finstat[i])):
+    #         g.finstat[i][j] = 0
 
     g.rough = False
     g.output_misses = False

@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
-# from . import constants
 from numba_mcerd.mcerd import constants
 from numba_mcerd.mcerd.jibal import Jibal
 
@@ -102,6 +101,9 @@ class Global:
             self.presimu = Presimu()
         if self.master is None:
             self.master = Master()
+        if self.finstat is None:
+            self.finstat = [[0] * len(constants.IonStatus)
+                            for _ in range(constants.IonType.SECONDARY.value + 1)]
         if self.jibal is None:
             self.jibal = Jibal()
 
@@ -166,9 +168,9 @@ class Isotopes:
 
     def __post_init__(self):
         if self.A is None:
-            self.A = []
+            self.A = [0.0] * constants.MAXISOTOPES
         if self.c is None:
-            self.c = []
+            self.c = [0.0] * constants.MAXISOTOPES
 
 
 @dataclass
@@ -192,9 +194,9 @@ class Ion:
     hist: Rec_hist = None  # Variables saved at the moment of the recoiling event
     dist: float = 0.0  # Distance to the next ERD-scattering point
     virtual: bool = False  # Did we only hit the virtual detector area
-    hit: List[Point] = None  # Hit points to the detector layers
-    Ed: List[float] = None  # Ion energy in the detector layers
-    dt: List[float] = None   # Passing times in the detector layers
+    hit: List[Point] = None  # Hit points to the detector layers  # len MAXLAYERS
+    Ed: List[float] = None  # Ion energy in the detector layers  # len MAXLAYERS
+    dt: List[float] = None   # Passing times in the detector layers  # len MAXLAYERS
     scale: bool = False  # TRUE if we have a scaling ion
     effrecd: float = 0.0  # Parameter for scaling the effective thickness of recoil material
     trackid: int = 0  # originally int64_t
@@ -212,11 +214,11 @@ class Ion:
         if self.hist is None:
             self.hist = Rec_hist()
         if self.hit is None:
-            self.hit = []
+            self.hit = [Point() for _ in range(constants.MAXLAYERS)]
         if self.Ed is None:
-            self.Ed = []
+            self.Ed = [0.0] * constants.MAXLAYERS
         if self.dt is None:
-            self.dt = []
+            self.dt = [0.0] * constants.MAXLAYERS
 
 
 @dataclass
@@ -252,7 +254,7 @@ class Scattering:
 
     def __post_init__(self):
         if self.angle is None:
-            self.angle = []  # TODO: Is this good for nested lists?
+            self.angle = [[0.0] * constants.YNUM for _ in range(constants.EPSNUM)]
         if self.cross is None:
             self.cross = Cross_section()
 
@@ -278,7 +280,7 @@ class Surface:
 
     def __post_init__(self):
         if self.z is None:
-            self.z = []
+            self.z = [[0.0] * constants.NSURFDATA for _ in range(constants.NSURFDATA)]
         if self.origin is None:
             self.origin = Point()
 
@@ -301,11 +303,11 @@ class Target_sto:
 
     def __post_init__(self):
         if self.vel is None:
-            self.vel = []
+            self.vel = [0.0] * constants.MAXSTO
         if self.sto is None:
-            self.sto = []
+            self.sto = [0.0] * constants.MAXSTO
         if self.stragg is None:
-            self.stragg = []
+            self.stragg = [0.0] * constants.MAXSTO
 
 
 @dataclass
@@ -324,7 +326,9 @@ class Target_layer:
 
     def __post_init__(self):
         if self.atom is None:
-            self.atom = []
+            self.atom = [0] * constants.MAXATOMS
+        if self.N is None:
+            self.N = [] * constants.MAXATOMS
 
 @dataclass
 class Plane:
@@ -342,7 +346,7 @@ class Target:
     nlayers: int = 0  # Total number of target layers
     ntarget: int = 0  # Number of the layers in the target itself
     natoms: int = 0  # Total number of atoms in different target layers
-    recdist: Point2 = None  # Recoil material distribution in the target  # len NRECDIST
+    recdist: List[Point2] = None  # Recoil material distribution in the target  # len NRECDIST
     nrecdist: int = 0  # Number of points in recoil material distribution
     effrecd: float = 0.0  # Effective thickness of recoil material (nonzero values)
     recmaxd: float = 0.0  # Maximum depth of the recoiling material
@@ -357,21 +361,21 @@ class Target:
 
     def __post_init__(self):
         if self.ele is None:
-            self.ele = []
+            self.ele = [Target_ele() for _ in range(constants.MAXELEMENTS)]
         if self.layer is None:
-            self.layer = []
+            self.layer = [Target_layer() for _ in range(constants.MAXLAYERS)]
         if self.recdist is None:
-            self.recdist = Point2()
+            self.recdist = [Point2() for _ in range(constants.NRECDIST)]
         if self.plane is None:
             self.plane = Plane()
         if self.efin is None:
-            self.efin = []
+            self.efin = [0.0] * constants.NRECDIST
         if self.recpar is None:
-            self.recpar = []
+            self.recpar = [Point2() for _ in range(constants.MAXLAYERS)]
         if self.surface is None:
             self.surface = Surface()
         if self.cross is None:
-            self.cross = []
+            self.cross = [[0.0] * constants.NSANGLE for _ in range(constants.NSENE)]
 
 
 @dataclass
@@ -409,7 +413,7 @@ class Det_foil:
 
     def __post_init__(self):
         if self.size is None:
-            self.size = []
+            self.size = [0.0] * 2
 
 
 @dataclass
@@ -428,12 +432,12 @@ class Detector:
 
     def __post_init__(self):
         if self.vsize is None:
-            self.vsize = []
+            self.vsize = [0.0] * 2
         if self.tdet is None:
-            self.tdet = []
+            self.tdet = [0] * 2
         if self.edet is None:
-            self.edet = []
+            self.edet = [0] * constants.MAXLAYERS
         if self.foil is None:
-            self.foil = []
+            self.foil = [Det_foil() for _ in range(constants.MAXFOILS)]
         if self.vfoil is None:
             self.vfoil = Det_foil()
