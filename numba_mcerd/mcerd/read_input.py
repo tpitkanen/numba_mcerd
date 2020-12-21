@@ -318,34 +318,6 @@ def split_element_string(element_string: str) -> (Optional[int], str):
     return mass_number, symbol
 
 
-# TODO: This requires converting to float -> remove?
-def get_int(line: str) -> (int, str):
-    """Extract an integer from the beginning of the line.
-
-    Whitespace around the number is ignored.
-
-    Supported features:
-    - scientific notation
-    - sign
-
-    Args:
-        line:
-
-    Returns:
-        Extracted number and the rest of the line
-    """
-    _, number, rest = re.split(
-        r"^\s*("               # whitespace, begin capture group
-        r"[+-]?"              # sign
-        r"\d+"                # number(s) around comma, or bare integer
-        r"(?:[eE][+-]?\d+)?"  # scientific notation
-        r")\s*",              # end capture group, whitespace
-        line,
-        maxsplit=1)
-    # Scientific notation is treated as a float in Python, so it has to be converted to float first
-    return int(float(number)), rest
-
-
 def get_float(line: str) -> (float, str):
     """Extract a float from the beginning of the line.
 
