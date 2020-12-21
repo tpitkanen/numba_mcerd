@@ -328,7 +328,7 @@ class Target_layer:
         if self.atom is None:
             self.atom = [0] * constants.MAXATOMS
         if self.N is None:
-            self.N = [] * constants.MAXATOMS
+            self.N = [0.0] * constants.MAXATOMS
 
 @dataclass
 class Plane:

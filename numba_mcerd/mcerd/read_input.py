@@ -12,6 +12,7 @@ import numba_mcerd.mcerd.symbols as s
 
 
 # Constants etc. from read_input.h
+from numba_mcerd.mcerd import read_target
 
 MAXUNITSTRING = 20
 MAXLEN = 200
@@ -184,11 +185,12 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
             logging.info(f"Beam ion: {ion.Z=}, M={ion.A / c.C_U}")
         elif key == SettingsLine.I_ENERGY.value:
             number, value = get_float(value)
-            unit_value, _ = get_unit_value(value, c.C_MEV)
+            unit_value, value = get_unit_value(value, c.C_MEV)
             g.E0 = number * unit_value
             g.ionemax = 1.01 * g.E0
         elif key == SettingsLine.I_TARGET.value:
-            raise NotImplementedError
+            logging.info("Reading target file")
+            read_target.read_target_file(value, g, target)
         elif key == SettingsLine.I_DETECTOR.value:
             raise NotImplementedError
         elif key == SettingsLine.I_RECOIL.value:
@@ -373,3 +375,16 @@ def get_unit_value(line: str, default: float) -> (float, str):
         raise ReadInputError(f"Could not find value for unit '{unit}'")
 
     return unit_value, line
+
+
+# TODO: Use this in get_float?
+def get_word(line: str) -> (str, str):
+    pieces = line.lstrip().split(maxsplit=1)
+    if len(pieces) == 0:
+        raise ReadInputError("No words remaining")
+    elif len(pieces) == 1:
+        word, line = pieces[0], ""
+    else:
+        word, line = pieces
+
+    return word, line
