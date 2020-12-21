@@ -2,7 +2,9 @@ import unittest
 
 from numba_mcerd.mcerd import read_input
 
-# TODO: Make more tests
+# TODO:
+# class TestReadInput(unittest.TestCase): pass
+# class TestSetIon(unittest.TestCase): pass
 
 class TestGetFloat(unittest.TestCase):
     def test_valid_input(self):

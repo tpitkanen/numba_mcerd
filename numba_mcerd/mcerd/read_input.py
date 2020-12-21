@@ -146,7 +146,7 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
     # char buf[MAXLEN], *c, *word;
     lines = None
     number = 0.0
-    unit = 0.0
+    unit_value = 0.0
     rec_dist_unit = 0.0
     M = 0.0
     # int i, j, rinput[NINPUT], n;  # rinput unused
@@ -179,7 +179,7 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
                 raise ValueError(f"No such type for simulation: '{value}'")
             # (Ions are already initialized)
         elif key == SettingsLine.I_ION.value:
-            get_ion(g.jibal, value, ion)
+            set_ion(g.jibal, value, ion)
             ion.type = c.IonType.PRIMARY
             logging.info(f"Beam ion: {ion.Z=}, M={ion.A / c.C_U}")
         elif key == SettingsLine.I_ENERGY.value:
@@ -254,10 +254,16 @@ def get_atom():
     raise NotImplementedError
 
 
-def get_ion(jibal: o.Jibal, line: str, ion: o.Ion) -> None:
-    symbol = None
-    A = None
-    found = False
+def set_ion(jibal: o.Jibal, line: str, ion: o.Ion) -> None:
+    """Set an ion's value to specific isotope or element.
+
+    Whitespace is ignored.
+
+    Args:
+        jibal: container for element information
+        line: line to extract element information from
+        ion: ion to edit
+    """
     n = 0
     number = 0.0
     Amax = -1.0
