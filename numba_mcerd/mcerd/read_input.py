@@ -183,7 +183,10 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
             ion.type = c.IonType.PRIMARY
             logging.info(f"Beam ion: {ion.Z=}, M={ion.A / c.C_U}")
         elif key == SettingsLine.I_ENERGY.value:
-            raise NotImplementedError
+            number, value = get_float(value)
+            unit_value, _ = get_unit_value(value, c.C_MEV)
+            g.E0 = number * unit_value
+            g.ionemax = 1.01 * g.E0
         elif key == SettingsLine.I_TARGET.value:
             raise NotImplementedError
         elif key == SettingsLine.I_DETECTOR.value:
@@ -338,12 +341,29 @@ def get_float(line: str) -> (float, str):
     return float(number), rest
 
 
-# def get_string(): pass
-# def get_word(): pass
-# def get_number(): pass
-def get_unit_value():
-    raise NotImplementedError
+def get_unit_value(line: str, default: float) -> (float, str):
+    """Extract a unit from beginning of the line and get its value.
 
+    Whitespace is ignored.
 
-# def trim_space(): pass
-# def mc_isnumber(): pass
+    Args:
+        line: line to extract the unit from
+        default: default value for the unit if no unit is found in line
+
+    Returns:
+        Unit value and the rest of the line
+    """
+    pieces = line.lstrip().split(maxsplit=1)
+    if len(pieces) == 0:
+        return default, ""
+    elif len(pieces) == 1:
+        unit, line = pieces[0], ""
+    else:
+        unit, line = pieces
+
+    try:
+        unit_value = units[unit][0]
+    except KeyError:
+        raise ReadInputError(f"Could not find value for unit '{unit}'")
+
+    return unit_value, line
