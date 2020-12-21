@@ -259,9 +259,7 @@ def get_ion(jibal: o.Jibal, line: str, ion: o.Ion) -> None:
     number = 0.0
     Amax = -1.0
 
-    # TODO: 'A' was originally 'number' and a double
-    # A, symbol = split_element_string(line.strip())
-    A, symbol = split_element_string(line)
+    A, symbol = get_float(line)
     A = int(A)
 
     element = jibal.get_element_by_name(symbol)
@@ -296,26 +294,6 @@ def get_ion(jibal: o.Jibal, line: str, ion: o.Ion) -> None:
         logging.warning(f"Concentrations of element '{symbol}' sum up to {ion.I.c_sum * 100.0}% instead of 100%")
     if not found:
         raise ReadInputError(f"Isotope for '{line}' not found")
-
-
-def split_element_string(element_string: str) -> (Optional[int], str):
-    """Split element string into mass number and symbol.
-
-    Example: "35Cl" -> 35, "Cl"
-    """
-    # TODO: Add error checking
-    i = 0
-    for i in range(len(element_string)):
-        if not element_string[i].isdigit():
-            break
-    mass_number = element_string[:i].strip()
-    if mass_number:
-        mass_number = int(mass_number)
-    else:
-        mass_number = None
-
-    symbol = element_string[i:].strip()
-    return mass_number, symbol
 
 
 def get_float(line: str) -> (float, str):
