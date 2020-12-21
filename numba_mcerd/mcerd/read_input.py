@@ -1,5 +1,6 @@
 import copy
 import logging
+import re
 from array import array
 from enum import Enum
 from pathlib import Path
@@ -259,7 +260,9 @@ def get_ion(jibal: o.Jibal, line: str, ion: o.Ion) -> None:
     Amax = -1.0
 
     # TODO: 'A' was originally 'number' and a double
-    A, symbol = split_element_string(line.strip())
+    # A, symbol = split_element_string(line.strip())
+    A, symbol = split_element_string(line)
+    A = int(A)
 
     element = jibal.get_element_by_name(symbol)
     element = copy.deepcopy(element)  # TODO: Replace with real Jibal copying
@@ -313,6 +316,76 @@ def split_element_string(element_string: str) -> (Optional[int], str):
 
     symbol = element_string[i:].strip()
     return mass_number, symbol
+
+
+# TODO: This requires converting to float -> remove?
+def get_int(line: str) -> (int, str):
+    """Extract an integer from the beginning of the line.
+
+    Whitespace around the number is ignored.
+
+    Supported features:
+    - scientific notation
+    - sign
+
+    Args:
+        line:
+
+    Returns:
+        Extracted number and the rest of the line
+    """
+    _, number, rest = re.split(
+        r"^\s*("               # whitespace, begin capture group
+        r"[+-]?"              # sign
+        r"\d+"                # number(s) around comma, or bare integer
+        r"(?:[eE][+-]?\d+)?"  # scientific notation
+        r")\s*",              # end capture group, whitespace
+        line,
+        maxsplit=1)
+    # Scientific notation is treated as a float in Python, so it has to be converted to float first
+    return int(float(number)), rest
+
+
+def get_float(line: str) -> (float, str):
+    """Extract a float from the beginning of the line.
+
+    Whitespace around the number is ignored.
+
+    Supported features:
+    - leaving out a zero before or after a comma
+    - scientific notation
+    - sign
+
+    Examples:
+        35Cl
+        10.0 Mev
+        3.0 5.0 mm (first number)
+        1
+        1.1
+        -1.1
+        1e9
+        1.5e9
+        1.5e+9
+        1.5e-9
+        -1.5e-9
+        .1
+        1.
+
+    Args:
+        line: Line to extract the number from
+
+    Returns:
+        Extracted number and the rest of the line
+    """
+    _, number, rest = re.split(
+        r"^\s*("                                          # whitespace, begin capture group
+        r"[+-]?"                                         # sign
+        r"(?:(?:\d+\.\d+)|(?:\d+\.)|(?:\.\d+)|(?:\d+))"  # number(s) around comma, or bare integer
+        r"(?:[eE][+-]?\d+)?"                             # scientific notation
+        r")\s*",                                         # end capture group, whitespace
+        line,
+        maxsplit=1)
+    return float(number), rest
 
 
 # def get_string(): pass
