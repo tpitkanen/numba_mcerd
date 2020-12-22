@@ -11,7 +11,6 @@ class ReadTargetError(Exception):
     """Error while reading target file"""
 
 
-# TODO: Test this
 def read_target_file(filename: str, g: o.Global, target: o.Target) -> None:
     """Read target configuration from file
 
@@ -20,9 +19,9 @@ def read_target_file(filename: str, g: o.Global, target: o.Target) -> None:
         g: global object
         target: target to set
     """
-    con = [0.0] * c.MAXELEMENTS
-    atom = [0.0] * c.MAXELEMENTS
-    d = 0.0
+    concentrations = [0.0] * c.MAXELEMENTS  # Originally con
+    atoms = [0.0] * c.MAXELEMENTS  # Originally atom
+    depth = 0.0  # Originally n
 
     logging.info(f"Opening target file {filename}")
     fp = Path(filename).open("r")
@@ -55,15 +54,15 @@ def read_target_file(filename: str, g: o.Global, target: o.Target) -> None:
         layer.gas = False
 
         if line[0].isalpha():
-            raise NotImplementedError
+            raise NotImplementedError  # TODO
 
         if layer.type == c.TargetType.TARGET_FILM:
             number, line = read_input.get_float(line)
             unit, line = read_input.get_unit_value(line, c.C_NM)
             logging.info(f"thickness {number * unit / c.C_NM}")
-            layer.dlow = d
-            layer.dhigh = d + number * unit
-            d = layer.dhigh
+            layer.dlow = depth
+            layer.dhigh = depth + number * unit
+            depth = layer.dhigh
 
         line = fp.readline().strip()
         stofile, line = read_input.get_word(line)
@@ -89,28 +88,29 @@ def read_target_file(filename: str, g: o.Global, target: o.Target) -> None:
         logging.info(f"{'gaseous' if layer.gas else 'solid'}")
 
         i = 0
-        sumM = 0.0  # Mass
-        sumcon = 0.0  # Concentration
+        sum_mass = 0.0  # Mass  # Originally sumM
+        sum_concentration = 0.0  # Concentration  # Originally sumcon
         while line := fp.readline().strip():
-            atom[i], line = read_input.get_float(line)
-            con[i], line = read_input.get_float(line)
+            atoms[i], line = read_input.get_float(line)
+            concentrations[i], line = read_input.get_float(line)
             # TODO: This seems to be just rounding, but why is norigatom added?
-            j = int(atom[i] + norigatom + 0.5)
+            j = int(atoms[i] + norigatom + 0.5)
             layer.atom[i] = j
-            sumM += target.ele[j].A * con[i]
-            sumcon += con[i]
-            logging.info(f"Atom: {j} {atom[i]}, con: {con[i]} {target.ele[j].A / c.C_U}")
+            sum_mass += target.ele[j].A * concentrations[i]
+            sum_concentration += concentrations[i]
+            logging.info(
+                f"Atom: {j} {atoms[i]}, con: {concentrations[i]} {target.ele[j].A / c.C_U}")
             i += 1
 
-        sumM /= sumcon
+        sum_mass /= sum_concentration
         layer.natoms = i
-        sumN = density / sumM
-        layer.Ntot = sumN
-        logging.info(f"sumM: {sumM / c.C_U}, sumN: {sumN} {s.SYM_1_M3}")
+        sum_amount_of_substance = density / sum_mass  # Originally sumN
+        layer.Ntot = sum_amount_of_substance
+        logging.info(f"sumM: {sum_mass / c.C_U}, sumN: {sum_amount_of_substance} {s.SYM_1_M3}")
         for i in range(layer.natoms):
             natoms = layer.atom[i]
-            con[i] /= sumcon
-            layer.N[i] = con[i] * sumN
+            concentrations[i] /= sum_concentration
+            layer.N[i] = concentrations[i] * sum_amount_of_substance
             logging.info(
                 f"{target.ele[natoms].A / c.C_U} {target.ele[natoms].Z} {layer.N[i]} {s.SYM_1_M3}")
         nlayer += 1
