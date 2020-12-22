@@ -183,9 +183,9 @@ MAXSTOFILEPREFIXLEN = 200
 
 class DetectorType(Enum):
     """Detector type"""
-    DET_TOF = 1
-    DET_GAS = 2
-    DET_FOIL = 3
+    TOF = 1     # Originally DET_TOF
+    GAS = 2     # Originally DET_GAS
+    FOIL = 3    # Originally DET_FOIL
 
 
 MAXFOILS = 10  # Maximum number of foils in detector
@@ -193,8 +193,8 @@ MAXFOILS = 10  # Maximum number of foils in detector
 
 class FoilType(Enum):
     """Foil type/shape"""
-    FOIL_CIRC = 0
-    FOIL_RECT = 1
+    CIRC = 0   # Originally FOIL_CIRC
+    RECT = 1   # Originally FOIL_RECT
 
 
 ################################################################################

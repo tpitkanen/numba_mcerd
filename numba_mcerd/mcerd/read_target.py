@@ -11,6 +11,7 @@ class ReadTargetError(Exception):
     """Error while reading target file"""
 
 
+# Called from two locations
 def read_target_file(filename: str, g: o.Global, target: o.Target) -> None:
     """Read target configuration from file
 
@@ -27,7 +28,7 @@ def read_target_file(filename: str, g: o.Global, target: o.Target) -> None:
     fp = Path(filename).open("r")
 
     natoms = norigatom = target.natoms
-    nlayer = noriglayer = target.nlayers  # TODO: Why is noriglayer unused?
+    nlayer = noriglayer = target.nlayers
 
     # TODO: This is Python 3.8 only, maybe replace it with a non-walrus version
     #       for Python 3.7 compatibility

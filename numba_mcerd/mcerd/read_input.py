@@ -4,7 +4,7 @@ import re
 from array import array
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Generator
 
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
@@ -12,7 +12,7 @@ import numba_mcerd.mcerd.symbols as s
 
 
 # Constants etc. from read_input.h
-from numba_mcerd.mcerd import read_target
+from numba_mcerd.mcerd import read_target, read_detector
 
 MAXUNITSTRING = 20
 MAXLEN = 200
@@ -164,6 +164,8 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
     keys = []
     values = []
     for line in lines:
+        if not line or line.isspace():
+            continue
         key, value = line.split(sep=":", maxsplit=1)
         keys.append(key.strip() + ":")
         values.append(value.strip())
@@ -192,7 +194,8 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
             logging.info("Reading target file")
             read_target.read_target_file(value, g, target)
         elif key == SettingsLine.I_DETECTOR.value:
-            raise NotImplementedError
+            logging.info("Reading detector file")
+            read_detector.read_detector_file(value, g, detector, target)
         elif key == SettingsLine.I_RECOIL.value:
             raise NotImplementedError
         elif key == SettingsLine.I_RECDIST.value:
