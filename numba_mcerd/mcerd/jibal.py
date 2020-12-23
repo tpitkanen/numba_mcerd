@@ -154,7 +154,7 @@ class Jibal:
             A = int(A)
             N = A - Z
             abundance = float(abundance)
-            if (isotope := self.get_isotope_by_mass_number(Z, N)) is None:
+            if (isotope := self.get_isotope_by_neutron_number(Z, N)) is None:
                 raise JibalError(f"Tried to add abundance for missing isotope: '{Z=}, {N=}, {A=}'")
             isotope.abundance = abundance
 
