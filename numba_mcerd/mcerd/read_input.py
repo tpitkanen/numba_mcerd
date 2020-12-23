@@ -321,8 +321,7 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
         g.cpresimu = 0
         g.simstage = c.SimStage.PRESIMULATION
 
-        # TODO: Create an list of Presimus
-        raise NotImplementedError
+        g.presimu = [o.Presimu() for _ in range(g.npresimu)]
     else:
         g.simstage = c.SimStage.REALSIMULATION
 

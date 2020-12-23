@@ -72,7 +72,7 @@ class Global:
     nscale: int = 0  # Number of simulated ions per scaling ions
     nrecave: int = 0  # Average number of recoils per primary ion
     cpresimu: int = 0  # Counter of simulated ions the the presimulation
-    presimu: Presimu = None  # Data structure for the presimulation
+    presimu: List[Presimu] = None  # Data structure for the presimulation
     predata: int = 0  # Presimulation data given in a file
     master: Master = None  # Data structure for the MPI-master
     frecmin: float = 0.0
@@ -97,8 +97,8 @@ class Global:
     def __post_init__(self):
         if self.bspot is None:
             self.bspot = Point2()
-        if self.presimu is None:
-            self.presimu = Presimu()
+        # if self.presimu is None:  # Variable size, too big to initialize beforehand
+        #     self.presimu = None
         if self.master is None:
             self.master = Master()
         if self.finstat is None:
