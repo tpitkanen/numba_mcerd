@@ -31,9 +31,9 @@ def main(args):
     logging.debug("Initializing variables")
 
     g = o.Global()
-    ion = o.Ion()  # TODO: are these ions pointers or separate objects?
+    ion = o.Ion()
     cur_ion = o.Ion()
-    previous_trackpoint_ion = o.Ion()  # TODO: Delete this if not RBS
+    previous_trackpoint_ion = o.Ion()  # Not used unless simulation is RBS
     ions_moving = []  # TODO: Initialize a list of ions?
     target = o.Target()
     scat = []  # TODO: Initialize a matrix of scatterings?
@@ -64,7 +64,10 @@ def main(args):
     logging.info("Initializing input files")
     read_input.read_input(g, ion, cur_ion, previous_trackpoint_ion, target, detector)
 
+    init_params.init_io(g, ion, target)
+
     # TODO
+    pass
 
 
 if __name__ == '__main__':

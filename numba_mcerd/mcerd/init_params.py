@@ -1,4 +1,5 @@
 import math
+from pathlib import Path
 from typing import List
 
 import numba_mcerd.mcerd.constants as c
@@ -7,6 +8,7 @@ import numba_mcerd.mcerd.objects as o
 
 # Called once in preprocessing
 def init_params(g: o.Global, target: o.Target, argv: List[str]) -> None:
+    """Initialize general parameters"""
     g.master.args = argv
     g.ionemax = -1.0
     g.emin = 10 * c.C_KEV
@@ -49,5 +51,14 @@ def init_recoiling_angle(g: o.Global, ion: o.Ion, target: o.Target, detector: o.
 
 # Called once in preprocessing
 def init_io(g: o.Global, ion: o.Ion, target: o.Target) -> None:
-    raise NotImplementedError
+    """Initialize paths for I/O"""
+    # TODO: Set these to data/out/
+    #       Check that these paths can be opened
+    g.basename = f"{g.master.args[1]}.{g.seed}"
 
+    g.master.fpout = Path(g.basename + ".out")
+    g.master.fpdat = Path(g.basename + ".dat")
+    # g.master.fpdebug  # Skipped
+    g.master.fperd = Path(g.basename + ".erd")
+    g.master.fprange = Path(g.basename + ".range")
+    g.master.fptrack = Path(g.basename + ".track")

@@ -37,15 +37,15 @@ class Presimu:
 @dataclass
 class Master:
     args: List[str] = None  # Command line arguments
-    data_file: Path = None  # fdata[NFILE]
-    erd_out: Path = None  # ERD output
-    data_out: Path = None
-    range_out: Path = None
-    track_out: Path = None
+    fdata: Path = None  # fdata[NFILE]
+    fpout: Path = None
+    fpdebug: Path = None  # Not sure if this should be a Path or even needed
+    fpdat: Path = None
+    fperd: Path = None
+    fprange: Path = None
+    fptrack: Path = None
     # Not needed:
     # argc
-    # fpout?
-    # fpdebug
 
     def __post_init__(self):
         if self.args is None:

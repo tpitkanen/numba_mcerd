@@ -242,6 +242,7 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
         elif key == SettingsLine.I_SEED.value:
             seed, _ = get_float(value)
             seed = int(seed)
+            g.seed = seed
             random.seed_rnd(seed)  # numba_mcerd.mcerd.random
         elif key == SettingsLine.I_RECWIDTH.value:
             width, _ = get_word(value)
