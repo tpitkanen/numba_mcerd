@@ -63,17 +63,6 @@ class JibalElement:
         N = A - self.Z
         return self.get_isotope_by_neutron_number(N)
 
-    def update_avg_mass(self) -> None:
-        """Calculate average mass weighted by abundance"""
-        self.avg_mass = sum(iso.mass * iso.abundance for iso in self.isotopes)
-
-    def normalize(self) -> None:
-        """Calculate new concentrations and update average mass"""
-        if (concentration_sum := sum(self.concs)) == 0.0:
-            raise JibalError(f"No concentrations found for element '{self.Z=}'")
-        self.concs = [conc * concentration_sum for conc in self.concs]
-        self.update_avg_mass()
-
     def add_isotope(self, isotope: JibalIsotope) -> None:
         """Add an isotope to element"""
         self.isotopes.append(isotope)
@@ -117,12 +106,14 @@ class Jibal:
         N = A - Z
         return self.get_isotope_by_neutron_number(Z, N)
 
-    def add_isotope(self, isotope: JibalIsotope) -> None:
-        """Add isotope to its parent element. The parent element is
+    def create_isotope(self, name: str, N: int, Z: int, A: int, mass: float) -> None:
+        """Create and add isotope to its parent element. The parent element is
         created first if it doesn't exist yet."""
-        if (element := self.get_element(isotope.Z)) is None:
-            element = JibalElement(name=isotope.name, Z=isotope.Z)
+        if (element := self.get_element(Z)) is None:
+            element = JibalElement(name=name, Z=Z)
             self.add_element(element)
+        isotope_name = str(A) + name  # e.g. 4He
+        isotope = JibalIsotope(name=isotope_name, N=N, Z=Z, A=A, mass=mass)
         element.add_isotope(isotope)
 
     def load_elements(self, masses_file: str = MASSES_FILE) -> None:
@@ -138,8 +129,7 @@ class Jibal:
             Z = int(Z)
             A = int(A)
             mass = float(mass)
-            isotope = JibalIsotope(name=name, N=N, Z=Z, A=A, mass=mass)
-            self.add_isotope(isotope)
+            self.create_isotope(name=name, N=N, Z=Z, A=A, mass=mass)
 
     def load_abundances(self, abundances_file: str = ABUNDANCES_FILE) -> None:
         """Load abundances for elements from abundances_file"""
@@ -161,7 +151,7 @@ class Jibal:
     def update_avg_masses(self) -> None:
         """Updates avg_mass for each element. Elements and abundances must be loaded."""
         for element in self.elements:
-            element.update_avg_mass()
+            element.avg_mass = sum(iso.mass * iso.abundance for iso in element.isotopes)
 
     # This could be a method for specific elements
     # Originally jibal_element_copy
@@ -188,22 +178,29 @@ class Jibal:
         # Copy element and calculate concentrations
         copied_element = JibalElement(name=element.name, Z=element.Z)
         if A == JibalSelectIsotopes.ALL.value:
+            copied_element.name = element.name
             copied_element.isotopes = element.isotopes
             copied_element.concs = [iso.abundance for iso in element.isotopes]
         elif A == JibalSelectIsotopes.NATURAL.value:
+            copied_element.name = "nat" + copied_element.name
             natural_isotopes = [
                 iso for iso in element.isotopes if iso.abundance >= ABUNDANCE_THRESHOLD]
-            copied_element.name = "nat" + copied_element.name
             copied_element.isotopes = natural_isotopes
             copied_element.concs = [iso.abundance for iso in natural_isotopes]
         else:  # Specific isotope
             target_isotope = element.get_isotope_by_mass_number(A)
+            copied_element.name = target_isotope.name
             copied_element.isotopes = [target_isotope]
-            copied_element.concs = 1.0
+            copied_element.concs = [1.0]
 
         # Isotope count check shouldn't be needed, but it exists in the original code
 
-        copied_element.normalize()
+        # Normalize element
+        if (conc_sum := sum(copied_element.concs)) == 0.0:
+            raise JibalError(f"No concentrations found for element '{copied_element.Z=}'")
+        for i in range(len(copied_element.concs)):
+            copied_element.concs[i] = copied_element.concs[i] / conc_sum
+            copied_element.avg_mass += copied_element.concs[i] * copied_element.isotopes[i].mass
 
         return copied_element
 
