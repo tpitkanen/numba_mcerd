@@ -1,6 +1,5 @@
 import logging
 import re
-from array import array
 from enum import Enum
 from pathlib import Path
 
@@ -125,11 +124,10 @@ units = {
 
 class Fvalue:
     """Class for containing pre-simulation values"""
-    # TODO: Max size is c.N_INPUT
     def __init__(self):
-        self.a = array("d")
-        self.b = array("d")
-        self.c = array("d")
+        self.a = []
+        self.b = []
+        self.c = []
 
 
 class ReadInputError(Exception):
@@ -204,7 +202,22 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
             if cur_ion.I.n > 0:
                 logging.info(f"Most abundant isotope: {cur_ion.I.Am / c.C_U}")
         elif key == SettingsLine.I_RECDIST.value:
-            raise NotImplementedError
+            filename, line = get_word(value)
+            fval, n = read_file(filename, columns=2)
+            if n < 2:
+                raise ReadInputError("Too few points in the recoiling material distribution")
+            if fval.a[0] < 0.0:
+                raise ReadInputError("Recoil distribution can not start from a negative depth")
+            rec_dist_unit = c.C_NM
+            target.recmaxd = fval.a[-1] * rec_dist_unit
+            target.effrecd = 0.0
+            for i in range(n):
+                target.recdist[i].x = fval.a[i] * rec_dist_unit
+                target.recdist[i].y = fval.b[i] * rec_dist_unit
+                if i > 0 and (target.recdist[-1].y > 0.0 or target.recdist[i].y > 0.0):
+                    target.effrecd += target.recdist[i].x - target.recdist[-i].x
+            target.nrecdist = n
+            # del fval
         elif key == SettingsLine.I_TANGLE.value:
             raise NotImplementedError
         elif key == SettingsLine.I_SPOTSIZE.value:
@@ -256,8 +269,40 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
     raise NotImplementedError
 
 
-def read_file():
-    raise NotImplementedError
+def read_file(filename: str, columns: int) -> (Fvalue, int):
+    """Read file into an Fvalue object
+
+    Args:
+        filename: file to read
+        columns: number of columns in file
+
+    Returns:
+        Fvalue object and number of lines read
+    """
+    fp = Path(filename).open("r")
+    fv = Fvalue()
+
+    i = 0
+    while line := fp.readline().strip():
+        if columns == 1:
+            # fv.a[i] = float(line)
+            fv.a.append(float(line))
+        elif columns == 2:
+            a, b = line.split()
+            fv.a.append(float(a))
+            fv.b.append(float(b))
+        elif columns == 3:
+            a, b, _c = line.split()
+            fv.a.append(float(a))
+            fv.b.append(float(b))
+            fv.c.append(float(_c))
+        else:
+            raise ReadInputError(f"Unsupported amount of columns: {columns}")
+        i += 1
+
+    fp.close()
+
+    return fv, i
 
 
 def get_atom():
@@ -390,6 +435,16 @@ def get_unit_value(line: str, default: float) -> (float, str):
 
 # TODO: Use this in get_float?
 def get_word(line: str) -> (str, str):
+    """Extract a word from the beginning of the line.
+
+    Whitespace is ignored.
+
+    Args:
+        line: Line to extract from
+
+    Returns:
+        Extracted word and the rest of the line
+    """
     pieces = line.lstrip().split(maxsplit=1)
     if len(pieces) == 0:
         raise ReadInputError("No words remaining")
