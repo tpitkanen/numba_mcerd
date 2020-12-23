@@ -1,10 +1,8 @@
-import copy
 import logging
 import re
 from array import array
 from enum import Enum
 from pathlib import Path
-from typing import Optional, List, Generator
 
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
@@ -13,6 +11,7 @@ import numba_mcerd.mcerd.symbols as s
 
 # Constants etc. from read_input.h
 from numba_mcerd.mcerd import read_target, read_detector
+from numba_mcerd.mcerd.jibal import JibalSelectIsotopes
 
 MAXUNITSTRING = 20
 MAXLEN = 200
@@ -197,7 +196,13 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
             logging.info("Reading detector file")
             read_detector.read_detector_file(value, g, detector, target)
         elif key == SettingsLine.I_RECOIL.value:
-            raise NotImplementedError
+            set_ion(g.jibal, value, cur_ion)
+            cur_ion.type = c.IonType.SECONDARY
+            logging.info(f"Recoil atom Z={cur_ion.Z}, M={cur_ion.A / c.C_U}")
+            logging.info(
+                f"Recoil atom isotopes: {[f'{cur_ion.I.A[i]} {cur_ion.I.c[i]}%' for i in range(cur_ion.I.n)]}")
+            if cur_ion.I.n > 0:
+                logging.info(f"Most abundant isotope: {cur_ion.I.Am / c.C_U}")
         elif key == SettingsLine.I_RECDIST.value:
             raise NotImplementedError
         elif key == SettingsLine.I_TANGLE.value:
@@ -273,11 +278,15 @@ def set_ion(jibal: o.Jibal, line: str, ion: o.Ion) -> None:
     number = 0.0
     Amax = -1.0
 
-    A, symbol = get_float(line)
-    A = int(A)
+    if line[0].isnumeric():
+        A, symbol = get_float(line)
+        A = int(A)
+    else:
+        A = None
+        symbol, _ = get_word(line)
 
-    element = jibal.get_element_by_name(symbol)
-    element = copy.deepcopy(element)  # TODO: Replace with real Jibal copying
+    element = jibal.copy_normalized_element(
+        jibal.get_element_by_name(symbol), JibalSelectIsotopes.NATURAL.value)
 
     if element is None:
         raise ReadInputError(f"Element '{symbol}' not found")
@@ -285,23 +294,22 @@ def set_ion(jibal: o.Jibal, line: str, ion: o.Ion) -> None:
     ion.Z = element.Z
 
     if A is not None:
+        # FIXME: add 'mass == isotope.A' check, move this to loop
         isotope = element.get_isotope_by_mass_number(A)
         ion.A = isotope.mass
         ion.I.c_sum = 1.0
         found = True
     else:
-        raise NotImplementedError
-        # for isotope in element.isotopes.values():
-        #     found = True
-        #     ion.I.A.append(isotope.mass)
-        #     # TODO: Get the real concentrations
-        #     # ion.I.c.append(conc
-        #     # ion.I.c_sum += conc
-        #     if isotope.abundance > Amax:
-        #         Amax = isotope.abundance
-        #         ion.I.Am = isotope.mass
-        #         ion.A = isotope.mass  # TODO: This seems to be far too big (see log message)
-        #     n += 1
+        found = True
+        for n, isotope in enumerate(element.isotopes):
+            concentration = element.concs[n]
+            ion.I.A[n] = isotope.mass
+            ion.I.c[n] = concentration
+            ion.I.c_sum += concentration
+            if isotope.abundance > Amax:
+                Amax = isotope.abundance
+                ion.I.Am = isotope.mass
+                ion.A = isotope.mass
 
     ion.I.n = n
     if n and ion.I.c_sum != 0.0:
