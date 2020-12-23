@@ -136,9 +136,9 @@ class ReadInputError(Exception):
     """Error while reading input"""
 
 
-# TODO: ion is actually an array of ions in this and 2 other functions
-def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion: o.Ion,
+def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_ion: o.Ion,
                target: o.Target, detector: o.Detector) -> None:
+    """Read settings from the file location specified in g.master.args[1]"""
     if len(g.master.args) <= 1:
         raise ReadInputError("No command file given")
     fp = Path(g.master.args[1])
@@ -173,9 +173,9 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
                 raise ValueError(f"No such type for simulation: '{value}'")
             # (Ions are already initialized)
         elif key == SettingsLine.I_ION.value:
-            set_ion(g.jibal, value, ion)
-            ion.type = c.IonType.PRIMARY
-            logging.info(f"Beam ion: {ion.Z=}, M={ion.A / c.C_U}")
+            set_ion(g.jibal, value, primary_ion)
+            primary_ion.type = c.IonType.PRIMARY
+            logging.info(f"Beam ion: {primary_ion.Z=}, M={primary_ion.A / c.C_U}")
         elif key == SettingsLine.I_ENERGY.value:
             number, value = get_float(value)
             unit_value, value = get_unit_value(value, c.C_MEV)
@@ -188,13 +188,13 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
             logging.info("Reading detector file")
             read_detector.read_detector_file(value, g, detector, target)
         elif key == SettingsLine.I_RECOIL.value:
-            set_ion(g.jibal, value, cur_ion)
-            cur_ion.type = c.IonType.SECONDARY
-            logging.info(f"Recoil atom Z={cur_ion.Z}, M={cur_ion.A / c.C_U}")
+            set_ion(g.jibal, value, secondary_ion)
+            secondary_ion.type = c.IonType.SECONDARY
+            logging.info(f"Recoil atom Z={secondary_ion.Z}, M={secondary_ion.A / c.C_U}")
             logging.info(
-                f"Recoil atom isotopes: {[f'{cur_ion.I.A[i]} {cur_ion.I.c[i]}%' for i in range(cur_ion.I.n)]}")
-            if cur_ion.I.n > 0:
-                logging.info(f"Most abundant isotope: {cur_ion.I.Am / c.C_U}")
+                f"Recoil atom isotopes: {[f'{secondary_ion.I.A[i]} {secondary_ion.I.c[i]}%' for i in range(secondary_ion.I.n)]}")
+            if secondary_ion.I.n > 0:
+                logging.info(f"Most abundant isotope: {secondary_ion.I.Am / c.C_U}")
         elif key == SettingsLine.I_RECDIST.value:
             filename, line = get_word(value)
             fval, n = read_file(filename, columns=2)
@@ -340,16 +340,16 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
 
     g.nsimu += g.npresimu
 
-    M = 4.0 * ion.A * cur_ion.A / (ion.A + cur_ion.A)**2
+    M = 4.0 * primary_ion.A * secondary_ion.A / (primary_ion.A + secondary_ion.A) ** 2
 
     if g.simtype == c.SimType.SIM_ERD:
         g.costhetamax = math.sqrt(g.emin / g.E0 * M)
         g.costhetamin = 1.0
     elif g.simtype == c.SimType.SIM_RBS:
-        if ion.A <= cur_ion.A:
+        if primary_ion.A <= secondary_ion.A:
             g.costhetamax = -1.0
         else:
-            g.costhetamax = math.sqrt(1.0 - (cur_ion.A / ion.A)**2)
+            g.costhetamax = math.sqrt(1.0 - (secondary_ion.A / primary_ion.A) ** 2)
 
 
 def read_file(filename: str, columns: int) -> (Fvalue, int):
