@@ -10,7 +10,7 @@ import numba_mcerd.mcerd.symbols as s
 
 
 # Constants etc. from read_input.h
-from numba_mcerd.mcerd import read_target, read_detector, random
+from numba_mcerd.mcerd import read_target, read_detector, init_detector, random
 from numba_mcerd.mcerd.jibal import JibalSelectIsotopes
 
 MAXUNITSTRING = 20
@@ -297,8 +297,60 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
         else:
             raise NotImplementedError
 
-    # TODO
-    raise NotImplementedError
+    p1, p2, p3 = o.Point(), o.Point(), o.Point()
+
+    p2.y = 1.0
+    p3.x = math.sin(c.C_PI / 2.0 - g.beamangle)
+    p3.z = math.cos(c.C_PI / 2.0 - g.beamangle)
+
+    target.plane = init_detector.get_plane_params(p1, p2, p3)
+
+    if g.recwidth == c.RecWidth.REC_WIDE and g.npresimu > 0:
+        g.presimu = 0
+        logging.warning("Presimulation not needed with wide recoil angle scheme")
+
+    if g.recwidth == c.RecWidth.REC_WIDE:
+        g.predata = False
+
+    if g.predata:
+        g.presimu = 0
+    elif g.npresimu == 0 and g.recwidth == c.RecWidth.REC_NARROW:
+        raise ReadInputError("No precalculated recoiling data in the narrow recoiling scheme")
+
+    if g.npresimu > 0:
+        g.cpresimu = 0
+        g.simstage = c.SimStage.PRESIMULATION
+
+        # TODO: Create an list of Presimus
+        raise NotImplementedError
+    else:
+        g.simstage = c.SimStage.REALSIMULATION
+
+    target.ntarget = target.nlayers - detector.nfoils
+
+    if detector.type == c.DetectorType.TOF:
+        detector.tdet[0] += target.ntarget
+        detector.tdet[1] += target.ntarget
+        detector.edet[0] += target.ntarget
+
+    i = target.nlayers - 1
+    while i > target.ntarget:
+        target.layer[i].dlow = 0.0
+        target.layer[i].dhigh -= target.layer[i - 1].dhigh
+        i -= 1
+
+    g.nsimu += g.npresimu
+
+    M = 4.0 * ion.A * cur_ion.A / (ion.A + cur_ion.A)**2
+
+    if g.simtype == c.SimType.SIM_ERD:
+        g.costhetamax = math.sqrt(g.emin / g.E0 * M)
+        g.costhetamin = 1.0
+    elif g.simtype == c.SimType.SIM_RBS:
+        if ion.A <= cur_ion.A:
+            g.costhetamax = -1.0
+        else:
+            g.costhetamax = math.sqrt(1.0 - (cur_ion.A / ion.A)**2)
 
 
 def read_file(filename: str, columns: int) -> (Fvalue, int):
