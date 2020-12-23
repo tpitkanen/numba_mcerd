@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import List, Optional
 
@@ -7,19 +8,27 @@ from numba_mcerd import config
 
 MASSES_FILE = f"{config.PROJECT_ROOT}/data/constants/masses.dat"
 ABUNDANCES_FILE = f"{config.PROJECT_ROOT}/data/constants/abundances.dat"
+ABUNDANCE_THRESHOLD = 1e-6
 
 
 class JibalError(Exception):
     """Error in Jibal"""
 
 
+class JibalSelectIsotopes(Enum):
+    """Which isotopes to select. Positive isotopes are not listed."""
+    ALL = -1      # Originally JIBAL_ALL_ISOTOPES
+    NATURAL = 0  # Originally JIBAL_NAT_ISOTOPES
+    # Positive number is a specific isotope
+
+
 @dataclass
 class JibalIsotope:
     """Single isotope"""
     name: str = None
-    N: int = 0
-    Z: int = 0
-    A: int = 0  # A = Z + N
+    N: int = 0  # Neutrons
+    Z: int = 0  # Protons
+    A: int = 0  # Mass number, A = Z + N
     mass: float = 0.0
     abundance: float = 0.0
 
@@ -57,6 +66,13 @@ class JibalElement:
     def update_avg_mass(self) -> None:
         """Calculate average mass weighted by abundance"""
         self.avg_mass = sum(iso.mass * iso.abundance for iso in self.isotopes)
+
+    def normalize(self) -> None:
+        """Calculate new concentrations and update average mass"""
+        if (concentration_sum := sum(self.concs)) == 0.0:
+            raise JibalError(f"No concentrations found for element '{self.Z=}'")
+        self.concs = [conc * concentration_sum for conc in self.concs]
+        self.update_avg_mass()
 
     def add_isotope(self, isotope: JibalIsotope) -> None:
         """Add an isotope to element"""
@@ -147,9 +163,49 @@ class Jibal:
         for element in self.elements:
             element.update_avg_mass()
 
+    # This could be a method for specific elements
+    # Originally jibal_element_copy
+    @staticmethod
+    def copy_normalized_element(element: JibalElement, A: int) -> JibalElement:
+        # which_elements: JibalSelectIsotopes = JibalSelectIsotopes.SINGLE) -> JibalElement:
+        """Create a copy of element and calculate relative concentrations for it
 
-# TODO: Add methods that copy the element and calculate concentrations
-#       (JIBAL_NAT_ISOTOPES, JIBAL_ALL_ISOTOPES, default)
+        Args:
+            element: element to copy
+            # which_elements: which types of elements to include in concentration calculations
+            A: isotope to copy. All isotopes if -1, all natural isotopes if 0,
+                otherwise isotope with specific mass number
+
+        Returns:
+            Element with concentrations
+        """
+
+        if element is None:
+            raise JibalError("No element given")
+        if A < -1:
+            raise JibalError(f"Incorrect isotope include type: {A}")
+
+        # Copy element and calculate concentrations
+        copied_element = JibalElement(name=element.name, Z=element.Z)
+        if A == JibalSelectIsotopes.ALL.value:
+            copied_element.isotopes = element.isotopes
+            copied_element.concs = [iso.abundance for iso in element.isotopes]
+        elif A == JibalSelectIsotopes.NATURAL.value:
+            natural_isotopes = [
+                iso for iso in element.isotopes if iso.abundance >= ABUNDANCE_THRESHOLD]
+            copied_element.name = "nat" + copied_element.name
+            copied_element.isotopes = natural_isotopes
+            copied_element.concs = [iso.abundance for iso in natural_isotopes]
+        else:  # Specific isotope
+            target_isotope = element.get_isotope_by_mass_number(A)
+            copied_element.isotopes = [target_isotope]
+            copied_element.concs = 1.0
+
+        # Isotope count check shouldn't be needed, but it exists in the original code
+
+        copied_element.normalize()
+
+        return copied_element
 
 
 def main():
