@@ -12,12 +12,15 @@ class TestJibal(unittest.TestCase):
         self.assertEqual(119, len(jibal.elements))  # neutron + 118 elements
 
         He = jibal.get_element(2)
+        self.assertEqual(He, jibal.get_element_by_name("He"))
         self.assertEqual("He", He.name)
         self.assertEqual(2, He.Z)
         self.assertAlmostEqual(4.002601026852, He.avg_mass)
         self.assertEqual(8, len(He.isotopes))
 
         He3 = jibal.get_isotope_by_neutron_number(2, 1)
+        self.assertEqual(He3, jibal.get_isotope_by_mass_number(2, 3))
+        self.assertEqual(He3, He.get_isotope_by_mass_number(3))
         self.assertEqual("He", He3.name)
         self.assertEqual(2, He3.Z)
         self.assertEqual(1, He3.N)

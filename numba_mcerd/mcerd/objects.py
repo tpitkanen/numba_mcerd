@@ -91,7 +91,7 @@ class Global:
     output_misses: bool = False
     cascades: bool = False
     advanced_output: bool = False
-    jibal: Jibal = None  # TODO
+    jibal: Jibal = None
     nomc: bool = False
 
     def __post_init__(self):

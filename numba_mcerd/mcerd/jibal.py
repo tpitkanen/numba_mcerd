@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Dict, Optional
+from typing import List, Optional
 
 from numba_mcerd import config
 
@@ -24,6 +24,10 @@ class JibalIsotope:
     abundance: float = 0.0
 
 
+# TODO: Methods that add isotopes or elements don't overwrite previous ones anymore,
+#       make them overwrite again?
+
+
 # noinspection PyPep8Naming
 @dataclass
 class JibalElement:
@@ -31,21 +35,19 @@ class JibalElement:
     name: str = None
     Z: int = 0
     # n_isotopes: int = 0  # len(isotopes)
-    # isotopes: List[JibalIsotope] = None  # original idea
-    # concs: List[float] = None  # original idea
-    isotopes: Dict[int, JibalIsotope] = None
-    concs: Dict[int, float] = None  # Concentrations
+    isotopes: List[JibalIsotope] = None
+    concs: List[float] = None
     avg_mass: float = 0.0
 
     def __post_init__(self):
         if self.isotopes is None:
-            self.isotopes = {}
+            self.isotopes = []
         if self.concs is None:
-            self.concs = {}
+            self.concs = []
 
     def get_isotope_by_neutron_number(self, N: int) -> Optional[JibalIsotope]:
         """Get isotope by N (neutron number)"""
-        return self.isotopes.get(N, None)
+        return next((iso for iso in self.isotopes if iso.N == N), None)
 
     def get_isotope_by_mass_number(self, A: int) -> Optional[JibalIsotope]:
         """Get isotope by A (mass number)"""
@@ -54,22 +56,22 @@ class JibalElement:
 
     def update_avg_mass(self) -> None:
         """Calculate average mass weighted by abundance"""
-        self.avg_mass = sum(isotope.mass * isotope.abundance for isotope in self.isotopes.values())
+        self.avg_mass = sum(iso.mass * iso.abundance for iso in self.isotopes)
 
     def add_isotope(self, isotope: JibalIsotope) -> None:
         """Add an isotope to element"""
-        self.isotopes[isotope.N] = isotope
+        self.isotopes.append(isotope)
+        self.concs.append(0.0)
 
 
 # noinspection PyPep8Naming
 @dataclass
 class Jibal:
-    # elements: List[JibalElement] = None  # Original idea
-    elements: Dict[int, JibalElement] = None
+    elements: List[JibalElement] = None
 
     def __post_init__(self):
         if self.elements is None:
-            self.elements = {}
+            self.elements = []
 
     def initialize(self):
         self.load_elements()
@@ -78,19 +80,19 @@ class Jibal:
 
     def get_element(self, Z: int) -> Optional[JibalElement]:
         """Get element with specific Z (proton number)"""
-        return self.elements.get(Z, None)
+        return next((ele for ele in self.elements if ele.Z == Z), None)
 
     def get_element_by_name(self, name: str) -> Optional[JibalElement]:
         """Get element by name (e.g. 'Cl')"""
-        for element in self.elements.values():
-            if element.name == name:
-                return element
-        return None
+        return next((ele for ele in self.elements if ele.name == name), None)
+
+    def add_element(self, element: JibalElement) -> None:
+        """Add element to elements"""
+        self.elements.append(element)
 
     def get_isotope_by_neutron_number(self, Z, N) -> Optional[JibalIsotope]:
         """Get isotope with specific Z and N (proton number and neutron number)"""
-        element = self.get_element(Z)
-        if element is None:
+        if (element := self.get_element(Z)) is None:
             return None
         return element.get_isotope_by_neutron_number(N)
 
@@ -102,10 +104,9 @@ class Jibal:
     def add_isotope(self, isotope: JibalIsotope) -> None:
         """Add isotope to its parent element. The parent element is
         created first if it doesn't exist yet."""
-        element = self.get_element(isotope.Z)
-        if element is None:
+        if (element := self.get_element(isotope.Z)) is None:
             element = JibalElement(name=isotope.name, Z=isotope.Z)
-            self.elements[isotope.Z] = element
+            self.add_element(element)
         element.add_isotope(isotope)
 
     def load_elements(self, masses_file: str = MASSES_FILE) -> None:
@@ -137,14 +138,13 @@ class Jibal:
             A = int(A)
             N = A - Z
             abundance = float(abundance)
-            isotope = self.get_isotope_by_neutron_number(Z, N)
-            if isotope is None:
+            if (isotope := self.get_isotope_by_mass_number(Z, N)) is None:
                 raise JibalError(f"Tried to add abundance for missing isotope: '{Z=}, {N=}, {A=}'")
             isotope.abundance = abundance
 
     def update_avg_masses(self) -> None:
         """Updates avg_mass for each element. Elements and abundances must be loaded."""
-        for element in self.elements.values():
+        for element in self.elements:
             element.update_avg_mass()
 
 
