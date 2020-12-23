@@ -1,4 +1,5 @@
 import logging
+import math
 import re
 from enum import Enum
 from pathlib import Path
@@ -9,7 +10,7 @@ import numba_mcerd.mcerd.symbols as s
 
 
 # Constants etc. from read_input.h
-from numba_mcerd.mcerd import read_target, read_detector
+from numba_mcerd.mcerd import read_target, read_detector, random
 from numba_mcerd.mcerd.jibal import JibalSelectIsotopes
 
 MAXUNITSTRING = 20
@@ -51,7 +52,8 @@ class SettingsLine(Enum):
     I_NCASCADES = "Number of recoils in a cascade:"              # 26
     I_ADVANCED = "Advanced output:"                              # 27
     I_NOMC = "No multiple scattering:"                           # 28
-    # NINPUT = 29  # len(SettingsLine)
+    I_PREDATA_DISABLE = "Presimulation * result file:"           # 29, own addition
+    # NINPUT = 30  # len(SettingsLine)
 
 
 # Units with the following structure:
@@ -137,18 +139,6 @@ class ReadInputError(Exception):
 # TODO: ion is actually an array of ions in this and 2 other functions
 def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion: o.Ion,
                target: o.Target, detector: o.Detector) -> None:
-    # FILE *fp, *fout;
-    p1 = o.Point()
-    p2 = o.Point()
-    p3 = o.Point()
-    # char buf[MAXLEN], *c, *word;
-    lines = None
-    number = 0.0
-    unit_value = 0.0
-    rec_dist_unit = 0.0
-    M = 0.0
-    # int i, j, rinput[NINPUT], n;  # rinput unused
-
     if len(g.master.args) <= 1:
         raise ReadInputError("No command file given")
     fp = Path(g.master.args[1])
@@ -167,6 +157,10 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
         keys.append(key.strip() + ":")
         values.append(value.strip())
 
+    # TODO: Split these into separate functions to prevent variable reuse bugs,
+    #       rename value to line,
+    #       make sure that all mandatory settings are defined
+    #       mark untested lines
     for key, value in zip(keys, values):
         if key == SettingsLine.I_TYPE.value:
             if value == "ERD":
@@ -219,37 +213,73 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
             target.nrecdist = n
             # del fval
         elif key == SettingsLine.I_TANGLE.value:
-            raise NotImplementedError
+            beam_angle, line = get_float(value)
+            unit, _ = get_unit_value(line, c.C_DEG)
+            g.beamangle = c.C_PI / 2.0 - beam_angle * unit
         elif key == SettingsLine.I_SPOTSIZE.value:
-            raise NotImplementedError
+            x, line = get_float(value)
+            y, line = get_float(line)
+            unit, _ = get_unit_value(line, c.C_MM)
+            g.bspot.x = 0.5 * x * unit
+            g.bspot.y = 0.5 * y * unit
         elif key == SettingsLine.I_MINANGLE.value:
-            raise NotImplementedError
+            min_angle, line = get_float(value)
+            unit, _ = get_unit_value(line, c.C_DEG)
+            g.minangle = min_angle * unit
         elif key == SettingsLine.I_MINENERGY.value:
-            raise NotImplementedError
+            min_angle, line = get_float(value)
+            unit, _ = get_unit_value(line, c.C_DEG)
+            g.emin = min_angle * unit
         elif key == SettingsLine.I_NIONS.value:
-            raise NotImplementedError
+            nsimu, _ = get_float(value)
+            g.nsimu = int(nsimu)
         elif key == SettingsLine.I_NPREIONS.value:
-            raise NotImplementedError
+            npresimu, _ = get_float(value)
+            g.npresimu = int(npresimu)
         elif key == SettingsLine.I_RECAVE.value:
-            raise NotImplementedError
+            nrecave, _ = get_float(value)
+            g.nrecave = int(nrecave)
         elif key == SettingsLine.I_SEED.value:
-            raise NotImplementedError
+            seed, _ = get_float(value)
+            seed = int(seed)
+            random.seed_rnd(seed)  # numba_mcerd.mcerd.random
         elif key == SettingsLine.I_RECWIDTH.value:
-            raise NotImplementedError
+            width, _ = get_word(value)
+            if width.lower() == "wide":
+                g.recwidth = c.RecWidth.REC_WIDE
+            else:
+                g.recwidth = c.RecWidth.REC_NARROW
         elif key == SettingsLine.I_PREDATA.value:
-            raise NotImplementedError
+            # Note that this is commented out in settings file ('*' in
+            # the middle of the key)
+            predata_file, _ = get_word(value)
+            fval, n = read_file(predata_file, columns=2)
+            for i in range(n):
+                target.recpar[i].x = fval.a[i] * c.C_DEG / c.C_NM
+                target.recpar[i].y = fval.b[i] * c.C_DEG
+            # del fval
+            g.predata = True
         elif key == SettingsLine.I_MINSCAT.value:
-            raise NotImplementedError
+            min_scat, line = get_float(value)
+            unit, _ = get_unit_value(line, c.C_DEG)
+            g.beamdiv = math.cos(min_scat * unit)
         elif key == SettingsLine.I_BDIV.value:
-            raise NotImplementedError
+            beam_div, line = get_float(value)
+            unit, _ = get_unit_value(line, c.C_DEG)
+            g.beamdiv = math.cos(beam_div * unit)
         elif key == SettingsLine.I_BPROF.value:
-            raise NotImplementedError
+            beam_profile, _ = get_word(value)
+            if beam_profile.lower() == "flat":
+                g.beamprof = c.BeamProf.BEAM_FLAT
+            else:
+                g.beamprof = c.BeamProf.BEAM_GAUSS
         elif key == SettingsLine.I_SURFACE.value:
             raise NotImplementedError
         elif key == SettingsLine.I_SURFSIZE.value:
             raise NotImplementedError
         elif key == SettingsLine.I_NSCALE.value:
-            raise NotImplementedError
+            nscale, _ = get_float(value)
+            g.nscale = nscale
         elif key == SettingsLine.I_TRACKP.value:
             raise NotImplementedError
         elif key == SettingsLine.I_MISSES.value:
@@ -262,6 +292,8 @@ def read_input(g: o.Global, ion: o.Ion, cur_ion: o.Ion, previous_trackpoint_ion:
             raise NotImplementedError
         elif key == SettingsLine.I_NOMC.value:
             raise NotImplementedError
+        elif key == SettingsLine.I_PREDATA_DISABLE.value:
+            logging.info("Commented-out presimulation setting skipped")
         else:
             raise NotImplementedError
 
