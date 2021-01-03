@@ -1,7 +1,7 @@
 import logging
 
 from numba_mcerd import config
-from numba_mcerd.mcerd import random, init_params, read_input
+from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack
 import numba_mcerd.mcerd.objects as o
 
 
@@ -36,7 +36,7 @@ def main(args):
     previous_trackpoint_ion = o.Ion()  # Not used unless simulation is RBS
     ions_moving = []  # TODO: Initialize a list of ions?
     target = o.Target()
-    scat = []  # TODO: Initialize a matrix of scatterings?
+    scat = None
     snext = o.SNext()
     detector = o.Detector()
     pot = o.Potential()
@@ -64,7 +64,15 @@ def main(args):
     logging.info("Initializing input files")
     read_input.read_input(g, ion, cur_ion, previous_trackpoint_ion, target, detector)
 
+    logging.info("Initializing output files")
     init_params.init_io(g, ion, target)
+
+    # potential.make_screening_table(pot)
+
+    ion_stack.cascades_create_additional_ions(g, detector, target, [])
+    scat = [o.Scattering() for _ in range(g.nions)]
+
+    logging.info(f"{g.nions} ions, {target.natoms} target atoms")
 
     # TODO
     pass

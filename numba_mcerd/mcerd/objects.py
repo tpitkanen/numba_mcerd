@@ -233,11 +233,11 @@ class Cross_section:
 class Potential:
     n: int = 0
     d: int = 0
-    u: Point2 = None
+    u: List[Point2] = None
 
     def __post_init__(self):
         if self.u is None:
-            self.u = Point2()
+            self.u = []
 
 
 @dataclass
