@@ -209,6 +209,8 @@ class Ion:
             self.I = Isotopes()
         if self.p is None:
             self.p = Point()
+        if self.opt is None:
+            self.opt = Ion_opt()
         if self.lab is None:
             self.lab = Vector()
         if self.hist is None:

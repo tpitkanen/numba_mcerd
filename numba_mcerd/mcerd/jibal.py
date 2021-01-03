@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from numba_mcerd import config
+import numba_mcerd.mcerd.constants as c
 
 
 MASSES_FILE = f"{config.PROJECT_ROOT}/data/constants/masses.dat"
@@ -128,7 +129,7 @@ class Jibal:
             N = int(N)
             Z = int(Z)
             A = int(A)
-            mass = float(mass)
+            mass = float(mass) * c.C_U  # Probably not the best place to multiply
             self.create_isotope(name=name, N=N, Z=Z, A=A, mass=mass)
 
     def load_abundances(self, abundances_file: str = ABUNDANCES_FILE) -> None:

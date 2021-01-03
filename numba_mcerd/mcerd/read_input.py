@@ -441,7 +441,7 @@ def set_ion(jibal: o.Jibal, line: str, ion: o.Ion) -> None:
                 ion.A = isotope.mass
 
     ion.I.n = n
-    if n and ion.I.c_sum != 0.0:
+    if n and ion.I.c_sum != 1.0:
         logging.warning(f"Concentrations of element '{symbol}' sum up to {ion.I.c_sum * 100.0}% instead of 100%")
     if not found:
         raise ReadInputError(f"Isotope for '{line}' not found")
