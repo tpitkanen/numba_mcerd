@@ -1,7 +1,8 @@
 import logging
 
 from numba_mcerd import config
-from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack
+from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu
+import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 
 
@@ -64,6 +65,15 @@ def main(args):
     logging.info("Initializing input files")
     read_input.read_input(g, ion, cur_ion, previous_trackpoint_ion, target, detector)
 
+    # Package ions into an array. Ions are (sometimes) accessed in the
+    # original code like this
+    if g.nions == 2:
+        ions = [ion, cur_ion]
+    elif g.nions == 3:
+        ions = [ion, cur_ion, previous_trackpoint_ion]
+    else:
+        raise NotImplementedError
+
     logging.info("Initializing output files")
     init_params.init_io(g, ion, target)
 
@@ -73,6 +83,19 @@ def main(args):
     scat = [o.Scattering() for _ in range(g.nions)]
 
     logging.info(f"{g.nions} ions, {target.natoms} target atoms")
+
+    # (g.jibal.gsto.extrapolate = True)
+
+    scat = []
+    for i in range(g.nions):
+        if g.simtype == c.SimType.SIM_RBS and i == c.IonType.TARGET_ATOM.value:
+            continue
+        ions[i].scatindex = i
+        scat.append([o.Scattering() for _ in range(c.MAXELEMENTS)])
+        for j in range(target.natoms):
+            # logging.debug(f"Calculating scattering between ions ...")
+            init_simu.scattering_table(g, ions[i], target, scat[i][j], pot, j)
+            # cross_section.calc_cross_sections(g, scat[i][j], pot)
 
     # TODO
     pass
