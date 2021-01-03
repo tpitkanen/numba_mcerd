@@ -67,7 +67,7 @@ def main(args):
     logging.info("Initializing output files")
     init_params.init_io(g, ion, target)
 
-    # potential.make_screening_table(pot)
+    potential.make_screening_table(pot)
 
     ion_stack.cascades_create_additional_ions(g, detector, target, [])
     scat = [o.Scattering() for _ in range(g.nions)]
