@@ -1,7 +1,7 @@
 import logging
 
 from numba_mcerd import config
-from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu
+from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 
@@ -95,7 +95,7 @@ def main(args):
         for j in range(target.natoms):
             # logging.debug(f"Calculating scattering between ions ...")
             init_simu.scattering_table(g, ions[i], target, scat[i][j], pot, j)
-            # cross_section.calc_cross_sections(g, scat[i][j], pot)
+            cross_section.calc_cross_sections(g, scat[i][j], pot)
 
     # TODO
     pass
