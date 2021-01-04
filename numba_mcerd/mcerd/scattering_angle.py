@@ -129,9 +129,13 @@ def mindist(pot: o.Potential, opt: Opt) -> float:
     diff_ok = True
     while diff_ok:
         x1 = x2
-        # This may cause a division by zero with small numbers. Happened
-        # once when opt.d was a float instead of an int
-        x2 = x1 - DEPS / (Psi(x1 + DEPS, pot, opt) / Psi(x1, pot, opt) - 1)
+        # C code doesn't fail on floating point zero divisions, but they
+        # still occur
+        try:
+            x2 = x1 - DEPS / (Psi(x1 + DEPS, pot, opt) / Psi(x1, pot, opt) - 1)
+        except ZeroDivisionError:
+            logging.warning(f"Division by zero, {x1=} {x2=}")
+            break
         diffold = diff
         diff = abs(x2 - x1)
 
@@ -141,4 +145,5 @@ def mindist(pot: o.Potential, opt: Opt) -> float:
 
 
 def Psi(x: float, pot: o.Potential, opt: Opt) -> float:
-    return x**2 - opt.i_y2 - x * Ut(pot, x) * opt.i_ey2 - 1
+    value = x**2 * opt.i_y2 - x * Ut(pot, x) * opt.i_ey2 - 1
+    return value
