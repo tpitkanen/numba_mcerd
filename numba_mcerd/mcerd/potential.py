@@ -14,7 +14,7 @@ def make_screening_table(pot: o.Potential) -> None:
     pot.n = get_npoints(xmax)
 
     xstep = xmax / (pot.n - 1)
-    pot.d = 1 / xstep
+    pot.d = round(1 / xstep)
 
     pot.u = [o.Point2() for _ in range(pot.n)]
 

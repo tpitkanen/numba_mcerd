@@ -129,6 +129,8 @@ def mindist(pot: o.Potential, opt: Opt) -> float:
     diff_ok = True
     while diff_ok:
         x1 = x2
+        # This may cause a division by zero with small numbers. Happened
+        # once when opt.d was a float instead of an int
         x2 = x1 - DEPS / (Psi(x1 + DEPS, pot, opt) / Psi(x1, pot, opt) - 1)
         diffold = diff
         diff = abs(x2 - x1)
