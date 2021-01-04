@@ -24,6 +24,7 @@ class Opt:
 
 
 def scattering_angle(pot: o.Potential, ion: o.Ion) -> float:
+    """Get scattering angle for ion's specific optimization state (ion.opt)"""
     opt = Opt()
 
     opt.e = ion.opt.e
@@ -77,17 +78,13 @@ def Ut(pot: o.Potential, x: float) -> float:
 
 def trapezoid(a: float, b: float, value: float, nextn: int, pot: o.Potential,
               n: int, opt: Opt) -> Tuple[float, int]:
-    # TODO: value and next_n are static in the original code
-
-    nextn = 1
-    h = x = sum_ = 0
-
     if n == 1:
         value = 0.5 * (b - a) * (Angint(a, pot, opt) + Angint(b, pot, opt))
         nextn = 1
     else:
         h = (b - a) / nextn
         x = a + 0.5 * h
+        sum_ = 0.0
         for i in range(1, nextn + 1):
             sum_ += Angint(x, pot, opt)
             x += h
