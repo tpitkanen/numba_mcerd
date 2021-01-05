@@ -1,4 +1,5 @@
 import math
+from typing import Tuple
 
 import numpy as np
 import numba
@@ -13,9 +14,10 @@ MAXPOINTS = 30000
 XMAX = 1000.0
 
 
-# TODO: Can this be parallelized and/or cached? (More useful for later functions)
+# Can't be cached because it returns an object.
+# Can't be parallelized either.
 @numba.njit()
-def make_screening_table() -> oj.Potential:
+def make_screening_table():
     xmax = get_max_x()
     n = get_npoints(xmax)
     xstep = xmax / (n - 1)
@@ -30,6 +32,25 @@ def make_screening_table() -> oj.Potential:
         x += xstep
 
     return pot
+
+
+@numba.njit(cache=True, parallel=True)
+def make_screening_table_cached() -> Tuple[int, int, np.ndarray, np.ndarray]:
+    xmax = get_max_x()
+    n = get_npoints(xmax)
+    xstep = xmax / (n - 1)
+    d = round(1 / xstep)
+
+    ux = np.zeros(n, dtype=np.float32)
+    uy = np.zeros(n, dtype=np.float32)
+
+    x = 0
+    for i in range(n):
+        ux[i] = x
+        uy[i] = U(x)
+        x += xstep
+
+    return n, d, ux, uy
 
 
 @numba.njit(cache=True)

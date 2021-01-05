@@ -91,6 +91,11 @@ def main(args):
     pot_oj = potential_jit.make_screening_table()
     ptimer.stop()
 
+    n, d, ux, uy = potential_jit.make_screening_table_cached()
+    pot_oj2 = oj.Potential(n, d)
+    pot_oj2.ux = ux
+    pot_oj2.uy = uy
+
     ion_stack.cascades_create_additional_ions(g, detector, target, [])
     scat = [o.Scattering() for _ in range(g.nions)]
 
