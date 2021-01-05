@@ -97,7 +97,6 @@ def main(args):
     pot_oj2.uy = uy
 
     ion_stack.cascades_create_additional_ions(g, detector, target, [])
-    scat = [o.Scattering() for _ in range(g.nions)]
 
     logging.info(f"{g.nions} ions, {target.natoms} target atoms")
 
