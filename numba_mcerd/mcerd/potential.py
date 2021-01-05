@@ -20,8 +20,9 @@ def make_screening_table(pot: o.Potential) -> None:
 
     x = 0
     for i in range(pot.n):
-        pot.u[i].x = x
-        pot.u[i].y = U(x)
+        point = pot.u[i]
+        point.x = x
+        point.y = U(x)
         x += xstep
 
 
@@ -75,5 +76,8 @@ def get_npoints(xmax: float) -> int:
 
 
 def U(x: float) -> float:
-    return 0.18175 * math.exp(-3.1998 * x) + 0.50986 * math.exp(-0.94229 * x) \
-           + 0.28022 * math.exp(-0.4029 * x) + 0.028171 * math.exp(-0.20162 * x)
+    """Universal screening potential function"""
+    return (0.18175 * math.exp(-3.1998 * x)
+            + 0.50986 * math.exp(-0.94229 * x)
+            + 0.28022 * math.exp(-0.4029 * x)
+            + 0.028171 * math.exp(-0.20162 * x))
