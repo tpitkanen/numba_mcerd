@@ -1,16 +1,27 @@
 """Objects from general.h adapted to jitclass"""
 
+import numpy as np
 from numba import int32, float32
 from numba.experimental import jitclass
 
 
 # TODO: Jitclasses can't be nested (probably).
 #       Replace these with something more built-in.
-@jitclass([
-    ("x", float32),
-    ("y", float32),
-    ("z", float32)
-])
+
+# Tuple-style definition
+# @jitclass([
+#     ("x", float32),
+#     ("y", float32),
+#     ("z", float32)
+# ])
+# class Point: ...
+
+# Dict-style definition
+@jitclass({
+    "x": float32,
+    "y": float32,
+    "z": float32,
+})
 class Point:
     def __init__(self, x, y, z):
         self.x = x
@@ -20,18 +31,26 @@ class Point:
 
 @jitclass({
     "x": float32,
-    "y": float32,
-    "z": float32,
+    "y": float32
 })
-class PointVer2:
-    def __init__(self, x, y, z):
+class Point2:
+    def __init__(self, x, y):
         self.x = x
         self.y = y
-        self.z = z
 
 
-class Point2:
-    pass
+@jitclass({
+    "n": int32,
+    "d": int32,
+    "ux": float32[:],
+    "uy": float32[:]
+})
+class Potential:
+    def __init__(self, n, d):
+        self.n = n
+        self.d = d
+        self.ux = np.zeros(n, dtype=np.float32)
+        self.uy = np.zeros(n, dtype=np.float32)
 
 
 class Point2np:
@@ -74,8 +93,8 @@ class Cross_section:
     pass
 
 
-class Potential:
-    pass
+# class Potential:
+#     pass
 
 
 class Scattering:

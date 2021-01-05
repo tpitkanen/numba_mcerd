@@ -1,9 +1,10 @@
 import logging
 
-from numba_mcerd import config
-from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section
+from numba_mcerd import config, timer
+from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section, potential_jit
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
+import numba_mcerd.mcerd.objects_jitclass as oj
 
 
 def setup_logging():
@@ -40,7 +41,6 @@ def main(args):
     scat = None
     snext = o.SNext()
     detector = o.Detector()
-    pot = o.Potential()
 
     i = None
     j = None
@@ -77,7 +77,19 @@ def main(args):
     logging.info("Initializing output files")
     init_params.init_io(g, ion, target)
 
+    # Time screening tables
+    ptimer = timer.SplitTimer.init_and_start()
+
+    pot = o.Potential()
     potential.make_screening_table(pot)
+    ptimer.split()
+
+    pot_oj = potential_jit.make_screening_table()
+    ptimer.split()
+
+    # Cached function
+    pot_oj = potential_jit.make_screening_table()
+    ptimer.stop()
 
     ion_stack.cascades_create_additional_ions(g, detector, target, [])
     scat = [o.Scattering() for _ in range(g.nions)]
