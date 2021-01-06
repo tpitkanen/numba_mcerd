@@ -74,3 +74,25 @@ def main_math(scat_matrix, pot, emin, estep, ymin, ystep):
         y += ystep
 
     return exp_e, exp_y
+
+
+@numba.njit(parallel=True)
+def main_math_parallelized(scat_matrix, pot, emin, estep, ymin, ystep):
+    """Can be parallelized, but doesn't offer any speedup. Incomplete, don't use."""
+    exp_e = exp_y = 0.0
+
+    for i in numba.prange(1, scat_matrix.shape[0]):
+        # exp_e = math.exp(emin + (i - 1) * estep)  # Warning for this
+        # scat_matrix[i][0] = exp_e
+        for j in numba.prange(1, scat_matrix.shape[1]):
+            # exp_y = math.exp(ymin + (j - 1) * ystep)  # Warning for this
+            scat_matrix[i][j] = scattering_angle_jit.scattering_angle(
+                pot,
+                math.exp(emin + (i - 1) * estep),
+                math.exp(ymin + (j - 1) * ystep))
+
+    # for j in numba.prange(1, scat_matrix.shape[1]):
+    #     y = ymin + (j - 1) * ystep
+    #     scat_matrix[0][j] = math.exp(y)
+
+    return exp_e, exp_y
