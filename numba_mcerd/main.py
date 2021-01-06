@@ -134,6 +134,7 @@ def main(args):
     table_timer.stop()
 
     print(table_timer.elapsed_laps)
+    # Times (03f95b0559f2c0eea3d92eb34eb8a37306a39231)
     # [4.2860329, 28.060028000000003] (run)
     # [11.4422601, 158.6126873] (debug)
 

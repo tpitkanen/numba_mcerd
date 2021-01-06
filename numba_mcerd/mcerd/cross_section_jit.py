@@ -10,6 +10,7 @@ import numba_mcerd.mcerd.objects_jitclass as oj
 from numba_mcerd.mcerd import scattering_angle_jit
 
 
+# Doesn't need JIT
 def calc_cross_sections(g: o.Global, scat: o.Scattering, pot: oj.Potential) -> None:
     """Calculate cross sections for scat.cross"""
     scat.cross.emin = math.log(0.99 * g.emin * scat.E2eps)
@@ -29,6 +30,7 @@ DISTEPS = 5.0e-3
 MAXSTEPS = 50
 
 
+# Doesn't need JIT
 def calc_cross(angle: float, e: float, scat: o.Scattering, pot: oj.Potential) -> float:
     # scat is unused because it has been commented out in the original code
 
