@@ -9,9 +9,7 @@ import numba_mcerd.mcerd.objects as o
 from numba_mcerd.mcerd import scattering_angle_jit
 
 
-# TODO: jit-ify this
-
-
+# TODO: Make sure that this gives correct results
 def scattering_table(g: o.Global, ion: o.Ion, target: o.Target, scat: o.Scattering,
                      pot: o.Potential, natom: int) -> None:
     """Create a lookup table for scattering (energies?)"""
@@ -37,8 +35,6 @@ def scattering_table(g: o.Global, ion: o.Ion, target: o.Target, scat: o.Scatteri
     scat.logemin = 1.0 / estep
     scat.logydiv = 1.0 / ystep
 
-    e = emin
-
     text = f"""a, E2eps {scat.a} {scat.E2eps}
 emin, emax: {emin} {emax}
 ymin, ymax: {ymin} {ymax}
@@ -47,17 +43,22 @@ estep, ystep: {estep} {ystep}
     g.master.fpout.write_text(text)
 
     scat_matrix = np.array(scat.angle, dtype=np.float64)  # Numba seems to do float64 instead of float32
-    opt_e, opt_y = main_math(scat_matrix, pot, e, estep, ymin, ystep)
+    opt_e, opt_y = main_math(scat_matrix, pot, emin, estep, ymin, ystep)
     ion.opt.e = opt_e
     ion.opt.y = opt_y
 
 
-@numba.njit(cache=True)  # , parallel=True
-def main_math(scat_matrix, pot, e, estep, ymin, ystep):
+# Can't be parallelized automatically. A manual option would be to split
+# scat_matrix into pieces, and then calculate exp_e and exp_y like so:
+# exp_e = math.exp(emin + (i-1) * estep)
+# exp_y = math.exp(ymin + (j-1) * ystep)
+# scat_matrix[i][0] and scat_matrix[0][j] need to be done separately
+@numba.njit(cache=True)
+def main_math(scat_matrix, pot, emin, estep, ymin, ystep):
     exp_e = exp_y = 0.0
 
     for i in range(1, scat_matrix.shape[0]):
-        exp_e = math.exp(e)
+        exp_e = math.exp(emin)
         scat_matrix[i][0] = exp_e
         y = ymin
         for j in range(1, scat_matrix.shape[1]):
@@ -65,7 +66,7 @@ def main_math(scat_matrix, pot, e, estep, ymin, ystep):
             exp_y = math.exp(y)
             scat_matrix[i][j] = scattering_angle_jit.scattering_angle(pot, exp_e, exp_y)
             y += ystep
-        e += estep
+        emin += estep
 
     y = ymin
     for j in range(1, scat_matrix.shape[1]):
