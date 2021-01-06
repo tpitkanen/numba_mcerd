@@ -9,7 +9,6 @@ import numba_mcerd.mcerd.objects as o
 from numba_mcerd.mcerd import scattering_angle_jit
 
 
-# TODO: Make sure that this gives correct results
 def scattering_table(g: o.Global, ion: o.Ion, target: o.Target, scat: o.Scattering,
                      pot: o.Potential, natom: int) -> None:
     """Create a lookup table for scattering (energies?)"""
@@ -44,6 +43,7 @@ estep, ystep: {estep} {ystep}
 
     scat_matrix = np.array(scat.angle, dtype=np.float64)  # Numba seems to do float64 instead of float32
     opt_e, opt_y = main_math(scat_matrix, pot, emin, estep, ymin, ystep)
+    scat.angle = scat_matrix
     ion.opt.e = opt_e
     ion.opt.y = opt_y
 
