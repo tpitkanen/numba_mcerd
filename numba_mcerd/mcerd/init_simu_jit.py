@@ -46,37 +46,23 @@ estep, ystep: {estep} {ystep}
 """
     g.master.fpout.write_text(text)
 
-    # scat_matrix = np.zeros((len()), dtype=np.float32)
-
-    # scat_matrix1 = np.array(scat.angle[0:25], dtype=np.float32)
-    # scat_matrix2 = np.array(scat.angle[25:50], dtype=np.float32)
-    #
-    # main_math(scat_matrix1, pot, e, estep, ymin, ystep)
-    # main_math(scat_matrix2, pot, e, estep, ymin, ystep)
-
-    # scat_matrix = np.array(scat.angle[0:1], dtype=np.float32)
-    # main_math(scat_matrix, pot, e, estep, ymin, ystep)
-
-    scat_matrix = np.array(scat.angle, dtype=np.float32)
+    scat_matrix = np.array(scat.angle, dtype=np.float64)  # Numba seems to do float64 instead of float32
     opt_e, opt_y = main_math(scat_matrix, pot, e, estep, ymin, ystep)
     ion.opt.e = opt_e
     ion.opt.y = opt_y
 
 
-# @numba.njit(cache=True, parallel=True)
+@numba.njit(cache=True)  # , parallel=True
 def main_math(scat_matrix, pot, e, estep, ymin, ystep):
     exp_e = exp_y = 0.0
 
     for i in range(1, scat_matrix.shape[0]):
         exp_e = math.exp(e)
         scat_matrix[i][0] = exp_e
-        # ion_opt_e = exp_e
         y = ymin
         for j in range(1, scat_matrix.shape[1]):
-            print(i, j)
-            # ion_opt_y = math.exp(y)
+            # print(i, j)  # Good for debugging performance
             exp_y = math.exp(y)
-            # scat_matrix[i][j] = scattering_angle_jit.scattering_angle(pot, ion_opt_e, ion_opt_y)
             scat_matrix[i][j] = scattering_angle_jit.scattering_angle(pot, exp_e, exp_y)
             y += ystep
         e += estep
