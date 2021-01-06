@@ -1,7 +1,9 @@
+import copy
 import logging
 
 from numba_mcerd import config, timer
-from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section, potential_jit
+from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section, \
+    potential_jit, init_simu_jit
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.objects_jitclass as oj
@@ -102,6 +104,21 @@ def main(args):
 
     # (g.jibal.gsto.extrapolate = True)
 
+    ions_jit = copy.deepcopy(ions)
+
+    table_timer = timer.SplitTimer.init_and_start()
+    scat_jit = []
+    for i in range(g.nions):
+        if g.simtype == c.SimType.SIM_RBS and i == c.IonType.TARGET_ATOM.value:
+            continue
+        ions_jit[i].scatindex = i
+        scat_jit.append([o.Scattering() for _ in range(c.MAXELEMENTS)])
+        for j in range(target.natoms):
+            init_simu_jit.scattering_table(g, ions_jit[i], target, scat_jit[i][j], pot_oj, j)
+            # cross_section_jit.cross_sections(g, scat[i][j], pot_oj)
+
+    table_timer.split()
+
     scat = []
     for i in range(g.nions):
         if g.simtype == c.SimType.SIM_RBS and i == c.IonType.TARGET_ATOM.value:
@@ -111,7 +128,11 @@ def main(args):
         for j in range(target.natoms):
             # logging.debug(f"Calculating scattering between ions ...")
             init_simu.scattering_table(g, ions[i], target, scat[i][j], pot, j)
-            cross_section.calc_cross_sections(g, scat[i][j], pot)
+            # cross_section.calc_cross_sections(g, scat[i][j], pot)
+
+    table_timer.stop()
+
+    print(table_timer.elapsed_laps)
 
     # TODO
     pass
