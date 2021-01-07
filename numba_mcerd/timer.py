@@ -96,7 +96,10 @@ class SplitTimer(Timer):
         for split in self.splits:
             times.append(split - previous)
             previous = split
-        times.append(self.stop_time - previous)
+        if self.finished:
+            times.append(self.stop_time - previous)
+        else:
+            times.append(timeit.default_timer() - previous)
         return times
 
     def split(self) -> float:
