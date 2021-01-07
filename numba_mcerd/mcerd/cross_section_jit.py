@@ -4,7 +4,7 @@ import math
 # import numba
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
-import numba_mcerd.mcerd.objects_jitclass as oj
+import numba_mcerd.mcerd.objects_jit as oj
 # import numba_mcerd.mcerd.symbols as s
 
 from numba_mcerd.mcerd import scattering_angle_jit

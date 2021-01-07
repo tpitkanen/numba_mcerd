@@ -4,7 +4,7 @@ from typing import Tuple
 import numpy as np
 import numba
 
-import numba_mcerd.mcerd.objects_jitclass as oj
+import numba_mcerd.mcerd.objects_jit as oj
 
 
 NPOINTS = 50

@@ -6,7 +6,7 @@ from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_st
     potential_jit, init_simu_jit, cross_section_jit
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
-import numba_mcerd.mcerd.objects_jitclass as oj
+import numba_mcerd.mcerd.objects_jit as oj
 
 
 def setup_logging():

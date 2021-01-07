@@ -39,6 +39,7 @@ class Point2:
         self.y = y
 
 
+# TODO: float64?
 @jitclass({
     "n": int32,
     "d": int32,
@@ -53,98 +54,94 @@ class Potential:
         self.uy = np.zeros(n, dtype=np.float32)
 
 
-class Point2np:
-    pass
-
-
-class Presimu:
-    pass
-
-
-class Master:
-    pass
-
-
-class Global:
-    pass
-
-
-class Ion_opt:
-    pass
-
-
-class Vector:
-    pass
-
-
-class Rec_hist:
-    pass
-
-
-class Isotopes:
-    pass
-
-
-class Ion:
-    pass
-
-
-class Cross_section:
-    pass
-
-
-# class Potential:
+# class Point2np:
 #     pass
-
-
-class Scattering:
-    pass
-
-
-class SNext:
-    pass
-
-
-class Surface:
-    pass
-
-
-class Target_ele:
-    pass
-
-
-class Target_sto:
-    pass
-
-
-class Target_layer:
-    pass
-
-
-class Plane:
-    pass
-
-
-class Target:
-    pass
-
-
-class Line:
-    pass
-
-
-class Rect:
-    pass
-
-
-class Circ:
-    pass
-
-
-class Det_foil:
-    pass
-
-
-class Detector:
-    pass
+#
+#
+# class Presimu:
+#     pass
+#
+#
+# class Master:
+#     pass
+#
+#
+# class Global:
+#     pass
+#
+#
+# class Ion_opt:
+#     pass
+#
+#
+# class Vector:
+#     pass
+#
+#
+# class Rec_hist:
+#     pass
+#
+#
+# class Isotopes:
+#     pass
+#
+#
+# class Ion:
+#     pass
+#
+#
+# class Cross_section:
+#     pass
+#
+#
+# class Scattering:
+#     pass
+#
+#
+# class SNext:
+#     pass
+#
+#
+# class Surface:
+#     pass
+#
+#
+# class Target_ele:
+#     pass
+#
+#
+# class Target_sto:
+#     pass
+#
+#
+# class Target_layer:
+#     pass
+#
+#
+# class Plane:
+#     pass
+#
+#
+# class Target:
+#     pass
+#
+#
+# class Line:
+#     pass
+#
+#
+# class Rect:
+#     pass
+#
+#
+# class Circ:
+#     pass
+#
+#
+# class Det_foil:
+#     pass
+#
+#
+# class Detector:
+#     pass
 
