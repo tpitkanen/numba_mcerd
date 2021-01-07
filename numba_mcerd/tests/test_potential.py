@@ -5,6 +5,7 @@ from numba_mcerd.mcerd import potential
 
 
 class TestPotential(unittest.TestCase):
+    # TODO: Should this be 33.0 or 33.33...?
     def test_make_screening_table(self):
         pot = o.Potential()
         potential.make_screening_table(pot)
