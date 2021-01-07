@@ -14,10 +14,12 @@ MAXPOINTS = 30000
 XMAX = 1000.0
 
 
-# Can't be cached because it returns an object.
-# Can't be parallelized either.
 @numba.njit()
-def make_screening_table():
+def make_screening_table() -> oj.Potential:
+    """Create and return a Potential object.
+
+    The function can't be cached or parallelized because it returns an object.
+    """
     xmax = get_max_x()
     n = get_npoints(xmax)
     xstep = xmax / (n - 1)
@@ -34,8 +36,9 @@ def make_screening_table():
     return pot
 
 
-@numba.njit(cache=True, parallel=True)
+@numba.njit(cache=True)
 def make_screening_table_cached() -> Tuple[int, int, np.ndarray, np.ndarray]:
+    """Create and return the pieces needed for a Potential object"""
     xmax = get_max_x()
     n = get_npoints(xmax)
     xstep = xmax / (n - 1)
