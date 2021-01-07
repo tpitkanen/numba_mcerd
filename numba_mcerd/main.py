@@ -1,6 +1,6 @@
 import logging
 
-from numba_mcerd import config, timer
+from numba_mcerd import config, timer, pickler
 from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
@@ -102,6 +102,10 @@ def main(args):
             # logging.debug(f"Calculating scattering between ions ...")
             init_simu.scattering_table(g, ions[i], target, scat[i][j], pot, j)
             cross_section.calc_cross_sections(g, scat[i][j], pot)
+
+    # pickler.dump(scat, "scat")
+
+    # scat = pickler.load("scat")
 
     table_timer.stop()
 

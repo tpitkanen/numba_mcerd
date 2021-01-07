@@ -1,6 +1,7 @@
 # Own additions
 numba_mcerd.log
 data/input/
+data/pickled/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
