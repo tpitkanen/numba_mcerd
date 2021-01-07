@@ -1,11 +1,15 @@
+import copy
 import logging
 
 from numba_mcerd import config, timer
-from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section
+from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section, \
+    potential_jit, init_simu_jit, cross_section_jit
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
+import numba_mcerd.mcerd.objects_jit as oj
 
 
+# This is less useful for numba-optimized functions (doesn't work, unlike print)
 def setup_logging():
     """Setup logging for all modules"""
     level = logging.DEBUG
@@ -76,11 +80,11 @@ def main(args):
     logging.info("Initializing output files")
     init_params.init_io(g, ion, target)
 
-    # Time screening tables
-    ptimer = timer.SplitTimer.init_and_start()
-
-    pot = o.Potential()
-    potential.make_screening_table(pot)
+    # TODO: Rename to pot(ential)
+    n, d, ux, uy = potential_jit.make_screening_table_cached()
+    pot = oj.Potential(n, d)
+    pot.ux = ux
+    pot.uy = uy
 
     ion_stack.cascades_create_additional_ions(g, detector, target, [])
 
@@ -89,9 +93,6 @@ def main(args):
     # (g.jibal.gsto.extrapolate = True)
 
     table_timer = timer.SplitTimer.init_and_start()
-
-    table_timer.split()
-
     scat = []
     for i in range(g.nions):
         if g.simtype == c.SimType.SIM_RBS and i == c.IonType.TARGET_ATOM.value:
@@ -99,16 +100,12 @@ def main(args):
         ions[i].scatindex = i
         scat.append([o.Scattering() for _ in range(c.MAXELEMENTS)])
         for j in range(target.natoms):
-            # logging.debug(f"Calculating scattering between ions ...")
-            init_simu.scattering_table(g, ions[i], target, scat[i][j], pot, j)
-            cross_section.calc_cross_sections(g, scat[i][j], pot)
+            init_simu_jit.scattering_table(g, ions[i], target, scat[i][j], pot, j)
+            cross_section_jit.calc_cross_sections(g, scat[i][j], pot)
 
-    table_timer.stop()
+    table_timer.split()
 
     print(table_timer.start_time, table_timer.elapsed_laps)
-    # Times (03f95b0559f2c0eea3d92eb34eb8a37306a39231)
-    # 1.8580092 [4.2860329, 28.060028000000003] (run)
-    # 4.8511551 [11.4422601, 158.6126873] (debug)
 
     # TODO
     pass
