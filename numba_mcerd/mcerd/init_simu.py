@@ -28,7 +28,7 @@ def scattering_table(g: o.Global, ion: o.Ion, target: o.Target, scat: o.Scatteri
     scat.logemin = emin
     scat.logymin = ymin
 
-    scat.logemin = 1 / estep
+    scat.logediv = 1 / estep
     scat.logydiv = 1 / ystep
 
     e = emin
