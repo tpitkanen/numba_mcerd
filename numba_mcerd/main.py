@@ -1,7 +1,8 @@
 import logging
 
 from numba_mcerd import config, timer, pickler
-from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section, elsto
+from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section, elsto, \
+    init_detector
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 
@@ -128,6 +129,13 @@ def main(args):
             # elsto.calc_stopping_and_straggling(g, ions[i], target, j)
             # logging.info(f"Stopping calculated, scatindex={ions[i].scatindex}, layer={j}, stodiv="
             #              f"{target.layer[j].sto[ions[i].scatindex].stodiv}")
+
+    # TODO: Needed for RBS
+    # if g.simtype == c.SimType.SIM_RBS:
+    #     ion_stack.copy_ions(ion, target, c.IonType.TARGET_ATOM.value, c.IonType.SECONDARY.value, False)
+    #     ion_stack.copy_ions(ion, target, c.IonType.SECONDARY.value, c.IonType.PRIMARY.value, True)
+
+    init_detector.init_detector(g, detector)
 
     # TODO
     pass
