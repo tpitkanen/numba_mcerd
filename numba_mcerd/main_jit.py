@@ -3,7 +3,7 @@ import logging
 
 from numba_mcerd import config, timer
 from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section, \
-    potential_jit, init_simu_jit, cross_section_jit
+    potential_jit, init_simu_jit, cross_section_jit, elsto
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.objects_jit as oj
@@ -106,6 +106,16 @@ def main(args):
     table_timer.split()
 
     print(table_timer.start_time, table_timer.elapsed_laps)
+
+    gsto_index = -1
+    for j in range(target.nlayers):
+        target.layer[j].sto = [o.Target_sto() for _ in range(g.nions)]
+        for i in range(g.nions):
+            gsto_index += 1
+            if g.simtype == c.SimType.SIM_RBS and i == c.IonType.TARGET_ATOM.value:
+                continue
+            elsto.calc_stopping_and_straggling_const(g, ions[i], target, j, gsto_index)
+            # TODO: Real gsto instead
 
     # TODO
     pass
