@@ -1,7 +1,7 @@
 import logging
 
 from numba_mcerd import config, timer, pickler
-from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section
+from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section, elsto
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 
@@ -113,6 +113,21 @@ def main(args):
     # Times (03f95b0559f2c0eea3d92eb34eb8a37306a39231)
     # 1.8580092 [4.2860329, 28.060028000000003] (run)
     # 4.8511551 [11.4422601, 158.6126873] (debug)
+
+    gsto_index = -1
+    for j in range(target.nlayers):
+        target.layer[j].sto = [o.Target_sto() for _ in range(g.nions)]
+        for i in range(g.nions):
+            gsto_index += 1
+            if g.simtype == c.SimType.SIM_RBS and i == c.IonType.TARGET_ATOM.value:
+                continue
+            # TODO: This is a temporary way to avoid implementing GSTO
+            elsto.calc_stopping_and_straggling_const(g, ions[i], target, j, gsto_index)
+
+            # TODO: ions[i] could be saved as a variable
+            # elsto.calc_stopping_and_straggling(g, ions[i], target, j)
+            # logging.info(f"Stopping calculated, scatindex={ions[i].scatindex}, layer={j}, stodiv="
+            #              f"{target.layer[j].sto[ions[i].scatindex].stodiv}")
 
     # TODO
     pass

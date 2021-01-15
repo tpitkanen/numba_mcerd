@@ -321,7 +321,7 @@ class Target_layer:
     atom: List[int] = None  # Array of the indices of the target elements  # len MAXATOMS
     N: List[float] = None  # Array of the atomic densities  # len MAXATOMS
     Ntot: float = 0.0  # Total atomic density in the layer
-    sto: Target_sto = None  # Electronic stopping for different ions
+    sto: List[Target_sto] = None  # Electronic stopping for different ions  # len g.nions
     type: constants.TargetType = None  # Type of the target layer
     gas: bool = False  # Whether the target layer is gas or not
     stofile_prefix: str = None  # len MAXSTOFILEPREFIXLEN
