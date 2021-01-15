@@ -7,8 +7,8 @@ from numba_mcerd import config
 import numba_mcerd.mcerd.constants as c
 
 
-MASSES_FILE = f"{config.PROJECT_ROOT}/data/constants/masses.dat"
-ABUNDANCES_FILE = f"{config.PROJECT_ROOT}/data/constants/abundances.dat"
+MASSES_FILE = f"{config.CONSTANTS_ROOT}/masses.dat"
+ABUNDANCES_FILE = f"{config.CONSTANTS_ROOT}/abundances.dat"
 ABUNDANCE_THRESHOLD = 1e-6
 
 
@@ -158,7 +158,6 @@ class Jibal:
     # Originally jibal_element_copy
     @staticmethod
     def copy_normalized_element(element: JibalElement, A: int) -> JibalElement:
-        # which_elements: JibalSelectIsotopes = JibalSelectIsotopes.SINGLE) -> JibalElement:
         """Create a copy of element and calculate relative concentrations for it
 
         Args:
