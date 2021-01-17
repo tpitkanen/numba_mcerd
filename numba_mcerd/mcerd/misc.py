@@ -7,7 +7,8 @@ import numba_mcerd.mcerd.symbols as s
 from numba_mcerd.mcerd import rotate
 
 
-def coord_transform(porig: o.Point, theta: float, fii: float, pin: o.Point, flag: int) -> o.Point:
+def coord_transform(porig: o.Point, theta: float, fii: float, pin: o.Point,
+                    flag: c.CoordTransformDirection) -> o.Point:
     # TODO: Replace copy-paste description with own words
     """This routine will calculate the cartesian coordinates of point pin
     in another coordinate system. The origin of pin system in this
@@ -17,10 +18,14 @@ def coord_transform(porig: o.Point, theta: float, fii: float, pin: o.Point, flag
     """
     pout = o.Point()
 
-    if flag == c.CoordTransformDirection.BACK.value:
+    if flag == c.CoordTransformDirection.BACK:
         pout.x = pin.x - porig.x
         pout.y = pin.y - porig.y
         pout.z = pin.z - porig.z
+    else:
+        pout.x = pin.x
+        pout.y = pin.y
+        pout.z = pin.z
 
     r = math.sqrt(pout.x**2 + pout.y**2 + pout.z**2)
 
@@ -36,7 +41,7 @@ def coord_transform(porig: o.Point, theta: float, fii: float, pin: o.Point, flag
     pout.y = r * math.sin(out_theta) * math.sin(out_fii)
     pout.z = r * math.cos(out_theta)
 
-    if flag == c.CoordTransformDirection.FORW.value:
+    if flag == c.CoordTransformDirection.FORW:
         pout.x += porig.x
         pout.y += porig.y
         pout.z += porig.z
