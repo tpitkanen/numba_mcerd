@@ -22,6 +22,8 @@ def rnd(low: float, high: float, period: c.RndPeriod = c.RndPeriod.RND_CLOSED) -
     if length < 0.0:
         raise RndError("Length negative or zero")
 
+    # TODO: Use PCG here or swap the RNG in the original code. Otherwise
+    #       debugging by comparison is impossible.
     return length * random.random() + low
 
     # TODO: Implement these unlikely cases:
