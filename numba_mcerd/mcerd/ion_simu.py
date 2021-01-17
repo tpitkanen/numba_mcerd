@@ -1,6 +1,9 @@
 import math
+from typing import List
 
-from numba_mcerd.mcerd import random
+import numpy as np
+
+from numba_mcerd.mcerd import random, cross_section
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.constants as c
 
@@ -75,8 +78,34 @@ def move_target(target: o.Target) -> None:
 
 
 def next_scattering(g: o.Global, ion: o.Ion, target: o.Target,
-                    scat: o.Scattering, snext: o.SNext) -> None:
-    raise NotImplementedError
+                    scat: List[List[o.Scattering]], snext: o.SNext) -> None:
+    """Calculate impact parameter (ion.opt.y) and distance to the next
+     scattering point (snext.d)
+     """
+    if g.nomc:
+        snext.d = 100.0 * c.C_NM
+        return
+
+    cross = 0.0
+    b = np.zeros(shape=c.MAXATOMS, dtype=np.float64)
+    layer = target.layer[ion.tlayer]
+    for i in range(layer.natoms):
+        p = layer.atom[i]
+        b[i] = layer.N[i] * cross_section.get_cross(ion, scat[ion.scatindex][p])
+        cross += b[i]
+
+    rcross = random.rnd(0.0, cross, c.RndPeriod.RND_OPEN)
+    # rcross = 17.554089969710095  # Temporarily value for debugging  # TODO: Remove once RNG is the same as in the C code
+    i = 0
+    while i < layer.natoms and rcross >= 0.0:
+        rcross -= b[i]
+        i += 1
+    if i < 1 or i > layer.natoms:
+        raise IonSimulationError("Scattering atom calculated wrong")
+    i -= 1
+
+    ion.opt.y = math.sqrt(-rcross / (math.pi * layer.N[i])) / scat[ion.scatindex][snext.natom].a
+    snext.d = -math.log(random.rnd(0.0, 1.0, c.RndPeriod.RND_RIGHT)) / cross
 
 
 def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> c.ScatteringType:

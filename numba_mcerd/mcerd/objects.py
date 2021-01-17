@@ -228,7 +228,7 @@ class Cross_section:
     emin: float = 0.0
     emax: float = 0.0
     estep: float = 0.0
-    b: float = 0.0  # TODO: This was a pointer
+    b: List[float] = None  # Initialized later
 
 
 @dataclass

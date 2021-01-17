@@ -17,7 +17,7 @@ def calc_cross_sections(g: o.Global, scat: o.Scattering, pot: o.Potential) -> No
 
     e = scat.cross.emin
 
-    scat.cross.b = [0.0] * c.EPSIMP
+    scat.cross.b = [0.0] * c.EPSIMP  # TODO: Use np.ndarray
     for i in range(c.EPSIMP):
         scat.cross.b[i] = calc_cross(g.minangle, math.exp(e), scat, pot)
         e += scat.cross.estep
@@ -84,5 +84,21 @@ def calc_cross(angle: float, e: float, scat: o.Scattering, pot: o.Potential) -> 
 
 
 def get_cross(ion: o.Ion, scat: o.Scattering) -> float:
-    raise NotImplementedError
+    """Interpolate the cross section (maximum impact parameter for current ion energy)"""
+    e = math.log(ion.E * scat.E2eps)
 
+    i = int((e - scat.cross.emin) / scat.cross.estep)
+
+    b = (scat.cross.b[i]
+         + (scat.cross.b[i + 1] - scat.cross.b[i])
+         * (e - (i * scat.cross.estep + scat.cross.emin))
+         / scat.cross.estep)
+
+    b *= scat.a
+    b = c.C_PI * b**2
+
+    if not 0 < b < 1e-15:
+        # TODO: Print a warning
+        raise NotImplementedError
+
+    return b
