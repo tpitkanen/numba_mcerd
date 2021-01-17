@@ -1,10 +1,22 @@
+import copy
 import logging
 
+import numpy as np
+
 from numba_mcerd import config, timer, pickler
-from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section, elsto, \
-    init_detector
+from numba_mcerd.mcerd import (
+    random, init_params, read_input, potential, ion_stack, init_simu, cross_section, elsto,
+    init_detector, ion_simu, erd_scattering, pre_simulation, erd_detector, output, finish_ion,
+    finalize
+)
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
+
+
+# These are too annoying to type
+PRIMARY = c.IonType.PRIMARY.value
+SECONDARY = c.IonType.SECONDARY.value
+TARGET_ATOM = c.IonType.TARGET_ATOM.value
 
 
 def setup_logging():
@@ -132,8 +144,8 @@ def main(args):
 
     # TODO: Needed for RBS
     # if g.simtype == c.SimType.SIM_RBS:
-    #     ion_stack.copy_ions(ion, target, c.IonType.TARGET_ATOM.value, c.IonType.SECONDARY.value, False)
-    #     ion_stack.copy_ions(ion, target, c.IonType.SECONDARY.value, c.IonType.PRIMARY.value, True)
+    #     ion_stack.copy_ions(ion, target, TARGET_ATOM, SECONDARY, False)
+    #     ion_stack.copy_ions(ion, target, SECONDARY, PRIMARY, True)
 
     init_detector.init_detector(g, detector)
 
@@ -143,8 +155,128 @@ def main(args):
     if g.predata:
         init_params.init_recoiling_angle(target)
 
-    # TODO
-    pass
+    trackid = int(ions[SECONDARY].Z) * 1_000 + g.seed % 1_000
+    trackid *= 1_000_000
+    ions_moving.append(copy.deepcopy(ions[PRIMARY]))
+    ions_moving.append(copy.deepcopy(ions[SECONDARY]))
+    if g.simtype == c.SimType.SIM_RBS:
+        ions_moving.append(copy.deepcopy(ions[TARGET_ATOM]))
+
+    # Debugging counters
+    outer_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
+    inner_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
+
+    logging.info("Starting simulation")
+
+    for i in range(g.nsimu):
+        g.cion = i
+
+        outer_loop_count = 0
+        inner_loop_count = 0
+
+        # TODO
+        output.output_data(g)
+
+        cur_ion = ions_moving[0]
+
+        # Pointer stuff, probably not needed in Python:
+        # if debug:
+        # logging.debug(f"T moving to primary {id(cur_ion)}, i={...}")
+
+        ion_simu.create_ion(g, cur_ion, target)
+        if g.rough:
+            ion_simu.move_target(target)
+
+        primary_finished = False
+        while not primary_finished:
+            outer_loop_count += 1
+
+            ion_simu.next_scattering(g, cur_ion, target, scat, snext)
+            nscat = ion_simu.move_ion(g, cur_ion, target, snext)
+
+            if nscat == c.ScatteringType.ERD_SCATTERING:
+                if erd_scattering.erd_scattering(
+                        g, ions_moving[PRIMARY], ions_moving[SECONDARY], target, detector):
+                    cur_ion = ions_moving[SECONDARY]
+
+            if cur_ion.status == c.IonStatus.FIN_RECOIL or cur_ion.status == c.IonStatus.FIN_OUT_DET:
+                if g.simstage == c.SimStage.PRESIMULATION:
+                    pre_simulation.finish_presimulation(g, detector, cur_ion)
+                    cur_ion = ions_moving[SECONDARY]
+                else:
+                    erd_detector.move_to_erd_detector(g, cur_ion, target, detector)
+
+            if g.simstage == c.SimStage.PRESIMULATION and g.cion == g.npresimu -1:
+                pre_simulation.analyze_presimulation(g, target, detector)
+                init_params.init_recoiling_angle(target)
+
+            if nscat == c.ScatteringType.MC_SCATTERING \
+                    and cur_ion.status == c.IonStatus.NOT_FINISHED \
+                    and not g.nomc:
+                if ion_simu.mc_scattering(g, cur_ion, ion_stack.next_ion(), target, detector, scat, snext):
+                    # cur_ion = next_ion(...)
+                    cur_ion = ion_stack.next_ion()
+                    found = False
+                    for j in range(g.nions):
+                        if i == TARGET_ATOM and g.simtype == c.SimType.SIM_RBS:
+                            continue
+                        if round(ions[i].Z) == round(cur_ion.Z) \
+                                and round(ions[i].A / c.C_U) == round(ions[i].A / c.C_U):
+                            # FIXME: Comparing average mass by rounding is a bad idea.
+                            #        See the original code for more information.
+                            found = True
+                            cur_ion.scatindex = i
+                    if not found:
+                        logging.warning(
+                            f"Recoil cascade not possible, since recoiling ion Z={cur_ion.Z} and A={cur_ion.A / c.C_U} u are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
+                        cur_ion = ion_stack.prev_ion()
+                    else:
+                        ion_i += 1
+                        cur_ion.ion_i = ion_i
+                        cur_ion.trackid = trackid
+
+                    # logging.debug(...)
+
+            # debug: loop over layers, print cur_ion.tlayer and set prev_layer_debug
+
+            if g.output_trackpoints:
+                raise NotImplementedError
+
+            if cur_ion.type.value == SECONDARY and cur_ion.status != c.IonStatus.NOT_FINISHED:
+                g.finstat[SECONDARY][cur_ion.status.value] += 1
+
+            while ion_simu.ion_finished(g, cur_ion, target):
+                inner_loop_count += 1
+
+                # logging.debug(...)
+
+                if g.output_trackpoints:
+                    raise NotImplementedError
+
+                cur_ion.trackid = trackid if not new_track else 0
+                # No new track is made if ion doesn't make it to the
+                # energy detector or if it's a scaling ion
+
+                # TODO: .index is probably inefficient, find a better way to check.
+                #       Maybe cur_ion.type?
+                if ions_moving.index(cur_ion) <= SECONDARY:
+                    output.output_erd(g, cur_ion, target, detector)
+                if cur_ion.type.value == PRIMARY:
+                    primary_finished = True
+                    break
+                cur_ion = ion_stack.prev_ion()
+                if cur_ion.type.value != PRIMARY and g.output_trackpoints:
+                    raise NotImplementedError
+
+        outer_loop_counts[g.cion] = outer_loop_count
+        inner_loop_counts[g.cion] = inner_loop_count
+
+        # logging.debug(...)
+
+        g.finstat[PRIMARY][cur_ion.status.value] += 1
+        finish_ion.finish_ion(g, cur_ion)  # Print info if FIN_STOP or FIN_TRANS
+
+    finalize.finalize(g)  # Print statistics
 
 
 if __name__ == '__main__':
