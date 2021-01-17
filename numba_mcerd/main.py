@@ -137,6 +137,12 @@ def main(args):
 
     init_detector.init_detector(g, detector)
 
+    # TODO:
+    # print_data.print_data(g, ions, target, scat, detector)
+
+    if g.predata:
+        init_params.init_recoiling_angle(target)
+
     # TODO
     pass
 
