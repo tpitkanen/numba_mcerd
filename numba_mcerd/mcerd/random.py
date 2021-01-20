@@ -3,6 +3,10 @@ import random
 import numba_mcerd.mcerd.constants as c
 
 
+# Used in place of ldexp(<random>, -32)
+LDEXP_MULTIPLIER = 1 ** -32
+
+
 class RndError(Exception):
     """Error in random number generator"""
 
@@ -24,7 +28,7 @@ def rnd(low: float, high: float, period: c.RndPeriod = c.RndPeriod.RND_CLOSED) -
 
     # TODO: Use PCG here or swap the RNG in the original code. Otherwise
     #       debugging by comparison is impossible.
-    return length * random.random() + low
+    return length * (random.random() * LDEXP_MULTIPLIER) + low
 
     # TODO: Implement these unlikely cases:
     # if period == c.RndPeriod.RND_CLOSED:
