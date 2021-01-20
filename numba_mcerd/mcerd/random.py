@@ -1,10 +1,15 @@
-import random
+# import random
+import numpy.random
 
 import numba_mcerd.mcerd.constants as c
 
 
 # Used in place of ldexp(<random>, -32)
 LDEXP_MULTIPLIER = 1 ** -32
+
+
+# Numpy random generator
+random_generator = None
 
 
 class RndError(Exception):
@@ -14,7 +19,10 @@ class RndError(Exception):
 def seed_rnd(seed: int):
     """Seed the random number generator. This must be called once,
     before generating any numbers."""
-    random.seed(seed)
+    # random.seed(seed)  # Native random
+
+    global random_generator
+    random_generator = numpy.random.default_rng(seed)
 
 
 # TODO: This is probably slow
@@ -28,7 +36,8 @@ def rnd(low: float, high: float, period: c.RndPeriod = c.RndPeriod.RND_CLOSED) -
 
     # TODO: Use PCG here or swap the RNG in the original code. Otherwise
     #       debugging by comparison is impossible.
-    return length * (random.random() * LDEXP_MULTIPLIER) + low
+    # return length * (random.random() * LDEXP_MULTIPLIER) + low  # Native random
+    return length * (random_generator.random() * LDEXP_MULTIPLIER) + low
 
     # TODO: Implement these unlikely cases:
     # if period == c.RndPeriod.RND_CLOSED:
@@ -49,9 +58,11 @@ def rnd(low: float, high: float, period: c.RndPeriod = c.RndPeriod.RND_CLOSED) -
     # return value
 
 
-def gaussian(seed: int) -> float:
-    return gasdev(seed)
+def gaussian() -> float:
+    # return gasdev()
+    # TODO: Is this equivalent to gasdev?
+    return random_generator.normal()
 
 
-def gasdev(idum: int) -> float:
-    raise NotImplementedError
+# def gasdev() -> float:
+#     raise NotImplementedError
