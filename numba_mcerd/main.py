@@ -245,7 +245,7 @@ def main(args):
             if cur_ion.type.value == SECONDARY and cur_ion.status != c.IonStatus.NOT_FINISHED:
                 g.finstat[SECONDARY][cur_ion.status.value] += 1
 
-            while ion_simu.ion_finished(g, cur_ion, target):
+            while ion_simu.ion_finished(g, cur_ion, target).value:
                 inner_loop_count += 1
 
                 # logging.debug(...)
