@@ -51,6 +51,10 @@ def calc_stopping_and_straggling_const(g: o.Global, ion: o.Ion, target: o.Target
     sto.sto = const_gsto["sto"][gsto_index]
     sto.stragg = const_gsto["stragg"][gsto_index]
 
+    # Outer loop is not needed for vel
+    for j in range(sto.n_sto):
+        sto.vel[j] = j * vstep
+
 
 # TODO: Implement proper GSTO and finish this
 def calc_stopping_and_straggling(g: o.Global, ion: o.Ion, target: o.Target, nlayer: int) -> None:
