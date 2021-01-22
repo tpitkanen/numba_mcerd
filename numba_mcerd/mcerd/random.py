@@ -1,15 +1,58 @@
 # import random
+import math
+
+import numpy as np
 import numpy.random
 
 import numba_mcerd.mcerd.constants as c
 
 
 # Used in place of ldexp(<random>, -32)
+from numba_mcerd import config
+
 LDEXP_MULTIPLIER = 1 ** -32
 
 
 # Numpy random generator
 random_generator = None
+
+
+class TempRNG:
+    """Temporary random number generator that uses pre-generated numbers."""
+    def __init__(self) -> None:
+        self._numbers = None
+        self._i = -1
+        self._cached_normal = None
+
+    def load(self, file=None) -> None:
+        """Load pre-generated random numbers from a file"""
+        if file is None:
+            file = config.EXPORT_ROOT + "/ran_pcg_first_20000.txt"
+        self._numbers = np.loadtxt(file)
+
+    def random(self) -> float:
+        """Return the next random number"""
+        self._i += 1
+        return self._numbers[self._i]
+
+    def normal(self) -> float:
+        """Return the next random number from normal distribution."""
+        if self._cached_normal is not None:
+            rv = self._cached_normal
+            self._cached_normal = None
+            return rv
+
+        in_unit_circle = False
+        while not in_unit_circle:
+            v1 = 2.0 * self.random() - 1.0  # 0..1 -> -1..1
+            v2 = 2.0 * self.random() - 1.0  # 0..1 -> -1..1
+            r_squared = v1 * v1 + v2 * v2
+            in_unit_circle = r_squared < 1.0 and r_squared != 0.0
+
+        # Create two normal deviates with a Box-Muller transformation
+        factor = math.sqrt(-2.0 * math.log(r_squared) / r_squared)
+        self._cached_normal = v1 * factor
+        return v2 * factor
 
 
 class RndError(Exception):
@@ -21,8 +64,12 @@ def seed_rnd(seed: int):
     before generating any numbers."""
     # random.seed(seed)  # Native random
 
+    # global random_generator
+    # random_generator = numpy.random.default_rng(seed)  # Numpy random
+
     global random_generator
-    random_generator = numpy.random.default_rng(seed)
+    random_generator = TempRNG()  # Fake RNG, seed is ignored
+    random_generator.load()
 
 
 # TODO: This is probably slow
