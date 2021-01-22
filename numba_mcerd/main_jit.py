@@ -28,7 +28,6 @@ def setup_logging():
 def main(args):
     # Misc setup
 
-    random.seed_rnd(1)
     setup_logging()
 
     # Variables
