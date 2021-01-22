@@ -209,7 +209,7 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
                 target.recdist[i].x = fval.a[i] * rec_dist_unit
                 target.recdist[i].y = fval.b[i] * rec_dist_unit
                 if i > 0 and (target.recdist[-1].y > 0.0 or target.recdist[i].y > 0.0):
-                    target.effrecd += target.recdist[i].x - target.recdist[-i].x
+                    target.effrecd += target.recdist[i].x - target.recdist[i - 1].x
             target.nrecdist = n
             # del fval
         elif key == SettingsLine.I_TANGLE.value:
