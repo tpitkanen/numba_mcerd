@@ -38,6 +38,8 @@ def create_ion(g: o.Global, ion: o.Ion, target: o.Target) -> None:
     ion.lab.p = o.Point(x, y, z)
 
     if g.simstage == c.SimStage.REALSIMULATION and g.cion % (g.nscale + 1) == 0:
+        # TODO: Calculating a random point goes to waste here. Move
+        #       random point calculation to the else branch
         ion.scale = True
         ion.lab.p.x = 0.0
         ion.lab.p.y = 0.0
@@ -130,8 +132,7 @@ def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> c.Sca
     cross_layer = cross_recdist = sto_dec = False
     sc = c.ScatteringType.MC_SCATTERING
 
-    # d = snext.d
-    d = 0.049297712011580730  # For debugging
+    d = snext.d
     layer = target.layer[ion.tlayer]
 
     nextp = o.Point()
