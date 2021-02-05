@@ -43,7 +43,7 @@ def main(args):
     logging.debug("Initializing variables")
 
     g = o.Global()
-    ion = o.Ion()
+    ion = o.Ion()  # Not really used in the simulation loop
     cur_ion = o.Ion()
     previous_trackpoint_ion = o.Ion()  # Not used unless simulation is RBS
     ions_moving = []  # TODO: Initialize a list of ions?
@@ -175,7 +175,7 @@ def main(args):
         # TODO
         output.output_data(g)
 
-        cur_ion = ions_moving[0]
+        cur_ion = ions_moving[PRIMARY]
 
         # Pointer stuff, probably not needed in Python:
         # if debug:
@@ -204,16 +204,16 @@ def main(args):
                 else:
                     erd_detector.move_to_erd_detector(g, cur_ion, target, detector)
 
-            if g.simstage == c.SimStage.PRESIMULATION and g.cion == g.npresimu -1:
+            if g.simstage == c.SimStage.PRESIMULATION and g.cion == g.npresimu - 1:
                 pre_simulation.analyze_presimulation(g, target, detector)
                 init_params.init_recoiling_angle(target)
 
             if nscat == c.ScatteringType.MC_SCATTERING \
                     and cur_ion.status == c.IonStatus.NOT_FINISHED \
                     and not g.nomc:
-                if ion_simu.mc_scattering(g, cur_ion, ion_stack.next_ion(), target, detector, scat, snext):
-                    # cur_ion = next_ion(...)
-                    cur_ion = ion_stack.next_ion()
+                if ion_simu.mc_scattering(
+                        g, cur_ion, ions_moving[SECONDARY], target, detector, scat, snext):  # ion_stack.next_ion()
+                    cur_ion = ions_moving[SECONDARY]  # ion_stack.next_ion()
                     found = False
                     for j in range(g.nions):
                         if i == TARGET_ATOM and g.simtype == c.SimType.SIM_RBS:
@@ -227,7 +227,8 @@ def main(args):
                     if not found:
                         logging.warning(
                             f"Recoil cascade not possible, since recoiling ion Z={cur_ion.Z} and A={cur_ion.A / c.C_U} u are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
-                        cur_ion = ion_stack.prev_ion()
+                        raise NotImplementedError
+                        # cur_ion = ion_stack.prev_ion()
                     else:
                         ion_i += 1
                         cur_ion.ion_i = ion_i
@@ -257,12 +258,12 @@ def main(args):
 
                 # TODO: .index is probably inefficient, find a better way to check.
                 #       Maybe cur_ion.type?
-                if ions_moving.index(cur_ion) <= SECONDARY:
+                if ions_moving.index(cur_ion) <= SECONDARY:  # This is possibly wrong
                     output.output_erd(g, cur_ion, target, detector)
                 if cur_ion.type.value == PRIMARY:
                     primary_finished = True
                     break
-                cur_ion = ion_stack.prev_ion()
+                cur_ion = ions_moving[PRIMARY]  # ion_stack.prev_ion()
                 if cur_ion.type.value != PRIMARY and g.output_trackpoints:
                     raise NotImplementedError
 
