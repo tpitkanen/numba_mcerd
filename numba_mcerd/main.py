@@ -216,14 +216,14 @@ def main(args):
                     cur_ion = ions_moving[SECONDARY]  # ion_stack.next_ion()
                     found = False
                     for j in range(g.nions):
-                        if i == TARGET_ATOM and g.simtype == c.SimType.SIM_RBS:
+                        if j == TARGET_ATOM and g.simtype == c.SimType.SIM_RBS:
                             continue
-                        if round(ions[i].Z) == round(cur_ion.Z) \
-                                and round(ions[i].A / c.C_U) == round(ions[i].A / c.C_U):
+                        if round(ions[j].Z) == round(cur_ion.Z) \
+                                and round(ions[j].A / c.C_U) == round(ions[j].A / c.C_U):
                             # FIXME: Comparing average mass by rounding is a bad idea.
                             #        See the original code for more information.
                             found = True
-                            cur_ion.scatindex = i
+                            cur_ion.scatindex = j
                     if not found:
                         logging.warning(
                             f"Recoil cascade not possible, since recoiling ion Z={cur_ion.Z} and A={cur_ion.A / c.C_U} u are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
