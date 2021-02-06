@@ -6,7 +6,7 @@ PI = 3.14159265358979323846
 
 
 def rotate(theta2, fii2, theta1, fii1) -> Tuple[float, float]:
-    # Documentation copied from original code
+    # From original:
     """Definition of the angles: theta2,fii2 is the angle of the
     second coordinate system in the first coordinate system.
     Theta1,fii1 is the specific direction in the second coordinate
@@ -14,8 +14,7 @@ def rotate(theta2, fii2, theta1, fii1) -> Tuple[float, float]:
     in this routine (theta,fii).
 
     This routine cannot be explained easily. Read eg. Goldstein
-    about the Euler angles and coordinate transforms. Typical
-    time for understanding this is three days ;-)
+    about the Euler angles and coordinate transforms.
     """
     cos_theta = math.cos(theta1)
     sin_theta = math.sin(theta1)
@@ -47,7 +46,7 @@ def rotate(theta2, fii2, theta1, fii1) -> Tuple[float, float]:
           + y * sina1 * cosa3
           + z * cosa1)
 
-    rz = max(min(rz, 1.0), -1.0)
+    rz = max(min(rz, 1.0), -1.0)  # Clamp rz to [-1.0, 1.0]
 
     theta = math.acos(rz)
     if rx != 0.0:

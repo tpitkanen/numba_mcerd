@@ -48,7 +48,7 @@ def main(args):
     previous_trackpoint_ion = o.Ion()  # Not used unless simulation is RBS
     ions_moving = []  # TODO: Initialize a list of ions?
     target = o.Target()
-    scat = None
+    scat = None  # len [g.nions][MAXELEMENTS]
     snext = o.SNext()
     detector = o.Detector()
 
@@ -208,9 +208,9 @@ def main(args):
                 pre_simulation.analyze_presimulation(g, target, detector)
                 init_params.init_recoiling_angle(target)
 
-            if nscat == c.ScatteringType.MC_SCATTERING \
-                    and cur_ion.status == c.IonStatus.NOT_FINISHED \
-                    and not g.nomc:
+            if (nscat == c.ScatteringType.MC_SCATTERING
+                    and cur_ion.status == c.IonStatus.NOT_FINISHED
+                    and not g.nomc):
                 if ion_simu.mc_scattering(
                         g, cur_ion, ions_moving[SECONDARY], target, detector, scat, snext):  # ion_stack.next_ion()
                     cur_ion = ions_moving[SECONDARY]  # ion_stack.next_ion()
@@ -218,8 +218,8 @@ def main(args):
                     for j in range(g.nions):
                         if j == TARGET_ATOM and g.simtype == c.SimType.SIM_RBS:
                             continue
-                        if round(ions[j].Z) == round(cur_ion.Z) \
-                                and round(ions[j].A / c.C_U) == round(ions[j].A / c.C_U):
+                        if (round(ions[j].Z) == round(cur_ion.Z)
+                                and round(ions[j].A / c.C_U) == round(ions[j].A / c.C_U)):
                             # FIXME: Comparing average mass by rounding is a bad idea.
                             #        See the original code for more information.
                             found = True
