@@ -316,17 +316,165 @@ def ion_finished(g: o.Global, ion: o.Ion, target: o.Target) -> c.IonStatus:
     return ion.status
 
 
+# detector would be used in:
+# if g.cascades and E_recoil > 2.0 * g.emin
 def mc_scattering(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target, detector: o.Detector,
-                  scat: o.Scattering, snext: o.SNext) -> bool:
-    raise NotImplementedError
+                  scat: List[List[o.Scattering]], snext: o.SNext) -> bool:
+    """Normal elastic scattering from a potential during the slowing down process"""
+    recoils = False
+
+    g.nmc += 1  # TODO: Problematic for multi-threading
+    if ion.scale:
+        return False
+
+    targetA = target.ele[snext.natom].A  # TODO in original code
+    targetZ = target.ele[snext.natom].Z
+
+    s = scat[ion.scatindex][snext.natom]  # TODO: "!!!" in original code, and give a better name
+
+    ion.opt.e = ion.E * s.E2eps
+    if ion.E < g.emin:
+        return False
+
+    n = ion.A / targetA
+
+    angle = get_angle(s, ion)
+    cos_theta_cm = math.cos(angle)
+    sin_theta_cm = math.sin(angle)
+
+    theta = math.atan2(sin_theta_cm, cos_theta_cm + n)
+    cos_theta = math.cos(theta)
+    sin_theta = math.sin(theta)
+
+    if ion.A > targetA and theta > math.asin(1.0 / n):
+        # TODO: Better message
+        logging.warning("Scattering with M1>M2 and scattering angle exceeds asin(M2/M1). Physics fails.")
+
+    # This might actually be -0.5*(PI-angle)
+    theta_recoil = 0.5 * (c.C_PI - angle)
+    if theta_recoil > 0.5 * c.C_PI:
+        # TODO: Values
+        logging.warning("Unphysically scattered backwards.")
+    cos_theta_recoil = math.cos(theta_recoil)  # cos(-x) = cos(x) so this won't be affected anyway
+    # sin_theta_recoil = math.sin(theta_recoil)  # Unused
+
+    Ef = ((math.sqrt(targetA**2 - (ion.A * sin_theta)**2) + ion.A * cos_theta)
+          / (ion.A + targetA))
+    E_recoil = (1.0 - Ef) * ion.E
+    if g.cascades and E_recoil > 2.0 * g.emin:  # TODO: 2.0 is a workaround for newly created recoil
+        # Enough energy to be treated as a "true" recoil, the same way as the original particle
+        raise NotImplementedError
+
+    # ifdef SCAT_ANAL
+    # ifdef NO_ETRANS
+    # ifdef NO_PRI_ANGLES
+    # ifdef NO_SEC_ANGLES
+
+    # ifndef NO_RBS_SCATLIMIT
+    if (g.simtype == c.SimType.SIM_RBS
+            and ion.type == c.IonType.SECONDARY
+            and ion.tlayer < target.ntarget):  # Limited to sample
+        raise NotImplementedError
+
+    # All nuclear energy losses are tabulated, including the prime recoil from a cascade (above)
+    ion.E_nucl_loss_det += (1.0 - Ef) * ion.E
+    ion.E *= Ef
+    ion.opt.e = ion.E * s.E2eps
+
+    fii = random.rnd(0.0, 2.0 * c.C_PI, c.RndPeriod.RND_RIGHT)
+    ion_rotate(ion, cos_theta, fii)
+    if recoils:
+        ion_rotate(recoil, cos_theta_recoil, math.fmod(fii + c.C_PI, 2.0 * c.C_PI))
+    ion.nsct += 1
+    return recoils
 
 
 def get_angle(scat: o.Scattering, ion: o.Ion) -> float:
-    raise NotImplementedError
+    """Interpolate the cosine of the scattering angle according to the
+     ion energy and impact parameter."""
+
+    y = ion.opt.y
+    e = ion.opt.e
+
+    i = int(((math.log(e) - scat.logemin) * scat.logediv) + 1)
+    j = int(((math.log(y) - scat.logymin) * scat.logydiv) + 1)
+
+    if i > c.EPSNUM - 2:
+        logging.warning("Energy exceeds the maximum of the scattering table energy")
+        return 0.0
+    if i < 1:
+        logging.warning("Energy is below the minimum of the scattering table energy")
+        return 0.0
+    if j < 1:
+        logging.warning("Empact parameter is below the minimum of the scattering table value")
+        # formatted number print
+        return c.C_PI  # TODO in original: PI or zero?
+    if j > c.YNUM - 2:
+        logging.warning("Impact parameter exceeds the maximum of the scattering table value")
+        # formatted number print
+        return 0.0
+
+    ylow = scat.angle[0][j]
+    yhigh = scat.angle[0][j + 1]
+    elow = scat.angle[i][0]
+    ehigh = scat.angle[i + 1][0]
+
+    angle11 = scat.angle[i][j]
+    angle12 = scat.angle[i][j + 1]
+    angle21 = scat.angle[i + 1][j]
+    angle22 = scat.angle[i + 1][j + 1]
+
+    tmp0 = 1.0 / (yhigh - ylow)
+    tmp1 = angle11 + (y - ylow) * (angle12 - angle11) * tmp0
+    tmp2 = angle21 + (y - ylow) * (angle22 - angle21) * tmp0
+
+    angle = tmp1 + (e - elow) * (tmp2 - tmp1) / (ehigh - elow)
+    return angle
 
 
 def ion_rotate(p: o.Ion, cos_theta: float, fii: float) -> None:
-    raise NotImplementedError
+    # TODO: Change this to use the general rotate function. Differences:
+    #       - cos_theta is an argument instead of cos, angles are in p
+    #       - rz is saved
+    #       - p.opt is read and written
+    #       - inconsistent end checks
+
+    sin_theta = math.sqrt(math.fabs(1.0 - cos_theta * cos_theta))
+    cos_fii = math.cos(fii)
+    sin_fii = math.sin(fii)
+
+    x = sin_theta * cos_fii
+    y = sin_theta * sin_fii
+    z = cos_theta
+
+    cosa1 = p.opt.cos_theta
+    sina1 = math.sqrt(math.fabs(1.0 - cosa1 * cosa1))
+
+    sina2 = math.sin(p.fii + c.C_PI / 2.0)
+    cosa2 = math.cos(p.fii + c.C_PI / 2.0)
+
+    cosa3 = cosa2
+    sina3 = -sina2
+
+    rx = (x * (cosa3 * cosa2 - cosa1 * sina2 * sina3)
+          + y * (-sina3 * cosa2 - cosa1 * sina2 * cosa3)
+          + z * sina1 * sina2)
+
+    ry = (x * (cosa3 * sina2 + cosa1 * cosa2 * sina3)
+          + y * (-sina3 * sina2 + cosa1 * cosa2 * cosa3)
+          - z * sina1 * cosa2)
+
+    rz = (x * sina1 * sina3
+          + y * sina1 * cosa3
+          + z * cosa1)
+
+    p.opt.cos_theta = rz
+    p.opt.sin_theta = math.sqrt(math.fabs(1.0 - rz**2))
+
+    p.theta = math.acos(rz)
+    p.fii = math.atan2(ry, rx)
+    if p.fii < 0.0:
+        p.fii += 2.0 * c.C_PI
 
 
 def recdist_crossing(g: o.Global, ion: o.Ion, target: o.Target, dist: float) -> Tuple[bool, float]:

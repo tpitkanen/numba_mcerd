@@ -103,20 +103,22 @@ def main(args):
 
     table_timer.split()
 
-    scat = []
-    for i in range(g.nions):
-        if g.simtype == c.SimType.SIM_RBS and i == c.IonType.TARGET_ATOM.value:
-            continue
-        ions[i].scatindex = i
-        scat.append([o.Scattering() for _ in range(c.MAXELEMENTS)])
-        for j in range(target.natoms):
-            # logging.debug(f"Calculating scattering between ions ...")
-            init_simu.scattering_table(g, ions[i], target, scat[i][j], pot, j)
-            cross_section.calc_cross_sections(g, scat[i][j], pot)
+    # scat = []
+    # for i in range(g.nions):
+    #     if g.simtype == c.SimType.SIM_RBS and i == c.IonType.TARGET_ATOM.value:
+    #         continue
+    #     ions[i].scatindex = i
+    #     scat.append([o.Scattering() for _ in range(c.MAXELEMENTS)])
+    #     for j in range(target.natoms):
+    #         # logging.debug(f"Calculating scattering between ions ...")
+    #         init_simu.scattering_table(g, ions[i], target, scat[i][j], pot, j)
+    #         cross_section.calc_cross_sections(g, scat[i][j], pot)
 
     # pickler.dump(scat, "scat")
 
-    # scat = pickler.load("scat")
+    scat = pickler.load("scat")
+    for i in range(g.nions):  # Fix for pickling
+        ions[i].scatindex = i
 
     table_timer.stop()
 
@@ -172,7 +174,6 @@ def main(args):
         outer_loop_count = 0
         inner_loop_count = 0
 
-        # TODO
         output.output_data(g)
 
         cur_ion = ions_moving[PRIMARY]
@@ -213,6 +214,7 @@ def main(args):
                     and not g.nomc):
                 if ion_simu.mc_scattering(
                         g, cur_ion, ions_moving[SECONDARY], target, detector, scat, snext):  # ion_stack.next_ion()
+                    # This block is never reached in ERD mode
                     cur_ion = ions_moving[SECONDARY]  # ion_stack.next_ion()
                     found = False
                     for j in range(g.nions):
@@ -255,6 +257,10 @@ def main(args):
                 cur_ion.trackid = trackid if not new_track else 0
                 # No new track is made if ion doesn't make it to the
                 # energy detector or if it's a scaling ion
+
+                # TODO: cur_ion.Z is int but it should be float. Maybe
+                #       there's an int cast somewhere in the original
+                #       code that's still saved to a float variable.
 
                 # TODO: .index is probably inefficient, find a better way to check.
                 #       Maybe cur_ion.type?
