@@ -103,22 +103,20 @@ def main(args):
 
     table_timer.split()
 
-    # scat = []
-    # for i in range(g.nions):
-    #     if g.simtype == c.SimType.SIM_RBS and i == c.IonType.TARGET_ATOM.value:
-    #         continue
-    #     ions[i].scatindex = i
-    #     scat.append([o.Scattering() for _ in range(c.MAXELEMENTS)])
-    #     for j in range(target.natoms):
-    #         # logging.debug(f"Calculating scattering between ions ...")
-    #         init_simu.scattering_table(g, ions[i], target, scat[i][j], pot, j)
-    #         cross_section.calc_cross_sections(g, scat[i][j], pot)
+    scat = []
+    for i in range(g.nions):
+        if g.simtype == c.SimType.SIM_RBS and i == c.IonType.TARGET_ATOM.value:
+            continue
+        ions[i].scatindex = i
+        scat.append([o.Scattering() for _ in range(c.MAXELEMENTS)])
+        for j in range(target.natoms):
+            # logging.debug(f"Calculating scattering between ions ...")
+            init_simu.scattering_table(g, ions[i], target, scat[i][j], pot, j)
+            cross_section.calc_cross_sections(g, scat[i][j], pot)
 
     # pickler.dump(scat, "scat")
 
-    scat = pickler.load("scat")
-    for i in range(g.nions):  # Fix for pickling
-        ions[i].scatindex = i
+    # scat = pickler.load("scat")
 
     table_timer.stop()
 
