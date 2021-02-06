@@ -117,6 +117,8 @@ def main(args):
     # pickler.dump(scat, "scat")
 
     # scat = pickler.load("scat")
+    # for i in range(g.nions):  # Fix for pickling
+    #     ions[i].scatindex = i
 
     table_timer.stop()
 
