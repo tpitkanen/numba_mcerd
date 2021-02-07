@@ -1,7 +1,6 @@
 """Constants from general.h"""
 
 from enum import Enum
-import math
 
 
 ################################################################################
@@ -217,7 +216,7 @@ C_UG = 1.0e-9
 C_G_CM3 = 1.0e3
 C_MSR = 1.0e-3
 
-C_PI = math.pi
+C_PI = 3.14159265358979323846264338327950288  # math.pi == C_PI
 C_DEG = 2.0*C_PI/360.0  # degree
 C_FWHM = 2.35482004503
 C_PERCENT = 0.01

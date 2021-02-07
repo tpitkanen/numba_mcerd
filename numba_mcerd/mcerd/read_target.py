@@ -60,7 +60,7 @@ def read_target_file(filename: str, g: o.Global, target: o.Target) -> None:
         if layer.type == c.TargetType.TARGET_FILM:
             number, line = read_input.get_float(line)
             unit, line = read_input.get_unit_value(line, c.C_NM)
-            logging.info(f"thickness {number * unit / c.C_NM}")
+            logging.info(f"thickness {number * unit / c.C_NM} nm")
             layer.dlow = depth
             layer.dhigh = depth + number * unit
             depth = layer.dhigh

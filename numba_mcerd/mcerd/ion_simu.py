@@ -31,7 +31,7 @@ def create_ion(g: o.Global, ion: o.Ion, target: o.Target) -> None:
     x = random.rnd(-g.bspot.x, g.bspot.x, c.RndPeriod.RND_CLOSED)
     y = random.rnd(-g.bspot.y, g.bspot.y, c.RndPeriod.RND_CLOSED)
     if g.beamangle > 0:
-        z = x / math.tan(math.pi / 2.0 - g.beamangle)
+        z = x / math.tan(c.C_PI / 2.0 - g.beamangle)
     else:
         z = 0.0
 
@@ -70,7 +70,7 @@ def create_ion(g: o.Global, ion: o.Ion, target: o.Target) -> None:
     ion.status = c.IonStatus.NOT_FINISHED
 
     ion.lab.theta = g.beamangle
-    ion.lab.fii = math.pi
+    ion.lab.fii = c.C_PI
 
     # if __debug__:
     #     debug.print_ion_position(g, ion, "L", c.SimStage.ANYSIMULATION)
@@ -107,7 +107,7 @@ def next_scattering(g: o.Global, ion: o.Ion, target: o.Target,
         raise IonSimulationError("Scattering atom calculated wrong")
     i -= 1
 
-    ion.opt.y = math.sqrt(-rcross / (math.pi * layer.N[i])) / scat[ion.scatindex][snext.natom].a
+    ion.opt.y = math.sqrt(-rcross / (c.C_PI * layer.N[i])) / scat[ion.scatindex][snext.natom].a
     snext.d = -math.log(random.rnd(0.0, 1.0, c.RndPeriod.RND_RIGHT)) / cross
 
 
