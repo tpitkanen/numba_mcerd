@@ -107,7 +107,7 @@ def get_isotope(I: o.Isotopes) -> float:
         conc_sum = 0.0
         for i in range(I.n):
             conc_sum += I.c[i]
-        raise ErdScatteringError(f"Error in concentrations")  # TODO: More descriptive
+        raise ErdScatteringError(f"Error in concentrations: sum is '{conc_sum}', should be '1.0'")
 
     mass = I.A[i - 1]
     return mass
