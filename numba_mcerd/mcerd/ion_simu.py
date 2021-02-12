@@ -98,7 +98,6 @@ def next_scattering(g: o.Global, ion: o.Ion, target: o.Target,
         cross += b[i]
 
     rcross = random.rnd(0.0, cross, c.RndPeriod.RND_OPEN)
-    # rcross = 17.554089969710095  # Temporarily value for debugging  # TODO: Remove once RNG is the same as in the C code
     i = 0
     while i < layer.natoms and rcross >= 0.0:
         rcross -= b[i]
@@ -106,6 +105,8 @@ def next_scattering(g: o.Global, ion: o.Ion, target: o.Target,
     if i < 1 or i > layer.natoms:
         raise IonSimulationError("Scattering atom calculated wrong")
     i -= 1
+
+    snext.natom = layer.atom[i]
 
     ion.opt.y = math.sqrt(-rcross / (c.C_PI * layer.N[i])) / scat[ion.scatindex][snext.natom].a
     snext.d = -math.log(random.rnd(0.0, 1.0, c.RndPeriod.RND_RIGHT)) / cross
