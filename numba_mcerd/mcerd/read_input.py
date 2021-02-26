@@ -439,6 +439,7 @@ def set_ion(jibal: o.Jibal, line: str, ion: o.Ion) -> None:
                 Amax = isotope.abundance
                 ion.I.Am = isotope.mass
                 ion.A = isotope.mass
+        n += 1  # Offset for compatibility with original code
 
     ion.I.n = n
     if n and ion.I.c_sum != 1.0:
