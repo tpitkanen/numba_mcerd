@@ -201,7 +201,7 @@ def main(args):
             if cur_ion.status == c.IonStatus.FIN_RECOIL or cur_ion.status == c.IonStatus.FIN_OUT_DET:
                 if g.simstage == c.SimStage.PRESIMULATION:
                     pre_simulation.finish_presimulation(g, detector, cur_ion)
-                    cur_ion = ions_moving[SECONDARY]
+                    cur_ion = ions_moving[PRIMARY]
                 else:
                     erd_detector.move_to_erd_detector(g, cur_ion, target, detector)
 
