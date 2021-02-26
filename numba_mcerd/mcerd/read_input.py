@@ -409,7 +409,7 @@ def set_ion(jibal: o.Jibal, line: str, ion: o.Ion) -> None:
 
     if line[0].isnumeric():
         A, symbol = get_float(line)
-        A = int(A)
+        A = round(A)
     else:
         A = None
         symbol, _ = get_word(line)
@@ -480,7 +480,7 @@ def get_float(line: str) -> (float, str):
         Extracted number and the rest of the line
     """
     _, number, rest = re.split(
-        r"^\s*("                                          # whitespace, begin capture group
+        r"^\s*("                                         # whitespace, begin capture group
         r"[+-]?"                                         # sign
         r"(?:(?:\d+\.\d+)|(?:\d+\.)|(?:\.\d+)|(?:\d+))"  # number(s) around comma, or bare integer
         r"(?:[eE][+-]?\d+)?"                             # scientific notation
