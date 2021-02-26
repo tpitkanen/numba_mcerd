@@ -16,7 +16,7 @@ class TestJibal(unittest.TestCase):
         self.assertEqual(He, jibal.get_element_by_name("He"))
         self.assertEqual("He", He.name)
         self.assertEqual(2, He.Z)
-        self.assertAlmostEqual(4.002601026852, He.avg_mass)
+        self.assertAlmostEqual(6.646475373101021e-27, He.avg_mass)
         self.assertEqual(8, len(He.isotopes))
 
         He3 = jibal.get_isotope_by_neutron_number(2, 1)
@@ -26,7 +26,7 @@ class TestJibal(unittest.TestCase):
         self.assertEqual(2, He3.Z)
         self.assertEqual(1, He3.N)
         self.assertEqual(3, He3.A)
-        self.assertEqual(3.016029, He3.mass)
+        self.assertEqual(5.008233980498531e-27, He3.mass)
         self.assertEqual(0.000002, He3.abundance)
 
         self.assertEqual(He3, jibal.get_isotope_by_neutron_number(2, 1))
@@ -37,7 +37,7 @@ class TestJibal(unittest.TestCase):
         self.assertEqual(2, He4.Z)
         self.assertEqual(2, He4.N)
         self.assertEqual(4, He4.A)
-        self.assertEqual(4.002603, He4.mass)
+        self.assertEqual(6.64647864959036e-27, He4.mass)
         self.assertEqual(0.999998, He4.abundance)
 
     def test_normalize(self):
@@ -49,7 +49,7 @@ class TestJibal(unittest.TestCase):
         self.assertEqual(3, Li.Z)
         self.assertEqual(11, len(Li.isotopes))
         self.assertEqual(11, len(Li.concs))
-        self.assertAlmostEqual(6.96746032, Li.avg_mass)
+        self.assertAlmostEqual(1.1569740056345338e-26, Li.avg_mass)
 
         Li_all = jibal.copy_normalized_element(Li, JibalSelectIsotopes.ALL.value)
         self.assertIsNot(Li, Li_all)
@@ -57,7 +57,7 @@ class TestJibal(unittest.TestCase):
         self.assertEqual(3, Li_all.Z)
         self.assertEqual(11, len(Li_all.isotopes))
         self.assertEqual(11, len(Li_all.concs))
-        self.assertAlmostEqual(6.96746032, Li_all.avg_mass)
+        self.assertAlmostEqual(1.1569740056345338e-26, Li_all.avg_mass)
 
         Li_nat = jibal.copy_normalized_element(Li, JibalSelectIsotopes.NATURAL.value)
         self.assertIsNot(Li, Li_nat)
@@ -65,7 +65,7 @@ class TestJibal(unittest.TestCase):
         self.assertEqual(3, Li_nat.Z)
         self.assertEqual(2, len(Li_nat.isotopes))
         self.assertEqual(2, len(Li_nat.concs))
-        self.assertAlmostEqual(6.96746032, Li_all.avg_mass)
+        self.assertAlmostEqual(1.1569740056345338e-26, Li_all.avg_mass)
 
         Li6 = jibal.copy_normalized_element(Li, 6)
         self.assertIsNot(Li, Li6)
@@ -73,4 +73,4 @@ class TestJibal(unittest.TestCase):
         self.assertEqual(3, Li6.Z)
         self.assertEqual(1, len(Li6.isotopes))
         self.assertEqual(1, len(Li6.concs))
-        self.assertEqual(6.015123, Li6.avg_mass)
+        self.assertEqual(9.988346731904192e-27, Li6.avg_mass)

@@ -10,8 +10,13 @@ class TestRandom(unittest.TestCase):
     def test_determinism(self):
         low = 1
         high = 4
-        self.assertEqual(1.4030927323372038, random.rnd(low, high))
-        self.assertEqual(6.542301210811698, random.rnd(low+3, high+3))
+        # Built-in Python RNG
+        # self.assertEqual(1.4030927323372038, random.rnd(low, high))
+        # self.assertEqual(6.542301210811698, random.rnd(low+3, high+3))
+
+        # Precalculated C RNG (PCG32)
+        self.assertEqual(2.998037535464391, random.rnd(low, high))
+        self.assertEqual(6.485011034877971, random.rnd(low+3, high+3))
 
     def test_invalid_length(self):
         low = 10

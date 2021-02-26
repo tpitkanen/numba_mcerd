@@ -10,7 +10,7 @@ class TestPotential(unittest.TestCase):
         pot = o.Potential()
         potential.make_screening_table(pot)
 
-        self.assertAlmostEqual(33.333333333333336, pot.d)
+        self.assertEqual(33, pot.d)
         self.assertEqual(3201, pot.n)
         self.assertEqual(3201, len(pot.u))
 
