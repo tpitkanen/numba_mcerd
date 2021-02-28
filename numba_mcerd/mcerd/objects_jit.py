@@ -1,26 +1,28 @@
 """Objects from general.h adapted to jitclass"""
 
 import numpy as np
-from numba import int32, float32
+from numba import int64, float64
 from numba.experimental import jitclass
 
 
-# TODO: Jitclasses can't be nested (probably).
-#       Replace these with something more built-in.
+# TODO: Jitclasses can be nested:
+#       https://stackoverflow.com/questions/57640039/numba-jit-and-deferred-types
+#       https://stackoverflow.com/questions/38682260/how-to-nest-numba-jitclass
+#       https://stackoverflow.com/questions/59215076/how-make-a-python-class-jitclass-compatible-when-it-contains-itself-jitclass-cla
 
 # Tuple-style definition
 # @jitclass([
-#     ("x", float32),
-#     ("y", float32),
-#     ("z", float32)
+#     ("x", float64),
+#     ("y", float64),
+#     ("z", float64)
 # ])
 # class Point: ...
 
 # Dict-style definition
 @jitclass({
-    "x": float32,
-    "y": float32,
-    "z": float32,
+    "x": float64,
+    "y": float64,
+    "z": float64,
 })
 class Point:
     def __init__(self, x, y, z):
@@ -30,8 +32,8 @@ class Point:
 
 
 @jitclass({
-    "x": float32,
-    "y": float32
+    "x": float64,
+    "y": float64
 })
 class Point2:
     def __init__(self, x, y):
@@ -41,17 +43,17 @@ class Point2:
 
 # TODO: float64?
 @jitclass({
-    "n": int32,
-    "d": int32,
-    "ux": float32[:],
-    "uy": float32[:]
+    "n": int64,
+    "d": int64,
+    "ux": float64[:],
+    "uy": float64[:]
 })
 class Potential:
     def __init__(self, n, d):
         self.n = n
         self.d = d
-        self.ux = np.zeros(n, dtype=np.float32)
-        self.uy = np.zeros(n, dtype=np.float32)
+        self.ux = np.zeros(n, dtype=np.float64)
+        self.uy = np.zeros(n, dtype=np.float64)
 
 
 # class Point2np:

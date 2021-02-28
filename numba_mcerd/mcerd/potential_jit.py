@@ -44,8 +44,8 @@ def make_screening_table_cached() -> Tuple[int, int, np.ndarray, np.ndarray]:
     xstep = xmax / (n - 1)
     d = round(1 / xstep)
 
-    ux = np.zeros(n, dtype=np.float32)
-    uy = np.zeros(n, dtype=np.float32)
+    ux = np.zeros(n, dtype=np.float64)
+    uy = np.zeros(n, dtype=np.float64)
 
     x = 0
     for i in range(n):
