@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 import numpy as np
 
-from numba_mcerd.mcerd import random, cross_section
+from numba_mcerd.mcerd import random_vanilla, cross_section
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.constants as c
 
@@ -28,8 +28,8 @@ def create_ion(g: o.Global, ion: o.Ion, target: o.Target) -> None:
     if g.simtype != c.SimType.SIM_ERD and g.simtype != c.SimType.SIM_RBS:
         raise IonSimulationError("Unsupported simulation type")
 
-    x = random.rnd(-g.bspot.x, g.bspot.x, c.RndPeriod.RND_CLOSED)
-    y = random.rnd(-g.bspot.y, g.bspot.y, c.RndPeriod.RND_CLOSED)
+    x = random_vanilla.rnd(-g.bspot.x, g.bspot.x, c.RndPeriod.RND_CLOSED)
+    y = random_vanilla.rnd(-g.bspot.y, g.bspot.y, c.RndPeriod.RND_CLOSED)
     if g.beamangle > 0:
         z = x / math.tan(c.C_PI / 2.0 - g.beamangle)
     else:
@@ -97,7 +97,7 @@ def next_scattering(g: o.Global, ion: o.Ion, target: o.Target,
         b[i] = layer.N[i] * cross_section.get_cross(ion, scat[ion.scatindex][p])
         cross += b[i]
 
-    rcross = random.rnd(0.0, cross, c.RndPeriod.RND_OPEN)
+    rcross = random_vanilla.rnd(0.0, cross, c.RndPeriod.RND_OPEN)
     i = 0
     while i < layer.natoms and rcross >= 0.0:
         rcross -= b[i]
@@ -109,7 +109,7 @@ def next_scattering(g: o.Global, ion: o.Ion, target: o.Target,
     snext.natom = layer.atom[i]
 
     ion.opt.y = math.sqrt(-rcross / (c.C_PI * layer.N[i])) / scat[ion.scatindex][snext.natom].a
-    snext.d = -math.log(random.rnd(0.0, 1.0, c.RndPeriod.RND_RIGHT)) / cross
+    snext.d = -math.log(random_vanilla.rnd(0.0, 1.0, c.RndPeriod.RND_RIGHT)) / cross
 
 
 def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> c.ScatteringType:
@@ -162,7 +162,7 @@ def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> c.Sca
             cross_layer = False
             d = dreclayer
             sc = c.ScatteringType.NO_SCATTERING
-        drec = -math.log(random.rnd(0.0, 1.0, c.RndPeriod.RND_CLOSED))
+        drec = -math.log(random_vanilla.rnd(0.0, 1.0, c.RndPeriod.RND_CLOSED))
         if g.recwidth == c.RecWidth.REC_WIDE or g.simstage == c.SimStage.PRESIMULATION:
             drec *= ion.effrecd / (math.cos(g.beamangle) * g.nrecave)
             ion.wtmp = -1.0
@@ -211,7 +211,7 @@ def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> c.Sca
     # TODO: Copy comments here
 
     straggling = math.sqrt(inter_sto(layer.sto[ion.type.value], vel, c.IonMode.STRAGGLING) * d)
-    straggling *= random.gaussian()
+    straggling *= random_vanilla.gaussian()
 
     eloss = d * stopping
     if math.fabs(straggling) < eloss:
@@ -382,7 +382,7 @@ def mc_scattering(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target, dete
     ion.E *= Ef
     ion.opt.e = ion.E * s.E2eps
 
-    fii = random.rnd(0.0, 2.0 * c.C_PI, c.RndPeriod.RND_RIGHT)
+    fii = random_vanilla.rnd(0.0, 2.0 * c.C_PI, c.RndPeriod.RND_RIGHT)
     ion_rotate(ion, cos_theta, fii)
     if recoils:
         ion_rotate(recoil, cos_theta_recoil, math.fmod(fii + c.C_PI, 2.0 * c.C_PI))

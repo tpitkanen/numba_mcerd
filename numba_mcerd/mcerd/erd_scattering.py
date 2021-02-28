@@ -4,7 +4,7 @@ from typing import List
 
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
-from numba_mcerd.mcerd import rotate, random
+from numba_mcerd.mcerd import rotate, random_vanilla
 
 
 class ErdScatteringError(Exception):
@@ -94,7 +94,7 @@ def erd_scattering(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target,
 
 def get_isotope(I: o.Isotopes) -> float:
     assert 0.9999 < I.c_sum < 1.0001
-    r = random.rnd(0.0, I.c_sum, c.RndPeriod.RND_OPEN)
+    r = random_vanilla.rnd(0.0, I.c_sum, c.RndPeriod.RND_OPEN)
 
     i = 0
     conc = 0.0
@@ -167,9 +167,9 @@ def get_recoiling_dir(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target,
         d_ion_theta_ok = True
         while d_ion_theta_ok:
             i += 1
-            t = random.rnd(cos_thetamax, 1.0, c.RndPeriod.RND_CLOSED)
+            t = random_vanilla.rnd(cos_thetamax, 1.0, c.RndPeriod.RND_CLOSED)
             theta = math.acos(t)
-            fii = random.rnd(0, 2.0 * c.C_PI, c.RndPeriod.RND_OPEN)
+            fii = random_vanilla.rnd(0, 2.0 * c.C_PI, c.RndPeriod.RND_OPEN)
             d_target.theta, d_target.fii = rotate.rotate(detector.angle, 0.0, theta, fii)
             d_ion.theta, d_ion.fii = rotate.rotate(
                 ion.theta, ion.fii - c.C_PI, d_target.theta, d_target.fii)

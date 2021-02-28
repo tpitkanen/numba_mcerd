@@ -5,7 +5,7 @@ import numpy as np
 
 from numba_mcerd import config, timer, pickler
 from numba_mcerd.mcerd import (
-    random, init_params, read_input, potential, ion_stack, init_simu, cross_section, elsto,
+    init_params, read_input, potential, ion_stack, init_simu, cross_section, elsto,
     init_detector, ion_simu, erd_scattering, pre_simulation, erd_detector, output, finish_ion,
     finalize
 )

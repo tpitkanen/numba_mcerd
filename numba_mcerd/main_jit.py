@@ -2,8 +2,10 @@ import copy
 import logging
 
 from numba_mcerd import config, timer
-from numba_mcerd.mcerd import random, init_params, read_input, potential, ion_stack, init_simu, cross_section, \
-    potential_jit, init_simu_jit, cross_section_jit, elsto
+from numba_mcerd.mcerd import (
+    init_params, read_input, potential, ion_stack, init_simu, cross_section,
+    potential_jit, init_simu_jit, cross_section_jit, elsto, init_detector, output, ion_simu_jit
+)
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.objects_jit as oj
