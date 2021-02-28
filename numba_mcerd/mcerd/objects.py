@@ -315,7 +315,7 @@ class Target_sto:
 @dataclass
 class Target_layer:
     """Target layer"""
-    natoms: int = 0.0  # Number of different elements in this layer
+    natoms: int = 0  # Number of different elements in this layer
     dlow: float = 0.0  # lower depth of the target layer
     dhigh: float = 0.0  # higher depth of the target layer
     atom: List[int] = None  # Array of the indices of the target elements  # len MAXATOMS
