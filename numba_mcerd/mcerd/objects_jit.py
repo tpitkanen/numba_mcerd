@@ -2,7 +2,7 @@
 
 import numpy as np
 import numba as nb
-from numba import int64, float64
+from numba import int64, float64, boolean
 from numba.experimental import jitclass
 
 from numba_mcerd.mcerd import constants
@@ -70,18 +70,116 @@ class Potential:
 #     pass
 #
 #
-# class Presimu:
-#     pass
-#
-#
+
+@jitclass({
+    "depth": float64,
+    "angle": float64,
+    "layer": int64
+})
+class Presimu:
+    def __init__(self):
+        self.depth = 0.0
+        self.angle = 0.0
+        self.layer = 0
+
+
+# TODO: Separate Jibal from global
+
+
+# TODO: Separate this from global
 # class Master:
 #     pass
-#
-#
-# class Global:
-#     pass
-#
-#
+
+
+@jitclass({
+    "mpi": boolean,
+    "E0": float64,
+    "nions": int64,
+    "ncascades": int64,
+    "nsimu": int64,
+    "emin": float64,
+    "ionemax": float64,
+    "minangle": float64,
+    "seed": int64,
+    "cion": int64,
+    "simtype": int64,  # constants.SimType
+    "beamangle": float64,
+    "bspot": Point2.class_type.instance_type,
+    "simstage": int64,  # constants.SimStage
+    "npresimu": int64,
+    "nscale": int64,
+    "nrecave": int64,
+    "cpresimu": int64,
+    "presimu": nb.types.List(Presimu.class_type.instance_type),
+    "predata": int64,
+    # "master": Master.class_type.instance_type,
+    "frecmin": float64,
+    "costhetamax": float64,
+    "costhetamin": float64,
+    "recwidth": int64,  # constants.RecWidth
+    "virtualdet": boolean,
+    "basename": nb.types.string,
+    "finstat": int64[:, :],
+    "beamdiv": int64,
+    "beamprof": int64,  # constants.BeamProf
+    "rough": boolean,
+    "nmclarge": int64,
+    "nmc": int64,
+    "output_trackpoints": boolean,
+    "output_misses": boolean,
+    "cascades": boolean,
+    "advanced_output": boolean,
+    # "jibal": Jibal.class_type.instance_type,
+    "nomc": boolean,
+})
+class Global:
+    def __init__(self):
+        self.mpi = False  # Boolean for parallel simulation
+        self.E0 = 0.0  # Energy of the primary ion beam
+        self.nions = 0  # Number of different ions in simulation, 1 or 2
+        self.ncascades = 0
+        self.nsimu = 0  # Total number of the simulated ions
+        self.emin = 0.0  # Minimum energy of the simulation
+        self.ionemax = 0.0  # Maximum possible ion energy in simulation
+        self.minangle = 0.0  # Minimum angle of the scattering
+        self.seed = 0  # Seed number of the random number generator  # Positive
+        self.cion = 0  # Number of the current ion
+        self.simtype = 0  # Type of the simulation  # constants.SimType
+        self.beamangle = 0.0  # Angle between target surface normal and beam
+        self.bspot = Point2()  # Size of the beam spot
+        self.simstage = 0  # Presimulation or real simulation  # constants.SimStage
+        self.npresimu = 0  # Number of simulated ions in the presimulation
+        self.nscale = 0  # Number of simulated ions per scaling ions
+        self.nrecave = 0  # Average number of recoils per primary ion
+        self.cpresimu = 0  # Counter of simulated ions the the presimulation
+        self.presimu = [Presimu()]  # Data structure for the presimulation  # Variable size
+        self.predata = 0  # Presimulation data given in a file
+        # self.master = Master()  # Data structure for the MPI-master
+        self.frecmin = 0.0
+        self.costhetamax = 0.0
+        self.costhetamin = 0.0
+        self.recwidth = 0  # Recoiling angle width type  # constants.RecWidth
+        self.virtualdet = False  # Do we use the virtual detector
+        self.basename = ""  # len NFILE
+        # Doesn't work:
+        # self.finstat = np.zeros((constants.IonType.SECONDARY.value + 1, len(constants.IonStatus)), dtype=np.int64)  # len [SECONDARY + 1][NIONSTATUS]
+        self.finstat = np.zeros((2, 11), dtype=np.int64)  # len [SECONDARY + 1][NIONSTATUS]
+        self.beamdiv = 0  # Angular divergence of the beam, width or FWHM  # TODO: Should this be int or float?
+        self.beamprof = 0  # Beam profile: flat, gaussian, given distribution  # constants.BeamProf
+        self.rough = False  # Rough or non-rough sample surface
+        self.nmclarge = 0  # Number of rejected (large) MC scatterings (RBS)
+        self.nmc = 0  # Number of all MC-scatterings
+        self.output_trackpoints = False
+        self.output_misses = False
+        self.cascades = False
+        self.advanced_output = False
+        # self.jibal = Jibal()
+        self.nomc = False
+
+        self.presimu.clear()
+
+
+
 # class Ion_opt:
 #     pass
 #
@@ -156,7 +254,7 @@ class Target_sto:
     "Ntot": float64,
     # "sto": nb.types.List(Target_sto.class_type.instance_type),
     "type": int64,  # constants.TargetType
-    "gas": nb.boolean,
+    "gas": boolean,
     "stofile_prefix": nb.types.string
 })
 class Target_layer:
@@ -207,7 +305,7 @@ class Plane:
     "angave": float64,
     # "surface": Surface.class_type.instance_type,
     "cross": float64[:, :],
-    "table": nb.boolean
+    "table": boolean
 })
 class Target:
     def __init__(self):
@@ -255,6 +353,9 @@ class Target:
 def main():
     target = Target()
     print(target.layer[0].atom)
+
+    g = Global()
+    print(g)
 
 
 if __name__ == '__main__':
