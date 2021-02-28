@@ -8,17 +8,17 @@ from numba_mcerd.timer import Timer, SplitTimer, TimerException
 class TestTimer(unittest.TestCase):
     def test_running(self):
         timer = Timer()
-        self.assertFalse(timer.running)
+        self.assertFalse(timer.is_running)
         timer.start()
-        self.assertTrue(timer.running)
+        self.assertTrue(timer.is_running)
         timer.stop()
-        self.assertFalse(timer.running)
+        self.assertFalse(timer.is_running)
 
     def test_init_and_start_running(self):
         timer = Timer.init_and_start()
-        self.assertTrue(timer.running)
+        self.assertTrue(timer.is_running)
         timer.stop()
-        self.assertFalse(timer.running)
+        self.assertFalse(timer.is_running)
 
     def test_exception(self):
         timer = Timer.init_and_start()

@@ -18,19 +18,19 @@ class Timer:
         self.stop_time = None
 
     @property
-    def running(self) -> bool:
+    def is_running(self) -> bool:
         """Return whether timer is running"""
         return self.start_time is not None and self.stop_time is None
 
     @property
-    def finished(self) -> bool:
+    def is_finished(self) -> bool:
         """Return whether timer is finished"""
         return self.start_time is not None and self.stop_time is not None
 
     @property
     def elapsed(self) -> float:
         """Return elapsed time"""
-        if self.finished:
+        if self.is_finished:
             return self.stop_time - self.start_time
         if self.start_time is not None:
             return timeit.default_timer() - self.start_time
@@ -42,9 +42,9 @@ class Timer:
 
     def start(self) -> None:
         """Start timer"""
-        if self.finished:
+        if self.is_finished:
             raise TimerException(self.MSG_TIMER_FINISHED)
-        if self.running:
+        if self.is_running:
             raise TimerException(self.MSG_TIMER_RUNNING)
         self.start_time = timeit.default_timer()
 
@@ -56,7 +56,7 @@ class Timer:
         """
         if self.start_time is None:
             raise TimerException(self.MSG_TIMER_NOT_STARTED)
-        if self.finished:
+        if self.is_finished:
             raise TimerException(self.MSG_TIMER_FINISHED)
         self.stop_time = timeit.default_timer()
         return self.elapsed
@@ -96,7 +96,7 @@ class SplitTimer(Timer):
         for split in self.splits:
             times.append(split - previous)
             previous = split
-        if self.finished:
+        if self.is_finished:
             times.append(self.stop_time - previous)
         else:
             times.append(timeit.default_timer() - previous)
