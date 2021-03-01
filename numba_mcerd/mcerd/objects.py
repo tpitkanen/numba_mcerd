@@ -138,8 +138,8 @@ class Rec_hist:
     lab_primary: Vector = None  # Primary ion vector in lab coordinates
     ion_E: float = 0.0
     recoil_E: float = 0.0
-    layer: int = 0.0  # Recoiling layer
-    nsct: int = 0.0  # Number of scatterings this far
+    layer: int = 0  # Recoiling layer
+    nsct: int = 0  # Number of scatterings this far
     time: float = 0.0  # Recoiling time
     w: float = 0.0  # Statistical weight at the moment of the recoiling
     Z: float = 0.0  # Atomic number of the secondary atom
