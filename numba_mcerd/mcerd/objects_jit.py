@@ -51,21 +51,6 @@ class Point2:
         self.y = 0.0
 
 
-# TODO: float64?
-@jitclass({
-    "n": int64,
-    "d": int64,
-    "ux": float64[:],
-    "uy": float64[:]
-})
-class Potential:
-    def __init__(self, n, d):
-        self.n = n
-        self.d = d
-        self.ux = np.zeros(n, dtype=np.float64)
-        self.uy = np.zeros(n, dtype=np.float64)
-
-
 # class Point2np:
 #     pass
 #
@@ -336,6 +321,20 @@ class Cross_section:
 
 
 @jitclass({
+    "n": int64,
+    "d": int64,
+    "ux": float64[:],
+    "uy": float64[:]
+})
+class Potential:
+    def __init__(self, n, d):
+        self.n = n
+        self.d = d
+        self.ux = np.zeros(n, dtype=np.float64)
+        self.uy = np.zeros(n, dtype=np.float64)
+
+
+@jitclass({
     "angle": float64[:, :],
     "cross": Cross_section.class_type.instance_type,
     "logemin": float64,
@@ -371,10 +370,10 @@ class SNext:
         self.r = False  # Boolean for true mc-scattering (instead of eg. interface crossing)
 
 
+# TODO:
 # class Surface:
 #     pass
-#
-#
+
 
 @jitclass({
     "Z": float64,
@@ -488,27 +487,84 @@ class Target:
         self.table = False  # True if cross section table is available
 
 
-# class Line:
-#     pass
-#
-#
+@jitclass({
+    "a": float64,
+    "b": float64,
+    "c": float64,
+    "d": float64,
+    "type": int64,
+})
+class Line:
+    def __init__(self):
+        self.a = 0.0
+        self.b = 0.0
+        self.c = 0.0
+        self.d = 0.0
+        self.type = -1  # constants.LineType
+
+
+# Unused
 # class Rect:
 #     pass
 #
-#
+
+# Unused
 # class Circ:
 #     pass
 #
-#
-# class Det_foil:
-#     pass
-#
-#
-# class Detector:
-#     pass
+
+
+@jitclass({
+    "type": int64,
+    "virtual": boolean,
+    "dist": float64,
+    "angle": float64,
+    "size": float64[:],
+    "plane": Plane.class_type.instance_type,
+    "center": Point.class_type.instance_type
+})
+class Det_foil:
+    def __init__(self):
+        self.type = -1  # constants.FoilType  # Rectangular or circular
+        self.virtual = False  # Is this foil virtual
+        self.dist = 0.0  # Distance from the target center
+        self.angle = 0.0  # Angle of the foil
+        self.size = np.zeros(2, dtype=np.float64)  # Diameter for circular, width and height for rect.  # len 2
+        self.plane = Plane()  # Plane of the detector foil
+        self.center = Point()  # Point of the center of the foil
+
+
+@jitclass({
+    "type": int64,
+    "angle": float64,
+    "nfoils": int64,
+    "virtual": boolean,
+    "vsize": float64[:],
+    "tdet": int64[:],
+    "edet": int64[:],
+    "thetamax": float64,
+    "vthetamax": float64,
+    "foil": nb.types.List(Det_foil.class_type.instance_type),
+    "vfoil": Det_foil.class_type.instance_type
+})
+class Detector:
+    def __init__(self):
+        self.type = -1  # constants.DetectorType  # TOF, GAS or FOIL
+        self.angle = 0.0  # Detector angle relative to the beam direction
+        self.nfoils = 0  # Number of foils in the detector
+        self.virtual = False  # Do we have the virtual detector
+        self.vsize = np.zeros(2, dtype=np.float64)  # Size of the virtual detector relative to the real  # len 2
+        self.tdet = np.zeros(2, dtype=np.int64)  # Layer numbers for the timing detectors  # len 2
+        self.edet = np.zeros(constants.MAXLAYERS, dtype=np.int64)  # Layer number(s) for energy detector (layers)  # len MAXLAYERS
+        self.thetamax = 0.0  # maximum half-angle of the detector (spot size incl.)
+        self.vthetamax = 0.0  # maximum half-angle of the virtual detector
+        self.foil = [Det_foil() for _ in range(constants.MAXFOILS)]  # Detector foil data structure  # len MAXFOILS
+        self.vfoil = Det_foil()  # Virtual detector data structure
 
 
 def main():
+    # Test initialization of objects
+
     target = Target()
     print(target.layer[0].atom)
 
@@ -520,6 +576,12 @@ def main():
 
     scattering = Scattering()
     print(scattering)
+
+    line = Line()
+    print(line)
+
+    detector = Detector()
+    print(detector)
 
 
 if __name__ == '__main__':
