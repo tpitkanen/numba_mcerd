@@ -179,27 +179,148 @@ class Global:
         self.presimu.clear()
 
 
+@jitclass({
+    "valid": boolean,
+    "cos_theta": float64,
+    "sin_theta": float64,
+    "e": float64,
+    "y": float64
+})
+class Ion_opt:
+    def __init__(self):
+        self.valid = False  # Validity of opt-variable
+        self.cos_theta = 0.0  # Cosinus of laboratory theta-angle [-1,1]
+        self.sin_theta = 0.0  # Sinus of laboratory theta-angle [-1,1]
+        self.e = 0.0  # Dimensionless energy for the next scattering
+        self.y = 0.0  # Dimensionless impact parameter  -"-
 
-# class Ion_opt:
-#     pass
-#
-#
-# class Vector:
-#     pass
-#
-#
-# class Rec_hist:
-#     pass
-#
-#
-# class Isotopes:
-#     pass
-#
-#
-# class Ion:
-#     pass
-#
-#
+
+@jitclass({
+    "p": Point.class_type.instance_type,
+    "theta": float64,
+    "fii": float64,
+    "v": float64
+})
+class Vector:
+    def __init__(self):
+        self.p = Point()  # Cartesian coordinates of the object
+        self.theta = 0.0  # Direction of the movement of the object
+        self.fii = 0.0  # Direction of the movement of the object
+        self.v = 0.0  # Object velocity
+
+
+@jitclass({
+    "tar_recoil": Vector.class_type.instance_type,
+    "ion_recoil": Vector.class_type.instance_type,
+    "lab_recoil": Vector.class_type.instance_type,
+    "tar_primary": Vector.class_type.instance_type,
+    "lab_primary": Vector.class_type.instance_type,
+    "ion_E": float64,
+    "recoil_E": float64,
+    "layer": int64,
+    "nsct": int64,
+    "time": float64,
+    "w": float64,
+    "Z": float64,
+    "A": float64
+})
+
+
+class Rec_hist:
+    def __init__(self):
+        self.tar_recoil = Vector()  # Recoil vector in target coord. at recoil moment
+        self.ion_recoil = Vector()  # Recoil vector in prim. ion coord. at recoil moment
+        self.lab_recoil = Vector()  # Recoil vector in lab. coord. at recoil moment
+        self.tar_primary = Vector()  # Primary ion vector in target coordinates
+        self.lab_primary = Vector()  # Primary ion vector in lab coordinates
+        self.ion_E = 0.0
+        self.recoil_E = 0.0
+        self.layer = 0  # Recoiling layer
+        self.nsct = 0  # Number of scatterings this far
+        self.time = 0.0  # Recoiling time
+        self.w = 0.0  # Statistical weight at the moment of the recoiling
+        self.Z = 0.0  # Atomic number of the secondary atom
+        self.A = 0.0  # Mass of the secondary atom in the scattering
+
+
+@jitclass({
+    "A": float64[:],
+    "c": float64[:],
+    "c_sum": float64,
+    "n": int64,
+    "Am": float64
+})
+class Isotopes:
+    def __init__(self):
+        self.A = np.zeros(constants.MAXISOTOPES, dtype=np.float64)  # List of the isotope masses in kg  # len MAXISOTOPES
+        self.c = np.zeros(constants.MAXISOTOPES, dtype=np.float64)  # Isotope concentrations normalized to 1.0  # len MAXISOTOPES
+        self.c_sum = 0.0  # Sum of concentrations, should be 1.0.
+        self.n = 0  # Number of different natural isotopes
+        self.Am = 0.0  # Mass of the most abundant isotope
+
+
+@jitclass({
+    "Z": float64,
+    "A": float64,
+    "E": float64,
+    "I": Isotopes.class_type.instance_type,
+    "p": Point.class_type.instance_type,
+    "theta": float64,
+    "fii": float64,
+    "nsct": int64,
+    "status": int64,  # constants.IonStatus
+    "opt": Ion_opt.class_type.instance_type,
+    "w": float64,
+    "wtmp": float64,
+    "time": float64,
+    "tlayer": int64,
+    "lab": Vector.class_type.instance_type,
+    "type": int64,  # constants.IonType
+    "hist": float64,
+    "dist": float64,
+    "virtual": boolean,
+    "hit": nb.types.List(Point.class_type.instance_type),
+    "Ed": float64[:],
+    "dt": float64[:],
+    "scale": boolean,
+    "effrecd": float64,
+    "trackid": int64,
+    "scatindex": int64,
+    "ion_i": int64,
+    "E_nucl_loss_det": float64
+})
+class Ion:
+    def __init__(self):
+        self.Z = 0.0  # Atomic number of ion (non-integer for compat.)
+        self.A = 0.0  # Mass of ion in the units of kg
+        self.E = 0.0  # Energy of the ion
+        self.I = Isotopes()  # Data structure for natural isotopes
+        self.p = Point()  # Three dimensional position of ion
+        self.theta = 0.0  # Laboratory theta-angle of the ion [0,PI]
+        self.fii = 0.0  # Laboratory fii-angle of the ion [0,2*PI]
+        self.nsct = 0  # Number of scatterings of the ion
+        self.status = -1  # constants.IonStatus  # Status value for ion (stopped, recoiled etc.)
+        self.opt = Ion_opt()  # Structure for the optimization-variables
+        self.w = 0.0  # Statistical weight of the ion
+        self.wtmp = 0.0  # Temporary statistical weight of the ion
+        self.time = 0.0  # Time since the creation of the ion
+        self.tlayer = 0  # Number of the current target layer
+        self.lab = Vector()  # Translation and rotation of the current coordinate system in the laboratory coordinate system
+        self.type = -1  # constants.IonType  # Primary, secondary etc.
+        self.hist = 0.0  # Variables saved at the moment of the recoiling event
+        self.dist = 0.0  # Distance to the next ERD-scattering point
+        self.virtual = False  # Did we only hit the virtual detector area
+        self.hit = [Point() for _ in range(constants.MAXLAYERS)]  # Hit points to the detector layers  # len MAXLAYERS
+        self.Ed = np.zeros(constants.MAXLAYERS, dtype=np.float64)  # Ion energy in the detector layers  # len MAXLAYERS
+        self.dt = np.zeros(50, dtype=np.float64)  # Passing times in the detector layers  # len MAXLAYERS
+        self.scale = False  # TRUE if we have a scaling ion
+        self.effrecd = 0.0  # Parameter for scaling the effective thickness of recoil material
+        self.trackid = 0  # originally int64_t
+        self.scatindex = 0  # Index of the scattering table for this ion
+        self.ion_i = 0  # "i"th recoil in the track
+        self.E_nucl_loss_det = 0.0
+
+
 # class Cross_section:
 #     pass
 #
@@ -356,6 +477,9 @@ def main():
 
     g = Global()
     print(g)
+
+    ion = Ion()
+    print(ion)
 
 
 if __name__ == '__main__':
