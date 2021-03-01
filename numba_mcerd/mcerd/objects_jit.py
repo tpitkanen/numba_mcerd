@@ -321,18 +321,56 @@ class Ion:
         self.E_nucl_loss_det = 0.0
 
 
-# class Cross_section:
-#     pass
-#
-#
-# class Scattering:
-#     pass
-#
-#
-# class SNext:
-#     pass
-#
-#
+@jitclass({
+    "emin": float64,
+    "emax": float64,
+    "estep": float64,
+    "b": float64[:]
+})
+class Cross_section:
+    def __init__(self):
+        self.emin = 0.0
+        self.emax = 0.0
+        self.estep = 0.0
+        self.b = np.zeros(0, dtype=np.float64)  # Initialized later  # TODO: Does this work in jitclass?
+
+
+@jitclass({
+    "angle": float64[:, :],
+    "cross": Cross_section.class_type.instance_type,
+    "logemin": float64,
+    "logymin": float64,
+    "logediv": float64,
+    "logydiv": float64,
+    "a": float64,
+    "E2eps": float64,
+    # "pot": Potential.class_type.instance_type
+})
+class Scattering:
+    def __init__(self):
+        self.angle = np.zeros((constants.EPSNUM, constants.YNUM), dtype=np.float64)  # 2D array for scattering angles  # len [EPSNUM][YNUM]
+        self.cross = Cross_section()  # Data for maximum impact parameters
+        self.logemin = 0.0  # Logarithm for minimum reduced energy
+        self.logymin = 0.0  # Logarithm for minimum reduced impact parameter
+        self.logediv = 0.0  # Logarithm for difference of reduced energies
+        self.logydiv = 0.0  # Logarithm for difference reduced impact parameters
+        self.a = 0.0  # Reduced unit for screening length
+        self.E2eps = 0.0  # Constant for changing energy unit to reduced energy
+        # self.potential = Potential()  # Originally commented out
+
+
+@jitclass({
+    "d": float64,
+    "natom": int64,
+    "r": boolean
+})
+class SNext:
+    def __init__(self):
+        self.d = 0.0  # Distance to the next scattering point
+        self.natom = 0  # Number of the scattering atom
+        self.r = False  # Boolean for true mc-scattering (instead of eg. interface crossing)
+
+
 # class Surface:
 #     pass
 #
@@ -470,7 +508,6 @@ class Target:
 #     pass
 
 
-
 def main():
     target = Target()
     print(target.layer[0].atom)
@@ -480,6 +517,9 @@ def main():
 
     ion = Ion()
     print(ion)
+
+    scattering = Scattering()
+    print(scattering)
 
 
 if __name__ == '__main__':
