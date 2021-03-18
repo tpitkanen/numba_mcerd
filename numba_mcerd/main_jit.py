@@ -131,6 +131,7 @@ def main(args):
             # TODO: Real gsto instead
 
     init_detector.init_detector(g, detector)
+    detector = oc.convert_detector(detector)
 
     if g.predata:
         init_params.init_recoiling_angle(target)  # TODO: jit target
