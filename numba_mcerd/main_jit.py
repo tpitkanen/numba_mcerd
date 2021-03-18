@@ -144,6 +144,8 @@ def main(args):
     if g.simtype == c.SimType.SIM_RBS:
         ions_moving.append(copy.deepcopy(ions[TARGET_ATOM]))
 
+    # TODO: Set default status for ions, and maybe something else
+
     logging.info("Starting simulation")
 
     g = oc.convert_global(g)

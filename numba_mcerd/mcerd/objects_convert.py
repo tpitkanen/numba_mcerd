@@ -88,23 +88,52 @@ def convert_global(g: o.Global) -> oj.Global:
 
 
 def convert_ion_opt(ion_opt: o.Ion_opt) -> oj.Ion_opt:
-    raise NotImplementedError
+    def convert(values):
+        pass
+
+    return _base_convert(ion_opt, oj.Ion_opt, convert)
 
 
 def convert_vector(vector: o.Vector) -> oj.Vector:
-    raise NotImplementedError
+    def convert(values):
+        values["p"] = convert_point(values["p"])
+
+    return _base_convert(vector, oj.Vector, convert)
 
 
 def convert_rec_hist(rec_hist: o.Rec_hist) -> oj.Rec_hist:
-    raise NotImplementedError
+    def convert(values):
+        values["tar_recoil"] = convert_vector(values["tar_recoil"])
+        values["ion_recoil"] = convert_vector(values["ion_recoil"])
+        values["lab_recoil"] = convert_vector(values["lab_recoil"])
+        values["tar_primary"] = convert_vector(values["tar_primary"])
+        values["lab_primary"] = convert_vector(values["lab_primary"])
+
+    return _base_convert(rec_hist, oj.Rec_hist, convert)
 
 
 def convert_isotopes(isotopes: o.Isotopes) -> oj.Isotopes:
-    raise NotImplementedError
+    def convert(values):
+        values["A"] = _convert_array(values["A"])
+        values["c"] = _convert_array(values["c"])
+
+    return _base_convert(isotopes, oj.Isotopes, convert)
 
 
 def convert_ion(ion: o.Ion) -> oj.Ion:
-    raise NotImplementedError
+    def convert(values):
+        values["I"] = convert_isotopes(values["I"])
+        values["p"] = convert_point(values["p"])
+        # values["status"] = values["status"].value  # TODO: Set a default status
+        values["opt"] = convert_ion_opt(values["opt"])
+        values["lab"] = convert_vector(values["lab"])
+        values["type"] = values["type"].value
+        values["hist"] = convert_rec_hist(values["hist"])
+        values["hit"] = [convert_point(point) for point in values["hit"]]
+        values["Ed"] = _convert_array(values["Ed"])
+        values["dt"] = _convert_array(values["dt"])
+
+    return _base_convert(ion, oj.Ion, convert)
 
 
 def convert_cross_section(cross_section: o.Cross_section) -> oj.Cross_section:
