@@ -134,7 +134,7 @@ def main(args):
     detector = oc.convert_detector(detector)
 
     if g.predata:
-        init_params.init_recoiling_angle(target)  # TODO: jit target
+        init_params.init_recoiling_angle(target)
     target = oc.convert_target(target)
 
     trackid = int(ions[SECONDARY].Z) * 1_000 + g.seed % 1_000
@@ -145,6 +145,8 @@ def main(args):
         ions_moving.append(copy.deepcopy(ions[TARGET_ATOM]))
 
     logging.info("Starting simulation")
+
+    g = oc.convert_global(g)
 
     for i in range(g.nsimu):
         g.cion = i  # TODO: Replace/remove for MT

@@ -7,12 +7,14 @@ import numpy as np
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.objects_jit as oj
 
+# TODO: Replace reflected lists:
+# https://numba.pydata.org/numba-doc/latest/reference/deprecation.html#deprecation-of-reflection-for-list-and-set-types
+
 
 class ConvertError(Exception):
     """Error while converting"""
 
 
-# TODO: Turn this into a wrapper
 def _base_convert(obj, target_class, converter):
     values = vars(obj)
     converter(values)
@@ -63,12 +65,26 @@ def convert_point2(point: o.Point2) -> oj.Point2:
 
 
 def convert_presimu(presimu: o.Presimu) -> oj.Presimu:
-    raise NotImplementedError
+    def convert(values):
+        pass
+
+    return _base_convert(presimu, oj.Presimu, convert)
 
 
 # TODO: Return Jibal and Master too
 def convert_global(g: o.Global) -> oj.Global:
-    raise NotImplementedError
+    def convert(values):
+        values["simtype"] = values["simtype"].value
+        values["bspot"] = convert_point2(values["bspot"])
+        values["simstage"] = values["simstage"].value
+        values["presimu"] = [convert_presimu(presimu) for presimu in values["presimu"]]
+        values["master"] = None  # TODO: Implement
+        values["recwidth"] = values["recwidth"].value
+        values["finstat"] = np.array(values["finstat"], dtype=np.int64)
+        values["beamprof"] = values["beamprof"].value
+        values["jibal"] = None  # TODO: Implement
+
+    return _base_convert(g, oj.Global, convert)
 
 
 def convert_ion_opt(ion_opt: o.Ion_opt) -> oj.Ion_opt:
