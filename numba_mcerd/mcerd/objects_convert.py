@@ -23,7 +23,7 @@ def _base_convert(obj, target_class, converter):
     return target_obj
 
 
-def _array_convert(array) -> np.ndarray:
+def _convert_array(array) -> np.ndarray:
     """Helper for converting arrays to np.ndarray.
 
     Needed because np.array(array) tries to do int32 arrays and such,
@@ -168,7 +168,7 @@ def convert_line(line: o.Line) -> oj.Line:
 def convert_det_foil(foil: o.Det_foil) -> oj.Det_foil:
     def convert(values):
         values["type"] = values["type"].value
-        values["size"] = _array_convert(values["size"])
+        values["size"] = _convert_array(values["size"])
         values["plane"] = convert_plane(values["plane"])
         values["center"] = convert_point(values["center"])
 
@@ -178,9 +178,10 @@ def convert_det_foil(foil: o.Det_foil) -> oj.Det_foil:
 def convert_detector(detector: o.Detector) -> oj.Detector:
     def convert(values):
         values["type"] = values["type"].value
-        values["vsize"] = _array_convert(values["vsize"])
-        values["tdet"] = _array_convert(values["tdet"])
-        values["edet"] = _array_convert(values["edet"])
+        values["vsize"] = _convert_array(values["vsize"])
+        values["tdet"] = _convert_array(values["tdet"])
+        values["edet"] = _convert_array(values["edet"])
+        # TODO: This trims empty values away -> not the same as original
         values["foil"] = [convert_det_foil(foil) for foil in values["foil"]
                           if foil.type is not None]
         values["vfoil"] = convert_det_foil(values["vfoil"])
