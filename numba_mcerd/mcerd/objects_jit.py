@@ -209,8 +209,6 @@ class Vector:
     "Z": float64,
     "A": float64
 })
-
-
 class Rec_hist:
     def __init__(self):
         self.tar_recoil = Vector()  # Recoil vector in target coord. at recoil moment
@@ -261,7 +259,7 @@ class Isotopes:
     "tlayer": int64,
     "lab": Vector.class_type.instance_type,
     "type": int64,  # constants.IonType
-    "hist": float64,
+    "hist": Rec_hist.class_type.instance_type,
     "dist": float64,
     "virtual": boolean,
     "hit": nb.types.List(Point.class_type.instance_type),
@@ -292,7 +290,7 @@ class Ion:
         self.tlayer = 0  # Number of the current target layer
         self.lab = Vector()  # Translation and rotation of the current coordinate system in the laboratory coordinate system
         self.type = -1  # constants.IonType  # Primary, secondary etc.
-        self.hist = 0.0  # Variables saved at the moment of the recoiling event
+        self.hist = Rec_hist()  # Variables saved at the moment of the recoiling event
         self.dist = 0.0  # Distance to the next ERD-scattering point
         self.virtual = False  # Did we only hit the virtual detector area
         self.hit = [Point() for _ in range(constants.MAXLAYERS)]  # Hit points to the detector layers  # len MAXLAYERS
