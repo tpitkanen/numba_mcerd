@@ -135,7 +135,7 @@ def main(args):
 
     if g.predata:
         init_params.init_recoiling_angle(target)  # TODO: jit target
-
+    target = oc.convert_target(target)
 
     trackid = int(ions[SECONDARY].Z) * 1_000 + g.seed % 1_000
     trackid *= 1_000_000

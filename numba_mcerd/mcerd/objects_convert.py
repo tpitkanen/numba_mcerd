@@ -41,11 +41,11 @@ def _convert_array(array) -> np.ndarray:
     raise ConvertError(f"Unsupported array type: '{type(array)}'")
 
 
-
 def setattr_all(obj: Any, values: dict) -> None:
-    """Set attributes for all values"""
+    """Set attributes for all values. Attributes with None value are skipped."""
     for key, val in values.items():
-        setattr(obj, key, val)
+        if val is not None:
+            setattr(obj, key, val)
 
 
 def convert_point(point: o.Point) -> oj.Point:
@@ -121,15 +121,30 @@ def convert_snext(snext: o.SNext) -> oj.SNext:
 
 
 def convert_target_ele(ele: o.Target_ele) -> oj.Target_ele:
-    raise NotImplementedError
+    def convert(values):
+        pass
+
+    return _base_convert(ele, oj.Target_ele, convert)
 
 
+# Untested
 def convert_target_sto(sto: o.Target_sto) -> oj.Target_sto:
-    raise NotImplementedError
+    def convert(values):
+        values["vel"] = _convert_array(values["vel"])
+        values["sto"] = _convert_array(values["sto"])
+        values["stragg"] = _convert_array(values["stragg"])
+
+    return _base_convert(sto, oj.Target_sto, convert)
 
 
 def convert_target_layer(layer: o.Target_layer) -> oj.Target_layer:
-    raise NotImplementedError
+    def convert(values):
+        values["atom"] = _convert_array(values["atom"])
+        values["N"] = _convert_array(values["N"])
+        values["sto"] = None  # TODO: Implement
+        values["type"] = values["type"].value
+
+    return _base_convert(layer, oj.Target_layer, convert)
 
 
 # Short way to define converter:
@@ -152,7 +167,18 @@ def convert_plane(plane: o.Plane) -> oj.Plane:
 
 
 def convert_target(target: o.Target) -> oj.Target:
-    raise NotImplementedError
+    def convert(values):
+        values["ele"] = [convert_target_ele(ele) for ele in values["ele"]]
+        values["layer"] = [convert_target_layer(layer) for layer in values["layer"]
+                           if layer.type is not None]  # Trim -> not the same as original
+        values["recdist"] = [convert_point2(rec) for rec in values["recdist"]]
+        values["plane"] = convert_plane(values["plane"])
+        values["efin"] = _convert_array(values["efin"])
+        values["recpar"] = [convert_point2(rec) for rec in values["recpar"]]
+        values["surface"] = None  # TODO: Implement
+        values["cross"] = np.array(values["cross"])
+
+    return _base_convert(target, oj.Target, convert)
 
 
 def convert_line(line: o.Line) -> oj.Line:
