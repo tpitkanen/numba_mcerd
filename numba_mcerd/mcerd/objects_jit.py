@@ -358,6 +358,9 @@ class Scattering:
         # self.potential = Potential()  # Originally commented out
 
 
+# TODO: Class for Scatterings (g.nions, MAXELEMENTS)
+
+
 @jitclass({
     "d": float64,
     "natom": int64,

@@ -205,6 +205,7 @@ def main(args):
                 else:
                     erd_detector.move_to_erd_detector(g, cur_ion, target, detector)
 
+            # TODO: Separate loop to pre and main, move this in-between
             if g.simstage == c.SimStage.PRESIMULATION and g.cion == g.npresimu - 1:
                 pre_simulation.analyze_presimulation(g, target, detector)
                 init_params.init_recoiling_angle(target)
@@ -257,10 +258,6 @@ def main(args):
                 cur_ion.trackid = trackid if not new_track else 0
                 # No new track is made if ion doesn't make it to the
                 # energy detector or if it's a scaling ion
-
-                # TODO: cur_ion.Z is int but it should be float. Maybe
-                #       there's an int cast somewhere in the original
-                #       code that's still saved to a float variable.
 
                 # TODO: .index is probably inefficient, find a better way to check.
                 #       Maybe cur_ion.type?
