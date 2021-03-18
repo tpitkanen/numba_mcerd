@@ -176,17 +176,13 @@ def convert_det_foil(foil: o.Det_foil) -> oj.Det_foil:
 
 
 def convert_detector(detector: o.Detector) -> oj.Detector:
-    detector_jit = oj.Detector()
-    values = vars(detector)
+    def convert(values):
+        values["type"] = values["type"].value
+        values["vsize"] = _array_convert(values["vsize"])
+        values["tdet"] = _array_convert(values["tdet"])
+        values["edet"] = _array_convert(values["edet"])
+        values["foil"] = [convert_det_foil(foil) for foil in values["foil"]
+                          if foil.type is not None]
+        values["vfoil"] = convert_det_foil(values["vfoil"])
 
-    values["type"] = values["type"].value
-    values["vsize"] = _array_convert(values["vsize"])
-    values["tdet"] = _array_convert(values["tdet"])
-    values["edet"] = _array_convert(values["edet"])
-
-    values["foil"] = [convert_det_foil(foil) for foil in values["foil"]
-                      if foil.type is not None]
-    values["vfoil"] = convert_det_foil(values["vfoil"])
-
-    setattr_all(detector_jit, values)
-    return detector_jit
+    return _base_convert(detector, oj.Detector, convert)
