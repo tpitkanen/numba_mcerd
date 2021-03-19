@@ -99,33 +99,31 @@ def main(args):
 
     # (g.jibal.gsto.extrapolate = True)
 
-    table_timer = timer.SplitTimer.init_and_start()
+    if not config.LOAD_PICKLE:
+        table_timer = timer.SplitTimer.init_and_start()
 
-    table_timer.split()
+        scat = []
+        for i in range(g.nions):
+            if g.simtype == enums.SimType.SIM_RBS and i == enums.IonType.TARGET_ATOM.value:
+                continue
+            ions[i].scatindex = i
+            scat.append([o.Scattering() for _ in range(c.MAXELEMENTS)])
+            for j in range(target.natoms):
+                # logging.debug(f"Calculating scattering between ions ...")
+                init_simu.scattering_table(g, ions[i], target, scat[i][j], pot, j)
+                cross_section.calc_cross_sections(g, scat[i][j], pot)
 
-    scat = []
-    for i in range(g.nions):
-        if g.simtype == enums.SimType.SIM_RBS and i == enums.IonType.TARGET_ATOM.value:
-            continue
-        ions[i].scatindex = i
-        scat.append([o.Scattering() for _ in range(c.MAXELEMENTS)])
-        for j in range(target.natoms):
-            # logging.debug(f"Calculating scattering between ions ...")
-            init_simu.scattering_table(g, ions[i], target, scat[i][j], pot, j)
-            cross_section.calc_cross_sections(g, scat[i][j], pot)
+        table_timer.stop()
+        pickler.dump(scat, "scat")
 
-    # pickler.dump(scat, "scat")
-
-    # scat = pickler.load("scat")
-    # for i in range(g.nions):  # Fix for pickling
-    #     ions[i].scatindex = i
-
-    table_timer.stop()
-
-    print(table_timer.start_time, table_timer.elapsed_laps)
-    # Times (03f95b0559f2c0eea3d92eb34eb8a37306a39231)
-    # 1.8580092 [4.2860329, 28.060028000000003] (run)
-    # 4.8511551 [11.4422601, 158.6126873] (debug)
+        print(table_timer.start_time, table_timer.elapsed_laps)
+        # Times (03f95b0559f2c0eea3d92eb34eb8a37306a39231)
+        # 1.8580092 [4.2860329, 28.060028000000003] (run)
+        # 4.8511551 [11.4422601, 158.6126873] (debug)
+    else:
+        scat = pickler.load("scat")
+        for i in range(g.nions):  # Fix for pickling
+            ions[i].scatindex = i
 
     gsto_index = -1
     for j in range(target.nlayers):

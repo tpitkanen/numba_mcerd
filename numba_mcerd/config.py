@@ -3,3 +3,5 @@ DATA_ROOT = rf"{PROJECT_ROOT}/data"
 CONSTANTS_ROOT = rf"{DATA_ROOT}/constants"
 EXPORT_ROOT = rf"{DATA_ROOT}/export"
 PICKLE_ROOT = rf"{DATA_ROOT}/pickled"
+
+LOAD_PICKLE = False
