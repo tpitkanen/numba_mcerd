@@ -117,8 +117,7 @@ def main(args):
             init_simu_jit.scattering_table(g, ions[i], target, scat[i][j], pot, j)
             cross_section_jit.calc_cross_sections(g, scat[i][j], pot)
 
-    table_timer.split()
-
+    table_timer.stop()
     print(table_timer.start_time, table_timer.elapsed_laps)
 
     gsto_index = -1
@@ -165,7 +164,7 @@ def main(args):
 
         cur_ion = ions_moving[PRIMARY]
 
-        ion_simu_jit.create_ion(g, cur_ion, target)  # Doesn't work yet, wrong types
+        ion_simu_jit.create_ion(g, cur_ion, target)
 
     # TODO
     pass

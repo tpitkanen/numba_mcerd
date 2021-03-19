@@ -1,5 +1,8 @@
-"""Utilities for converting normal Python objects to Numba jitclass objects"""
-from enum import Enum
+"""Utilities for converting normal Python objects to Numba jitclass objects.
+
+Warning: expect conversions to modify/break original objects and for
+converted objects to share their attributes with with originals.
+"""
 from typing import Any
 
 import numpy as np
