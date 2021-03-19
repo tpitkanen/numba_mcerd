@@ -124,7 +124,7 @@ def convert_ion(ion: o.Ion) -> oj.Ion:
     def convert(values):
         values["I"] = convert_isotopes(values["I"])
         values["p"] = convert_point(values["p"])
-        # values["status"] = values["status"].value  # TODO: Set a default status
+        values["status"] = values["status"].value
         values["opt"] = convert_ion_opt(values["opt"])
         values["lab"] = convert_vector(values["lab"])
         values["type"] = values["type"].value

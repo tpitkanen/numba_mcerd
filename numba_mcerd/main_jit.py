@@ -131,11 +131,9 @@ def main(args):
             # TODO: Real gsto instead
 
     init_detector.init_detector(g, detector)
-    detector = oc.convert_detector(detector)
 
     if g.predata:
         init_params.init_recoiling_angle(target)
-    target = oc.convert_target(target)
 
     trackid = int(ions[SECONDARY].Z) * 1_000 + g.seed % 1_000
     trackid *= 1_000_000
@@ -144,11 +142,17 @@ def main(args):
     if g.simtype == c.SimType.SIM_RBS:
         ions_moving.append(copy.deepcopy(ions[TARGET_ATOM]))
 
-    # TODO: Set default status for ions, and maybe something else
-
-    logging.info("Starting simulation")
+    logging.info("Converting objects to JIT")
 
     g = oc.convert_global(g)
+    detector = oc.convert_detector(detector)
+    target = oc.convert_target(target)
+
+    for i in range(len(ions_moving)):
+        ions_moving[i].status = c.IonStatus.NOT_FINISHED
+        ions_moving[i] = oc.convert_ion(ions_moving[i])
+
+    logging.info("Starting simulation")
 
     for i in range(g.nsimu):
         g.cion = i  # TODO: Replace/remove for MT
