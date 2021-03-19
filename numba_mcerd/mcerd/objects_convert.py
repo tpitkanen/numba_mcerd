@@ -158,11 +158,10 @@ def convert_scattering_nested(scat: Any) -> Any:
 
 
 def convert_snext(snext: o.SNext) -> oj.SNext:
-    snext_jit = oj.SNext()
-    values = vars(snext)
+    def convert(values):
+        pass
 
-    setattr_all(snext_jit, values)
-    return snext_jit
+    return _base_convert(snext, oj.SNext, convert)
 
 
 # def convert_surface(): pass  # Needed
@@ -224,7 +223,7 @@ def convert_target(target: o.Target) -> oj.Target:
         values["efin"] = _convert_array(values["efin"])
         values["recpar"] = [convert_point2(rec) for rec in values["recpar"]]
         values["surface"] = None  # TODO: Implement
-        values["cross"] = np.array(values["cross"])
+        values["cross"] = np.array(values["cross"], dtype=np.float64)
 
     return _base_convert(target, oj.Target, convert)
 
