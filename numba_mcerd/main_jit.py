@@ -44,8 +44,8 @@ def main(args):
     logging.debug("Initializing variables")
 
     g = o.Global()
-    ion = o.Ion()
-    cur_ion = o.Ion()
+    primary_ion = o.Ion()
+    secondary_ion = o.Ion()
     previous_trackpoint_ion = o.Ion()  # Not used unless simulation is RBS
     ions_moving = []  # TODO: Initialize a list of ions?
     target = o.Target()
@@ -74,7 +74,7 @@ def main(args):
     init_params.init_params(g, target, args)
 
     logging.info("Initializing input files")
-    read_input.read_input(g, ion, cur_ion, previous_trackpoint_ion, target, detector)
+    read_input.read_input(g, primary_ion, secondary_ion, previous_trackpoint_ion, target, detector)
 
     # TODO: read_input needlessly seeds built-in random
     # TODO: Non-JIT modules may use random_vanilla, how to fix this without
@@ -84,14 +84,14 @@ def main(args):
     # Package ions into an array. Ions are (sometimes) accessed in the
     # original code like this
     if g.nions == 2:
-        ions = [ion, cur_ion]
+        ions = [primary_ion, secondary_ion]
     elif g.nions == 3:
-        ions = [ion, cur_ion, previous_trackpoint_ion]
+        ions = [primary_ion, secondary_ion, previous_trackpoint_ion]
     else:
         raise NotImplementedError
 
     logging.info("Initializing output files")
-    init_params.init_io(g, ion, target)
+    init_params.init_io(g, primary_ion, target)
 
     # TODO: Rename to pot(ential)
     n, d, ux, uy = potential_jit.make_screening_table_cached()
