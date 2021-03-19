@@ -7,6 +7,7 @@ from enum import Enum
 # Lines 16 .. 143 (roughly)
 ################################################################################
 
+# TODO: Move enums to a different file
 
 class RndPeriod(Enum):
     """Random number generator value ranges"""

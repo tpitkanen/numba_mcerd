@@ -13,7 +13,6 @@ class IonSimulationError(Exception):
     """Error in ion simulation"""
 
 
-# TODO: Untested
 # TODO: Create unit tests
 def create_ion(g: o.Global, ion: o.Ion, target: o.Target) -> None:
     """Calculate parameters for ion (primary or secondary)
