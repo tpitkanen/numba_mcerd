@@ -140,7 +140,10 @@ def convert_ion(ion: o.Ion) -> oj.Ion:
 
 
 def convert_cross_section(cross_section: o.Cross_section) -> oj.Cross_section:
-    raise NotImplementedError
+    def convert(values):
+        values["b"] = np.array(values["b"], dtype=np.float64)
+
+    return _base_convert(cross_section, oj.Cross_section, convert)
 
 
 # Not needed
@@ -149,12 +152,24 @@ def convert_cross_section(cross_section: o.Cross_section) -> oj.Cross_section:
 
 
 def convert_scattering(scat: o.Scattering) -> oj.Scattering:
-    raise NotImplementedError
+    def convert(values):
+        values["angle"] = np.array(values["angle"], dtype=np.float64)
+        values["cross"] = convert_cross_section(values["cross"])
+        # values["pot"] =  # Originally commented out
+
+    return _base_convert(scat, oj.Scattering, convert)
 
 
 # TODO: correct type hints
 def convert_scattering_nested(scat: Any) -> Any:
-    raise NotImplementedError
+    scat_new = []
+    for i in range(len(scat)):
+        scat_new.append([])
+        for j in range(len(scat[i])):
+            if not isinstance(scat[i][j].angle, np.ndarray):
+                break  # Remove unused arrays
+            scat_new[i].append(convert_scattering(scat[i][j]))
+    return scat_new
 
 
 def convert_snext(snext: o.SNext) -> oj.SNext:

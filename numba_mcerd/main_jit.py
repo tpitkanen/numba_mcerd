@@ -144,22 +144,11 @@ def main(args):
 
     logging.info("Converting objects to JIT")
 
-    # g_copy = copy.deepcopy(g)
-    # detector_copy = copy.deepcopy(detector)
-    # target_copy = copy.deepcopy(target)
-    #
-    # conv_timer = timer.SplitTimer.init_and_start()
-    # g_c = oc.convert_global(g_copy)
-    # detector_c = oc.convert_detector(detector_copy)
-    # target_c = oc.convert_target(target_copy)
-    # conv_timer.split()
-
     g = oc.convert_global(g)
     detector = oc.convert_detector(detector)
     target = oc.convert_target(target)
-
-    # conv_timer.stop()
-    # print(conv_timer.elapsed_laps) # [13.4933904, 1.6218670000000017]
+    snext = oc.convert_snext(snext)
+    scat = oc.convert_scattering_nested(scat)
 
     for i in range(len(ions_moving)):
         ions_moving[i].status = enums.IonStatus.NOT_FINISHED
