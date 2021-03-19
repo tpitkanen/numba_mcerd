@@ -3,7 +3,7 @@ import logging
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.symbols as s
-from numba_mcerd.mcerd import erd_detector
+from numba_mcerd.mcerd import erd_detector, enums
 
 
 # Untested (except for initial "if" which returns False in pre-simulation)
@@ -11,10 +11,10 @@ def _output_tof(g: o.Global, cur_ion: o.Ion, target: o.Target, detector: o.Detec
     # https://stackoverflow.com/questions/3167494/how-often-does-python-flush-to-a-file
 
     # TODO: return early instead (removes one indentation level)
-    if cur_ion.type == c.IonType.SECONDARY and (
+    if cur_ion.type == enums.IonType.SECONDARY and (
             cur_ion.tlayer == target.nlayers or
             erd_detector.is_in_energy_detector(g, cur_ion, target, detector, True) or
-            cur_ion.status == c.IonStatus.FIN_OUT_DET and g.output_misses):
+            cur_ion.status == enums.IonStatus.FIN_OUT_DET and g.output_misses):
         n = cur_ion.tlayer - target.ntarget  # Foil number  # TODO: Rename
         line_parts = []
 
@@ -89,17 +89,17 @@ def _output_gas(g: o.Global, cur_ion: o.Ion, target: o.Target, detector: o.Detec
 
 
 def output_erd(g: o.Global, cur_ion: o.Ion, target: o.Target, detector: o.Detector) -> None:
-    if detector.type == c.DetectorType.TOF:
+    if detector.type == enums.DetectorType.TOF:
         _output_tof(g, cur_ion, target, detector)
         return
-    elif detector.type == c.DetectorType.GAS:
+    elif detector.type == enums.DetectorType.GAS:
         _output_gas(g, cur_ion, target, detector)
     # Other types are ignored, namely DET_FOIL
 
 
 def output_data(g: o.Global) -> None:
     """Output how many ions have been calculated"""
-    if g.simstage == c.SimStage.PRESIMULATION:
+    if g.simstage == enums.SimStage.PRESIMULATION:
         nion = g.cion
         nmaxion = g.npresimu
     else:

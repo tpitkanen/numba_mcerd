@@ -5,6 +5,7 @@ import numpy as np
 
 import numba_mcerd.mcerd.constants as c
 from numba_mcerd import config
+from numba_mcerd.mcerd import enums
 
 
 random_generator = None
@@ -65,7 +66,7 @@ def seed_rnd(seed: int):
     random_generator.load()
 
 
-def rnd(low: float, high: float, period: c.RndPeriod = c.RndPeriod.RND_CLOSED) -> float:
+def rnd(low: float, high: float, period: enums.RndPeriod = enums.RndPeriod.RND_CLOSED) -> float:
     """Generate a random number from low to high."""
     length = high - low
 
@@ -74,15 +75,15 @@ def rnd(low: float, high: float, period: c.RndPeriod = c.RndPeriod.RND_CLOSED) -
 
     return length * random_generator.random() + low
     # TODO: Implement these unlikely cases:
-    # if period == c.RndPeriod.RND_CLOSED:
+    # if period == enums.RndPeriod.RND_CLOSED:
     #     raise NotImplementedError
-    # elif period == c.RndPeriod.RND_OPEN:
+    # elif period == enums.RndPeriod.RND_OPEN:
     #     raise NotImplementedError
-    # elif period == c.RndPeriod.RND_LEFT:
+    # elif period == enums.RndPeriod.RND_LEFT:
     #     raise NotImplementedError
-    # elif period == c.RndPeriod.RND_RIGHT:
+    # elif period == enums.RndPeriod.RND_RIGHT:
     #     raise NotImplementedError
-    # elif period == c.RndPeriod.RND_SEED:
+    # elif period == enums.RndPeriod.RND_SEED:
     #     raise NotImplementedError
     # else:
     #     raise exceptions.IonSimulationError

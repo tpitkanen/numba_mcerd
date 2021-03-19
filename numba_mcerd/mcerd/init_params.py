@@ -7,6 +7,7 @@ import numpy as np
 
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
+from numba_mcerd.mcerd import enums
 
 
 # Called once in preprocessing
@@ -19,7 +20,7 @@ def init_params(g: o.Global, target: o.Target, argv: List[str]) -> None:
     g.nsimu = 10
     g.predata = False
 
-    g.beamprof = c.BeamProf.BEAM_NONE
+    g.beamprof = enums.BeamProf.BEAM_NONE
     g.beamdiv = 0.0
 
     g.nions = 2

@@ -4,7 +4,7 @@ from pathlib import Path
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.symbols as s
-from numba_mcerd.mcerd import read_input
+from numba_mcerd.mcerd import read_input, enums
 
 
 class ReadTargetError(Exception):
@@ -51,13 +51,13 @@ def read_target_file(filename: str, g: o.Global, target: o.Target) -> None:
     while line := fp.readline().strip():
         logging.info(f"layer: {nlayer}")
         layer = target.layer[nlayer]
-        layer.type = c.TargetType.TARGET_FILM
+        layer.type = enums.TargetType.TARGET_FILM
         layer.gas = False
 
         if line[0].isalpha():
             raise NotImplementedError  # TODO
 
-        if layer.type == c.TargetType.TARGET_FILM:
+        if layer.type == enums.TargetType.TARGET_FILM:
             number, line = read_input.get_float(line)
             unit, line = read_input.get_unit_value(line, c.C_NM)
             logging.info(f"thickness {number * unit / c.C_NM} nm")

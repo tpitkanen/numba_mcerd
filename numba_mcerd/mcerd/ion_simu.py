@@ -4,7 +4,7 @@ from typing import List, Tuple
 
 import numpy as np
 
-from numba_mcerd.mcerd import random_vanilla, cross_section
+from numba_mcerd.mcerd import random_vanilla, cross_section, enums
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.constants as c
 
@@ -24,11 +24,11 @@ def create_ion(g: o.Global, ion: o.Ion, target: o.Target) -> None:
     - detector: z-axis is along the detector direction
     """
     # assert g.simtype == c.SimType.SIM_ERD or g.simtype == c.SimType.SIM_RBS
-    if g.simtype != c.SimType.SIM_ERD and g.simtype != c.SimType.SIM_RBS:
+    if g.simtype != enums.SimType.SIM_ERD and g.simtype != enums.SimType.SIM_RBS:
         raise IonSimulationError("Unsupported simulation type")
 
-    x = random_vanilla.rnd(-g.bspot.x, g.bspot.x, c.RndPeriod.RND_CLOSED)
-    y = random_vanilla.rnd(-g.bspot.y, g.bspot.y, c.RndPeriod.RND_CLOSED)
+    x = random_vanilla.rnd(-g.bspot.x, g.bspot.x, enums.RndPeriod.RND_CLOSED)
+    y = random_vanilla.rnd(-g.bspot.y, g.bspot.y, enums.RndPeriod.RND_CLOSED)
     if g.beamangle > 0:
         z = x / math.tan(c.C_PI / 2.0 - g.beamangle)
     else:
@@ -36,7 +36,7 @@ def create_ion(g: o.Global, ion: o.Ion, target: o.Target) -> None:
 
     ion.lab.p = o.Point(x, y, z)
 
-    if g.simstage == c.SimStage.REALSIMULATION and g.cion % (g.nscale + 1) == 0:
+    if g.simstage == enums.SimStage.REALSIMULATION and g.cion % (g.nscale + 1) == 0:
         # TODO: Calculating a random point goes to waste here. Move
         #       random point calculation to the else branch
         ion.scale = True
@@ -65,8 +65,8 @@ def create_ion(g: o.Global, ion: o.Ion, target: o.Target) -> None:
     ion.fii = fii
     ion.opt.cos_theta = math.cos(theta)
     ion.opt.sin_theta = math.sin(theta)
-    ion.type = c.IonType.PRIMARY
-    ion.status = c.IonStatus.NOT_FINISHED
+    ion.type = enums.IonType.PRIMARY
+    ion.status = enums.IonStatus.NOT_FINISHED
 
     ion.lab.theta = g.beamangle
     ion.lab.fii = c.C_PI
@@ -96,7 +96,7 @@ def next_scattering(g: o.Global, ion: o.Ion, target: o.Target,
         b[i] = layer.N[i] * cross_section.get_cross(ion, scat[ion.scatindex][p])
         cross += b[i]
 
-    rcross = random_vanilla.rnd(0.0, cross, c.RndPeriod.RND_OPEN)
+    rcross = random_vanilla.rnd(0.0, cross, enums.RndPeriod.RND_OPEN)
     i = 0
     while i < layer.natoms and rcross >= 0.0:
         rcross -= b[i]
@@ -108,10 +108,10 @@ def next_scattering(g: o.Global, ion: o.Ion, target: o.Target,
     snext.natom = layer.atom[i]
 
     ion.opt.y = math.sqrt(-rcross / (c.C_PI * layer.N[i])) / scat[ion.scatindex][snext.natom].a
-    snext.d = -math.log(random_vanilla.rnd(0.0, 1.0, c.RndPeriod.RND_RIGHT)) / cross
+    snext.d = -math.log(random_vanilla.rnd(0.0, 1.0, enums.RndPeriod.RND_RIGHT)) / cross
 
 
-def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> c.ScatteringType:
+def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> enums.ScatteringType:
     # TODO: Replace copy-paste documentation
     """Move ion to the next point, which is the closest of following
       i) next MC-scattering point, distance already calculated
@@ -130,7 +130,7 @@ def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> c.Sca
     """
 
     cross_layer = cross_recdist = sto_dec = False
-    sc = c.ScatteringType.MC_SCATTERING
+    sc = enums.ScatteringType.MC_SCATTERING
 
     d = snext.d
     layer = target.layer[ion.tlayer]
@@ -147,7 +147,7 @@ def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> c.Sca
     else:
         if nextz < layer.dlow or nextz > layer.dhigh:
             # TODO: cross_layer is probably an enum
-            sc = c.ScatteringType.NO_SCATTERING
+            sc = enums.ScatteringType.NO_SCATTERING
             if nextz < layer.dlow:
                 d = math.fabs((layer.dlow - ion.p.z) / ion.opt.cos_theta)
                 cross_layer = -1
@@ -155,14 +155,14 @@ def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> c.Sca
                 d = math.fabs((ion.p.z - layer.dhigh) / ion.opt.cos_theta)
                 cross_layer = 1
 
-    if ion.type == c.IonType.PRIMARY and 0 < ion.tlayer < target.ntarget:
+    if ion.type == enums.IonType.PRIMARY and 0 < ion.tlayer < target.ntarget:
         cross_recdist, dreclayer = recdist_crossing(g, ion, target, d)
         if cross_recdist:
             cross_layer = False
             d = dreclayer
-            sc = c.ScatteringType.NO_SCATTERING
-        drec = -math.log(random_vanilla.rnd(0.0, 1.0, c.RndPeriod.RND_CLOSED))
-        if g.recwidth == c.RecWidth.REC_WIDE or g.simstage == c.SimStage.PRESIMULATION:
+            sc = enums.ScatteringType.NO_SCATTERING
+        drec = -math.log(random_vanilla.rnd(0.0, 1.0, enums.RndPeriod.RND_CLOSED))
+        if g.recwidth == enums.RecWidth.REC_WIDE or g.simstage == enums.SimStage.PRESIMULATION:
             drec *= ion.effrecd / (math.cos(g.beamangle) * g.nrecave)
             ion.wtmp = -1.0
         else:
@@ -177,31 +177,31 @@ def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> c.Sca
             nz = recdist_nonzero(g, ion, target, drec)
             if nz:  # Recoiling event
                 d = drec
-                sc = c.ScatteringType.ERD_SCATTERING
+                sc = enums.ScatteringType.ERD_SCATTERING
                 cross_layer = False
                 cross_recdist = False
 
     vel1 = math.sqrt(2.0 * ion.E / ion.A)
-    sto1 = inter_sto(layer.sto[ion.scatindex], vel1, c.IonMode.STOPPING)
+    sto1 = inter_sto(layer.sto[ion.scatindex], vel1, enums.IonMode.STOPPING)
 
     dE = sto1 * d
 
     vel2 = math.sqrt(2.0 * (max(ion.E - dE, 0.0) / ion.A))
-    sto2 = inter_sto(layer.sto[ion.scatindex], vel2, c.IonMode.STOPPING)
+    sto2 = inter_sto(layer.sto[ion.scatindex], vel2, enums.IonMode.STOPPING)
 
     while math.fabs(sto1 - sto2) / sto1 > c.MAXELOSS or dE >= ion.E:
-        sc = c.ScatteringType.NO_SCATTERING
+        sc = enums.ScatteringType.NO_SCATTERING
         cross_layer = False
         sto_dec = True
         d /= 2.0  # TODO: Could use *= 0.5
         dE = sto1 * d
         vel2 = math.sqrt(2.0 * (max(ion.E - dE, 0.0) / ion.A))
-        sto2 = inter_sto(layer.sto[ion.scatindex], vel2, c.IonMode.STOPPING)
+        sto2 = inter_sto(layer.sto[ion.scatindex], vel2, enums.IonMode.STOPPING)
 
     stopping = 0.5 * (sto1 + sto2)
     vel = 0.5 * (vel1 + vel2)
 
-    if sc == c.ScatteringType.NO_SCATTERING:
+    if sc == enums.ScatteringType.NO_SCATTERING:
         d += 0.01 * c.C_ANGSTROM  # To make sure that the layer surface is crossed
 
     if cross_layer:
@@ -209,7 +209,7 @@ def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> c.Sca
 
     # TODO: Copy comments here
 
-    straggling = math.sqrt(inter_sto(layer.sto[ion.type.value], vel, c.IonMode.STRAGGLING) * d)
+    straggling = math.sqrt(inter_sto(layer.sto[ion.type.value], vel, enums.IonMode.STRAGGLING) * d)
     straggling *= random_vanilla.gaussian()
 
     eloss = d * stopping
@@ -231,17 +231,17 @@ def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> c.Sca
     ion.time += d / vel
 
     if cross_layer and ion.tlayer > target.ntarget:
-        ion.status = c.IonStatus.FIN_OUT_DET
+        ion.status = enums.IonStatus.FIN_OUT_DET
 
-    if cross_layer and ion.type == c.IonType.SECONDARY and ion.tlayer == target.ntarget:
-        ion.status = c.IonStatus.FIN_RECOIL
+    if cross_layer and ion.type == enums.IonType.SECONDARY and ion.tlayer == target.ntarget:
+        ion.status = enums.IonStatus.FIN_RECOIL
 
     ion_finished(g, ion, target)
 
     return sc
 
 
-def inter_sto(stop: o.Target_sto, vel: float, mode: c.IonMode) -> float:
+def inter_sto(stop: o.Target_sto, vel: float, mode: enums.IonMode) -> float:
     """Interpolate the electronic stopping power or straggling value.
 
     stop.sto or stop.stragg must be equally spaced.
@@ -259,18 +259,18 @@ def inter_sto(stop: o.Target_sto, vel: float, mode: c.IonMode) -> float:
 
     if vel >= stop.vel[stop.n_sto - 1]:
         logging.warning(f"Ion velocity '{vel}' exceeds the maximum velocity of stopping power table")
-        if mode == c.IonMode.STOPPING:
+        if mode == enums.IonMode.STOPPING:
             return stop.sto[stop.n_sto - 1]
         return stop.stragg[stop.n_sto - 1]
     if vel <= stop.vel[0]:
-        if mode == c.IonMode.STOPPING:
+        if mode == enums.IonMode.STOPPING:
             return stop.sto[0]
         return stop.stragg[0]
 
     i = int(vel * d)
     assert 0 <= i < stop.n_sto - 1
     vlow = stop.vel[i]
-    if mode == c.IonMode.STOPPING:
+    if mode == enums.IonMode.STOPPING:
         slow = stop.sto[i]
         shigh = stop.sto[i + 1]
         assert shigh > 0
@@ -282,33 +282,33 @@ def inter_sto(stop: o.Target_sto, vel: float, mode: c.IonMode) -> float:
     return sto
 
 
-def ion_finished(g: o.Global, ion: o.Ion, target: o.Target) -> c.IonStatus:
+def ion_finished(g: o.Global, ion: o.Ion, target: o.Target) -> enums.IonStatus:
     """Check finish conditions for ion and decide whether to finish it"""
     if ion.E < g.emin:
-        ion.status = c.IonStatus.FIN_STOP
+        ion.status = enums.IonStatus.FIN_STOP
 
-    PRIMARY = c.IonType.PRIMARY
-    SECONDARY = c.IonType.SECONDARY
+    PRIMARY = enums.IonType.PRIMARY
+    SECONDARY = enums.IonType.SECONDARY
 
     if ion.type == PRIMARY and ion.tlayer >= target.ntarget:
-        ion.status = c.IonStatus.FIN_TRANS
+        ion.status = enums.IonStatus.FIN_TRANS
 
     if ion.tlayer < 0:
         if ion.type == PRIMARY:
-            ion.status = c.IonStatus.FIN_BS
+            ion.status = enums.IonStatus.FIN_BS
         else:
-            ion.status = c.IonStatus.FIN_RECOIL
+            ion.status = enums.IonStatus.FIN_RECOIL
 
     if g.rough:
         raise NotImplementedError
     else:
         if ion.type == PRIMARY and ion.p.z > target.recmaxd:
-            ion.status = c.IonStatus.FIN_MAXDEPTH
+            ion.status = enums.IonStatus.FIN_MAXDEPTH
         if ion.type == PRIMARY and ion.scale and ion.p.z > c.SCALE_DEPTH:
-            ion.status = c.IonStatus.FIN_MAXDEPTH
+            ion.status = enums.IonStatus.FIN_MAXDEPTH
 
     if ion.type == SECONDARY and ion.tlayer >= target.nlayers:
-        ion.status = c.IonStatus.FIN_DET
+        ion.status = enums.IonStatus.FIN_DET
 
     # Comment in original: Here we should also check the case that the
     # recoil comes out of the detector layer from sides.
@@ -371,8 +371,8 @@ def mc_scattering(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target, dete
     # ifdef NO_SEC_ANGLES
 
     # ifndef NO_RBS_SCATLIMIT
-    if (g.simtype == c.SimType.SIM_RBS
-            and ion.type == c.IonType.SECONDARY
+    if (g.simtype == enums.SimType.SIM_RBS
+            and ion.type == enums.IonType.SECONDARY
             and ion.tlayer < target.ntarget):  # Limited to sample
         raise NotImplementedError
 
@@ -381,7 +381,7 @@ def mc_scattering(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target, dete
     ion.E *= Ef
     ion.opt.e = ion.E * s.E2eps
 
-    fii = random_vanilla.rnd(0.0, 2.0 * c.C_PI, c.RndPeriod.RND_RIGHT)
+    fii = random_vanilla.rnd(0.0, 2.0 * c.C_PI, enums.RndPeriod.RND_RIGHT)
     ion_rotate(ion, cos_theta, fii)
     if recoils:
         ion_rotate(recoil, cos_theta_recoil, math.fmod(fii + c.C_PI, 2.0 * c.C_PI))

@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import List
 
-from numba_mcerd.mcerd import constants
+from numba_mcerd.mcerd import constants, enums
 from numba_mcerd.mcerd.jibal import Jibal
 
 
@@ -64,10 +64,10 @@ class Global:
     minangle: float = 0.0  # Minimum angle of the scattering
     seed: int = 0  # Seed number of the random number generator  # Positive
     cion: int = 0  # Number of the current ion
-    simtype: constants.SimType = None  # Type of the simulation
+    simtype: enums.SimType = None  # Type of the simulation
     beamangle: float = 0.0  # Angle between target surface normal and beam
     bspot: Point2 = None  # Size of the beam spot
-    simstage: constants.SimStage = None  # Presimulation or real simulation
+    simstage: enums.SimStage = None  # Presimulation or real simulation
     npresimu: int = 0  # Number of simulated ions in the presimulation
     nscale: int = 0  # Number of simulated ions per scaling ions
     nrecave: int = 0  # Average number of recoils per primary ion
@@ -78,12 +78,12 @@ class Global:
     frecmin: float = 0.0
     costhetamax: float = 0.0
     costhetamin: float = 0.0
-    recwidth: constants.RecWidth = None  # Recoiling angle width type
+    recwidth: enums.RecWidth = None  # Recoiling angle width type
     virtualdet: bool = False  # Do we use the virtual detector
     basename: str = None  # len NFILE
     finstat: List[List[int]] = None  # len [SECONDARY + 1][NIONSTATUS]
     beamdiv: int = 0  # Angular divergence of the beam, width or FWHM  # TODO: Should this be int or float?
-    beamprof: constants.BeamProf = None  # Beam profile: flat, gaussian, given distribution
+    beamprof: enums.BeamProf = None  # Beam profile: flat, gaussian, given distribution
     rough: bool = False  # Rough or non-rough sample surface
     nmclarge: int = 0  # Number of rejected (large) MC scatterings (RBS)
     nmc: int = 0  # Number of all MC-scatterings
@@ -102,8 +102,8 @@ class Global:
         if self.master is None:
             self.master = Master()
         if self.finstat is None:
-            self.finstat = [[0] * len(constants.IonStatus)
-                            for _ in range(constants.IonType.SECONDARY.value + 1)]
+            self.finstat = [[0] * len(enums.IonStatus)
+                            for _ in range(enums.IonType.SECONDARY.value + 1)]
         if self.jibal is None:
             self.jibal = Jibal()
 
@@ -183,14 +183,14 @@ class Ion:
     theta: float = 0.0  # Laboratory theta-angle of the ion [0,PI]
     fii: float = 0.0  # Laboratory fii-angle of the ion [0,2*PI]
     nsct: int = 0  # Number of scatterings of the ion
-    status: constants.IonStatus = None  # Status value for ion (stopped, recoiled etc.)
+    status: enums.IonStatus = None  # Status value for ion (stopped, recoiled etc.)
     opt: Ion_opt = None  # Structure for the optimization-variables
     w: float = 0.0  # Statistical weight of the ion
     wtmp: float = 0.0  # Temporary statistical weight of the ion
     time: float = 0.0  # Time since the creation of the ion
     tlayer: int = 0  # Number of the current target layer
     lab: Vector = None  # Translation and rotation of the current coordinate system in the laboratory coordinate system
-    type: constants.IonType = None  # Primary, secondary etc.
+    type: enums.IonType = None  # Primary, secondary etc.
     hist: Rec_hist = None  # Variables saved at the moment of the recoiling event
     dist: float = 0.0  # Distance to the next ERD-scattering point
     virtual: bool = False  # Did we only hit the virtual detector area
@@ -322,7 +322,7 @@ class Target_layer:
     N: List[float] = None  # Array of the atomic densities  # len MAXATOMS
     Ntot: float = 0.0  # Total atomic density in the layer
     sto: List[Target_sto] = None  # Electronic stopping for different ions  # len g.nions
-    type: constants.TargetType = None  # Type of the target layer
+    type: enums.TargetType = None  # Type of the target layer
     gas: bool = False  # Whether the target layer is gas or not
     stofile_prefix: str = None  # len MAXSTOFILEPREFIXLEN
 
@@ -337,7 +337,7 @@ class Plane:
     a: float = 0.0
     b: float = 0.0
     c: float = 0.0
-    type: constants.PlaneType = None
+    type: enums.PlaneType = None
 
 
 @dataclass
@@ -386,7 +386,7 @@ class Line:
     b: float = 0.0
     c: float = 0.0
     d: float = 0.0
-    type: constants.LineType = None
+    type: enums.LineType = None
 
 
 @dataclass
@@ -405,7 +405,7 @@ class Circ:
 
 @dataclass
 class Det_foil:
-    type: constants.FoilType = None  # Rectangular or circular
+    type: enums.FoilType = None  # Rectangular or circular
     virtual: bool = False  # Is this foil virtual
     dist: float = 0.0  # Distance from the target center
     angle: float = 0.0  # Angle of the foil
@@ -420,7 +420,7 @@ class Det_foil:
 
 @dataclass
 class Detector:
-    type: constants.DetectorType = None  # TOF, GAS or FOIL
+    type: enums.DetectorType = None  # TOF, GAS or FOIL
     angle: float = 0.0  # Detector angle relative to the beam direction
     nfoils: int = 0  # Number of foils in the detector
     virtual: bool = False  # Do we have the virtual detector

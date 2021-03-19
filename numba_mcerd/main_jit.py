@@ -4,7 +4,8 @@ import logging
 from numba_mcerd import config, timer
 from numba_mcerd.mcerd import (
     random_jit, init_params, read_input, potential, ion_stack, init_simu, cross_section,
-    potential_jit, init_simu_jit, cross_section_jit, elsto, init_detector, output, ion_simu_jit
+    potential_jit, init_simu_jit, cross_section_jit, elsto, init_detector, output, ion_simu_jit,
+    enums
 )
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
@@ -13,9 +14,9 @@ import numba_mcerd.mcerd.objects_convert as oc
 
 
 # These are too annoying to type
-PRIMARY = c.IonType.PRIMARY.value
-SECONDARY = c.IonType.SECONDARY.value
-TARGET_ATOM = c.IonType.TARGET_ATOM.value
+PRIMARY = enums.IonType.PRIMARY.value
+SECONDARY = enums.IonType.SECONDARY.value
+TARGET_ATOM = enums.IonType.TARGET_ATOM.value
 
 
 # This is less useful for numba-optimized functions (doesn't work, unlike print)
@@ -108,7 +109,7 @@ def main(args):
     table_timer = timer.SplitTimer.init_and_start()
     scat = []
     for i in range(g.nions):
-        if g.simtype == c.SimType.SIM_RBS and i == c.IonType.TARGET_ATOM.value:
+        if g.simtype == enums.SimType.SIM_RBS and i == enums.IonType.TARGET_ATOM.value:
             continue
         ions[i].scatindex = i
         scat.append([o.Scattering() for _ in range(c.MAXELEMENTS)])
@@ -125,7 +126,7 @@ def main(args):
         target.layer[j].sto = [o.Target_sto() for _ in range(g.nions)]
         for i in range(g.nions):
             gsto_index += 1
-            if g.simtype == c.SimType.SIM_RBS and i == c.IonType.TARGET_ATOM.value:
+            if g.simtype == enums.SimType.SIM_RBS and i == enums.IonType.TARGET_ATOM.value:
                 continue
             elsto.calc_stopping_and_straggling_const(g, ions[i], target, j, gsto_index)
             # TODO: Real gsto instead
@@ -139,7 +140,7 @@ def main(args):
     trackid *= 1_000_000
     ions_moving.append(copy.deepcopy(ions[PRIMARY]))
     ions_moving.append(copy.deepcopy(ions[SECONDARY]))
-    if g.simtype == c.SimType.SIM_RBS:
+    if g.simtype == enums.SimType.SIM_RBS:
         ions_moving.append(copy.deepcopy(ions[TARGET_ATOM]))
 
     logging.info("Converting objects to JIT")
@@ -149,7 +150,7 @@ def main(args):
     target = oc.convert_target(target)
 
     for i in range(len(ions_moving)):
-        ions_moving[i].status = c.IonStatus.NOT_FINISHED
+        ions_moving[i].status = enums.IonStatus.NOT_FINISHED
         ions_moving[i] = oc.convert_ion(ions_moving[i])
 
     logging.info("Starting simulation")

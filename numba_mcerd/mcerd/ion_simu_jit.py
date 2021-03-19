@@ -4,7 +4,7 @@ from typing import List, Tuple
 import numba as nb
 import numpy as np
 
-from numba_mcerd.mcerd import random_jit, cross_section
+from numba_mcerd.mcerd import random_jit, cross_section, enums
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.objects_jit as oj
 import numba_mcerd.mcerd.constants as c
@@ -24,12 +24,11 @@ def create_ion(g: oj.Global, ion: oj.Ion, target: oj.Target) -> None:
     - ion: z-axis is along the direction of ion movement
     - detector: z-axis is along the detector direction
     """
-    # assert g.simtype == c.SimType.SIM_ERD or g.simtype == c.SimType.SIM_RBS
-    if g.simtype != c.SimType.SIM_ERD.value and g.simtype != c.SimType.SIM_RBS.value:
+    if g.simtype != enums.SimType.SIM_ERD.value and g.simtype != enums.SimType.SIM_RBS.value:
         raise IonSimulationError("Unsupported simulation type")
 
-    x = random_jit.rnd(-g.bspot.x, g.bspot.x, c.RndPeriod.RND_CLOSED.value)
-    y = random_jit.rnd(-g.bspot.y, g.bspot.y, c.RndPeriod.RND_CLOSED.value)
+    x = random_jit.rnd(-g.bspot.x, g.bspot.x, enums.RndPeriod.RND_CLOSED.value)
+    y = random_jit.rnd(-g.bspot.y, g.bspot.y, enums.RndPeriod.RND_CLOSED.value)
     if g.beamangle > 0:
         z = x / math.tan(c.C_PI / 2.0 - g.beamangle)
     else:
@@ -41,7 +40,7 @@ def create_ion(g: oj.Global, ion: oj.Ion, target: oj.Target) -> None:
     ion.lab.p.y = y
     ion.lab.p.z = z
 
-    if g.simstage == c.SimStage.REALSIMULATION.value and g.cion % (g.nscale + 1) == 0:
+    if g.simstage == enums.SimStage.REALSIMULATION.value and g.cion % (g.nscale + 1) == 0:
         # TODO: Calculating a random point goes to waste here. Move
         #       random point calculation to the else branch
         ion.scale = True
@@ -70,14 +69,14 @@ def create_ion(g: oj.Global, ion: oj.Ion, target: oj.Target) -> None:
     ion.fii = fii
     ion.opt.cos_theta = math.cos(theta)
     ion.opt.sin_theta = math.sin(theta)
-    ion.type = c.IonType.PRIMARY.value
-    ion.status = c.IonStatus.NOT_FINISHED.value
+    ion.type = enums.IonType.PRIMARY.value
+    ion.status = enums.IonStatus.NOT_FINISHED.value
 
     ion.lab.theta = g.beamangle
     ion.lab.fii = c.C_PI
 
     # if __debug__:
-    #     debug.print_ion_position(g, ion, "L", c.SimStage.ANYSIMULATION)
+    #     debug.print_ion_position(g, ion, "L", enums.SimStage.ANYSIMULATION)
 
 
 def move_target(target: o.Target) -> None:
@@ -102,7 +101,7 @@ def next_scattering(g: oj.Global, ion: oj.Ion, target: oj.Target,
         b[i] = layer.N[i] * cross_section.get_cross(ion, scat[ion.scatindex][p])
         cross += b[i]
 
-    rcross = random_jit.rnd(0.0, cross, c.RndPeriod.RND_OPEN)
+    rcross = random_jit.rnd(0.0, cross, enums.RndPeriod.RND_OPEN)
     i = 0
     while i < layer.natoms and rcross >= 0.0:
         rcross -= b[i]
@@ -114,10 +113,10 @@ def next_scattering(g: oj.Global, ion: oj.Ion, target: oj.Target,
     snext.natom = layer.atom[i]
 
     ion.opt.y = math.sqrt(-rcross / (c.C_PI * layer.N[i])) / scat[ion.scatindex][snext.natom].a
-    snext.d = -math.log(random_jit.rnd(0.0, 1.0, c.RndPeriod.RND_RIGHT)) / cross
+    snext.d = -math.log(random_jit.rnd(0.0, 1.0, enums.RndPeriod.RND_RIGHT)) / cross
 
 
-def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> c.ScatteringType:
+def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> enums.ScatteringType:
     # TODO: Replace copy-paste documentation
     """Move ion to the next point, which is the closest of following
       i) next MC-scattering point, distance already calculated
@@ -137,7 +136,7 @@ def move_ion(g: o.Global, ion: o.Ion, target: o.Target, snext: o.SNext) -> c.Sca
     raise NotImplementedError
 
 
-def inter_sto(stop: o.Target_sto, vel: float, mode: c.IonMode) -> float:
+def inter_sto(stop: o.Target_sto, vel: float, mode: enums.IonMode) -> float:
     """Interpolate the electronic stopping power or straggling value.
 
     stop.sto or stop.stragg must be equally spaced.
@@ -153,7 +152,7 @@ def inter_sto(stop: o.Target_sto, vel: float, mode: c.IonMode) -> float:
     raise NotImplementedError
 
 
-def ion_finished(g: o.Global, ion: o.Ion, target: o.Target) -> c.IonStatus:
+def ion_finished(g: o.Global, ion: o.Ion, target: o.Target) -> enums.IonStatus:
     """Check finish conditions for ion and decide whether to finish it"""
     raise NotImplementedError
 

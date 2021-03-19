@@ -5,7 +5,7 @@ from typing import Sequence, Generator, Tuple
 
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
-from numba_mcerd.mcerd import read_target
+from numba_mcerd.mcerd import read_target, enums
 
 
 class ReadDetectorError(Exception):
@@ -60,7 +60,7 @@ def read_detector_file(filename: str, g: o.Global, detector: o.Detector, target:
     if key != DetectorSettingsLine.DETECTOR_TYPE.value:
         raise ReadDetectorError
     try:
-        detector.type = c.DetectorType[dtype]
+        detector.type = enums.DetectorType[dtype]
     except KeyError as ex:
         raise ReadDetectorError(f"Detector of type '{ex}' not supported")
 
@@ -100,14 +100,14 @@ def read_detector_file(filename: str, g: o.Global, detector: o.Detector, target:
         if key != DetectorSettingsLine.FOIL_TYPE.value:
             raise ReadDetectorError
         if foil_type == "circular":
-            foil.type = c.FoilType.CIRC
+            foil.type = enums.FoilType.CIRC
             key, diameter = next(lines_gen)
             if key != DetectorSettingsLine.FOIL_DIAMETER.value:
                 raise ReadDetectorError
             # TODO: Size array could be set to specific size, or Foil could be subclassed
             foil.size[0] = float(diameter) * 0.5 * c.C_MM
         elif foil_type == "rectangular":
-            foil.type = c.FoilType.RECT
+            foil.type = enums.FoilType.RECT
             key, sizes = next(lines_gen)
             sizes = sizes.split(maxsplit=1)
             if key != DetectorSettingsLine.FOIL_SIZE.value:

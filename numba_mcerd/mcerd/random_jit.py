@@ -1,7 +1,7 @@
 import numpy as np
 import numba as nb
 
-import numba_mcerd.mcerd.constants as c
+from numba_mcerd.mcerd import enums
 
 
 # https://numba.pydata.org/numba-doc/dev/reference/pysupported.html

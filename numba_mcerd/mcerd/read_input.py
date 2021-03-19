@@ -8,9 +8,8 @@ import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.symbols as s
 
-
 # Constants etc. from read_input.h
-from numba_mcerd.mcerd import read_target, read_detector, init_detector, random_vanilla
+from numba_mcerd.mcerd import read_target, read_detector, init_detector, random_vanilla, enums
 from numba_mcerd.mcerd.jibal import JibalSelectIsotopes
 
 MAXUNITSTRING = 20
@@ -164,17 +163,17 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
     for key, value in zip(keys, values):
         if key == SettingsLine.I_TYPE.value:
             if value == "ERD":
-                g.simtype = c.SimType.SIM_ERD
+                g.simtype = enums.SimType.SIM_ERD
                 g.nions = 2  # Incident and recoil
             elif value == "RBS":
-                g.simtype = c.SimType.SIM_RBS
+                g.simtype = enums.SimType.SIM_RBS
                 g.nions = 3  # Incident, target and scattered incident
             else:
                 raise ValueError(f"No such type for simulation: '{value}'")
             # (Ions are already initialized)
         elif key == SettingsLine.I_ION.value:
             set_ion(g.jibal, value, primary_ion)
-            primary_ion.type = c.IonType.PRIMARY
+            primary_ion.type = enums.IonType.PRIMARY
             logging.info(f"Beam ion: {primary_ion.Z=}, M={primary_ion.A / c.C_U}")
         elif key == SettingsLine.I_ENERGY.value:
             number, value = get_float(value)
@@ -189,7 +188,7 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
             read_detector.read_detector_file(value, g, detector, target)
         elif key == SettingsLine.I_RECOIL.value:
             set_ion(g.jibal, value, secondary_ion)
-            secondary_ion.type = c.IonType.SECONDARY
+            secondary_ion.type = enums.IonType.SECONDARY
             logging.info(f"Recoil atom Z={secondary_ion.Z}, M={secondary_ion.A / c.C_U}")
             logging.info(
                 f"Recoil atom isotopes: {[f'{secondary_ion.I.A[i]} {secondary_ion.I.c[i]}%' for i in range(secondary_ion.I.n)]}")
@@ -243,13 +242,13 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
             seed, _ = get_float(value)
             seed = int(seed)
             g.seed = seed
-            random_vanilla.seed_rnd(seed)  # numba_mcerd.mcerd.random
+            random_vanilla.seed_rnd(seed)  # random
         elif key == SettingsLine.I_RECWIDTH.value:
             width, _ = get_word(value)
             if width.lower() == "wide":
-                g.recwidth = c.RecWidth.REC_WIDE
+                g.recwidth = enums.RecWidth.REC_WIDE
             else:
-                g.recwidth = c.RecWidth.REC_NARROW
+                g.recwidth = enums.RecWidth.REC_NARROW
         elif key == SettingsLine.I_PREDATA.value:
             # Note that this is commented out in settings file ('*' in
             # the middle of the key)
@@ -271,9 +270,9 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
         elif key == SettingsLine.I_BPROF.value:
             beam_profile, _ = get_word(value)
             if beam_profile.lower() == "flat":
-                g.beamprof = c.BeamProf.BEAM_FLAT
+                g.beamprof = enums.BeamProf.BEAM_FLAT
             else:
-                g.beamprof = c.BeamProf.BEAM_GAUSS
+                g.beamprof = enums.BeamProf.BEAM_GAUSS
         elif key == SettingsLine.I_SURFACE.value:
             raise NotImplementedError
         elif key == SettingsLine.I_SURFSIZE.value:
@@ -306,29 +305,29 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
 
     target.plane = init_detector.get_plane_params(p1, p2, p3)
 
-    if g.recwidth == c.RecWidth.REC_WIDE and g.npresimu > 0:
+    if g.recwidth == enums.RecWidth.REC_WIDE and g.npresimu > 0:
         g.presimu = 0
         logging.warning("Presimulation not needed with wide recoil angle scheme")
 
-    if g.recwidth == c.RecWidth.REC_WIDE:
+    if g.recwidth == enums.RecWidth.REC_WIDE:
         g.predata = False
 
     if g.predata:
         g.presimu = 0
-    elif g.npresimu == 0 and g.recwidth == c.RecWidth.REC_NARROW:
+    elif g.npresimu == 0 and g.recwidth == enums.RecWidth.REC_NARROW:
         raise ReadInputError("No precalculated recoiling data in the narrow recoiling scheme")
 
     if g.npresimu > 0:
         g.cpresimu = 0
-        g.simstage = c.SimStage.PRESIMULATION
+        g.simstage = enums.SimStage.PRESIMULATION
 
         g.presimu = [o.Presimu() for _ in range(g.npresimu)]
     else:
-        g.simstage = c.SimStage.REALSIMULATION
+        g.simstage = enums.SimStage.REALSIMULATION
 
     target.ntarget = target.nlayers - detector.nfoils
 
-    if detector.type == c.DetectorType.TOF:
+    if detector.type == enums.DetectorType.TOF:
         detector.tdet[0] += target.ntarget
         detector.tdet[1] += target.ntarget
         detector.edet[0] += target.ntarget
@@ -343,10 +342,10 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
 
     M = 4.0 * primary_ion.A * secondary_ion.A / (primary_ion.A + secondary_ion.A) ** 2
 
-    if g.simtype == c.SimType.SIM_ERD:
+    if g.simtype == enums.SimType.SIM_ERD:
         g.costhetamax = math.sqrt(g.emin / g.E0 * M)
         g.costhetamin = 1.0
-    elif g.simtype == c.SimType.SIM_RBS:
+    elif g.simtype == enums.SimType.SIM_RBS:
         if primary_ion.A <= secondary_ion.A:
             g.costhetamax = -1.0
         else:

@@ -7,16 +7,16 @@ from numba_mcerd import config, timer, pickler
 from numba_mcerd.mcerd import (
     init_params, read_input, potential, ion_stack, init_simu, cross_section, elsto,
     init_detector, ion_simu, erd_scattering, pre_simulation, erd_detector, output, finish_ion,
-    finalize
+    finalize, enums
 )
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 
 
 # These are too annoying to type
-PRIMARY = c.IonType.PRIMARY.value
-SECONDARY = c.IonType.SECONDARY.value
-TARGET_ATOM = c.IonType.TARGET_ATOM.value
+PRIMARY = enums.IonType.PRIMARY.value
+SECONDARY = enums.IonType.SECONDARY.value
+TARGET_ATOM = enums.IonType.TARGET_ATOM.value
 
 
 def setup_logging():
@@ -105,7 +105,7 @@ def main(args):
 
     scat = []
     for i in range(g.nions):
-        if g.simtype == c.SimType.SIM_RBS and i == c.IonType.TARGET_ATOM.value:
+        if g.simtype == enums.SimType.SIM_RBS and i == enums.IonType.TARGET_ATOM.value:
             continue
         ions[i].scatindex = i
         scat.append([o.Scattering() for _ in range(c.MAXELEMENTS)])
@@ -132,7 +132,7 @@ def main(args):
         target.layer[j].sto = [o.Target_sto() for _ in range(g.nions)]
         for i in range(g.nions):
             gsto_index += 1
-            if g.simtype == c.SimType.SIM_RBS and i == c.IonType.TARGET_ATOM.value:
+            if g.simtype == enums.SimType.SIM_RBS and i == enums.IonType.TARGET_ATOM.value:
                 continue
             # TODO: This is a temporary way to avoid implementing GSTO
             elsto.calc_stopping_and_straggling_const(g, ions[i], target, j, gsto_index)
@@ -159,7 +159,7 @@ def main(args):
     trackid *= 1_000_000
     ions_moving.append(copy.deepcopy(ions[PRIMARY]))
     ions_moving.append(copy.deepcopy(ions[SECONDARY]))
-    if g.simtype == c.SimType.SIM_RBS:
+    if g.simtype == enums.SimType.SIM_RBS:
         ions_moving.append(copy.deepcopy(ions[TARGET_ATOM]))
 
     # Debugging counters
@@ -193,25 +193,25 @@ def main(args):
             ion_simu.next_scattering(g, cur_ion, target, scat, snext)
             nscat = ion_simu.move_ion(g, cur_ion, target, snext)
 
-            if nscat == c.ScatteringType.ERD_SCATTERING:
+            if nscat == enums.ScatteringType.ERD_SCATTERING:
                 if erd_scattering.erd_scattering(
                         g, ions_moving[PRIMARY], ions_moving[SECONDARY], target, detector):
                     cur_ion = ions_moving[SECONDARY]
 
-            if cur_ion.status == c.IonStatus.FIN_RECOIL or cur_ion.status == c.IonStatus.FIN_OUT_DET:
-                if g.simstage == c.SimStage.PRESIMULATION:
+            if cur_ion.status == enums.IonStatus.FIN_RECOIL or cur_ion.status == enums.IonStatus.FIN_OUT_DET:
+                if g.simstage == enums.SimStage.PRESIMULATION:
                     pre_simulation.finish_presimulation(g, detector, cur_ion)
                     cur_ion = ions_moving[PRIMARY]
                 else:
                     erd_detector.move_to_erd_detector(g, cur_ion, target, detector)
 
             # TODO: Separate loop to pre and main, move this in-between
-            if g.simstage == c.SimStage.PRESIMULATION and g.cion == g.npresimu - 1:
+            if g.simstage == enums.SimStage.PRESIMULATION and g.cion == g.npresimu - 1:
                 pre_simulation.analyze_presimulation(g, target, detector)
                 init_params.init_recoiling_angle(target)
 
-            if (nscat == c.ScatteringType.MC_SCATTERING
-                    and cur_ion.status == c.IonStatus.NOT_FINISHED
+            if (nscat == enums.ScatteringType.MC_SCATTERING
+                    and cur_ion.status == enums.IonStatus.NOT_FINISHED
                     and not g.nomc):
                 if ion_simu.mc_scattering(
                         g, cur_ion, ions_moving[SECONDARY], target, detector, scat, snext):  # ion_stack.next_ion()
@@ -219,7 +219,7 @@ def main(args):
                     cur_ion = ions_moving[SECONDARY]  # ion_stack.next_ion()
                     found = False
                     for j in range(g.nions):
-                        if j == TARGET_ATOM and g.simtype == c.SimType.SIM_RBS:
+                        if j == TARGET_ATOM and g.simtype == enums.SimType.SIM_RBS:
                             continue
                         if (round(ions[j].Z) == round(cur_ion.Z)
                                 and round(ions[j].A / c.C_U) == round(ions[j].A / c.C_U)):
@@ -244,7 +244,7 @@ def main(args):
             if g.output_trackpoints:
                 raise NotImplementedError
 
-            if cur_ion.type.value == SECONDARY and cur_ion.status != c.IonStatus.NOT_FINISHED:
+            if cur_ion.type.value == SECONDARY and cur_ion.status != enums.IonStatus.NOT_FINISHED:
                 g.finstat[SECONDARY][cur_ion.status.value] += 1
 
             while ion_simu.ion_finished(g, cur_ion, target).value:
