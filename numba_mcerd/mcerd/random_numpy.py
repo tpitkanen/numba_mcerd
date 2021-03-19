@@ -1,3 +1,8 @@
+"""RNG using NumPy random.
+
+Do not import this directly, select RNG to use in config.py instead.
+"""
+
 import numpy as np
 
 import numba_mcerd.mcerd.constants as c

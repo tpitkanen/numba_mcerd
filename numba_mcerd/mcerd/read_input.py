@@ -8,10 +8,11 @@ import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.symbols as s
 
-# Constants etc. from read_input.h
-from numba_mcerd.mcerd import read_target, read_detector, init_detector, random_vanilla, enums
+from numba_mcerd.config import rand
+from numba_mcerd.mcerd import read_target, read_detector, init_detector, enums
 from numba_mcerd.mcerd.jibal import JibalSelectIsotopes
 
+# Constants etc. from read_input.h
 MAXUNITSTRING = 20
 MAXLEN = 200
 ERR_INPUT = 100
@@ -242,7 +243,7 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
             seed, _ = get_float(value)
             seed = int(seed)
             g.seed = seed
-            random_vanilla.seed_rnd(seed)  # random
+            rand.seed_rnd(seed)  # random
         elif key == SettingsLine.I_RECWIDTH.value:
             width, _ = get_word(value)
             if width.lower() == "wide":

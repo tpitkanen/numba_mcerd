@@ -1,9 +1,11 @@
-# import random
+"""RNG using precalculated numbers.
+
+Do not import this directly, select RNG to use in config.py instead.
+"""
 import math
 
 import numpy as np
 
-import numba_mcerd.mcerd.constants as c
 from numba_mcerd import config
 from numba_mcerd.mcerd import enums
 
