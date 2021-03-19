@@ -1,7 +1,7 @@
 import logging
 import math
 
-# import numba
+import numba as nb
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.objects_jit as oj
@@ -88,6 +88,23 @@ def calc_cross(angle: float, e: float, scat: o.Scattering, pot: oj.Potential) ->
     return ynew
 
 
-def get_cross(ion: o.Ion, scat: o.Scattering) -> float:
-    raise NotImplementedError
+@nb.njit()
+def get_cross(ion: oj.Ion, scat: oj.Scattering) -> float:
+    """Interpolate the cross section (maximum impact parameter for current ion energy)"""
+    e = math.log(ion.E * scat.E2eps)
 
+    i = int((e - scat.cross.emin) / scat.cross.estep)
+
+    b = (scat.cross.b[i]
+         + (scat.cross.b[i + 1] - scat.cross.b[i])
+         * (e - (i * scat.cross.estep + scat.cross.emin))
+         / scat.cross.estep)
+
+    b *= scat.a
+    b = c.C_PI * b ** 2
+
+    if not 0 < b < 1e-15:
+        # TODO: Print a warning
+        raise NotImplementedError
+
+    return b

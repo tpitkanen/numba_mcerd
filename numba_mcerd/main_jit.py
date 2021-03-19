@@ -156,7 +156,11 @@ def main(args):
 
     logging.info("Starting simulation")
 
+    # TODO: Move this to a separate jit-compiled function to eliminate
+    #       context-switching overhead
     for i in range(g.nsimu):
+        print(i)
+
         g.cion = i  # TODO: Replace/remove for MT
 
         outer_loop_count = 0
@@ -167,6 +171,16 @@ def main(args):
         cur_ion = ions_moving[PRIMARY]
 
         ion_simu_jit.create_ion(g, cur_ion, target)
+        if g.rough:
+            ion_simu_jit.move_target(target)
+
+        primary_finished = False
+        while not primary_finished:
+            outer_loop_count += 1
+
+            ion_simu_jit.next_scattering(g, cur_ion, target, scat, snext)
+
+            print("End of loop")
 
     # TODO
     pass

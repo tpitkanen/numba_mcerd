@@ -4,7 +4,7 @@ from typing import List, Tuple
 import numba as nb
 import numpy as np
 
-from numba_mcerd.mcerd import random_jit, cross_section, enums
+from numba_mcerd.mcerd import random_jit, cross_section_jit, enums
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.objects_jit as oj
 import numba_mcerd.mcerd.constants as c
@@ -79,13 +79,14 @@ def create_ion(g: oj.Global, ion: oj.Ion, target: oj.Target) -> None:
     #     debug.print_ion_position(g, ion, "L", enums.SimStage.ANYSIMULATION)
 
 
-def move_target(target: o.Target) -> None:
+@nb.njit()
+def move_target(target: oj.Target) -> None:
     raise NotImplementedError
 
 
 @nb.njit()
 def next_scattering(g: oj.Global, ion: oj.Ion, target: oj.Target,
-                    scat: List[List[o.Scattering]], snext: oj.SNext) -> None:
+                    scat: List[List[oj.Scattering]], snext: oj.SNext) -> None:
     """Calculate impact parameter (ion.opt.y) and distance to the next
      scattering point (snext.d)
      """
@@ -98,7 +99,7 @@ def next_scattering(g: oj.Global, ion: oj.Ion, target: oj.Target,
     layer = target.layer[ion.tlayer]
     for i in range(layer.natoms):
         p = layer.atom[i]
-        b[i] = layer.N[i] * cross_section.get_cross(ion, scat[ion.scatindex][p])
+        b[i] = layer.N[i] * cross_section_jit.get_cross(ion, scat[ion.scatindex][p])
         cross += b[i]
 
     rcross = random_jit.rnd(0.0, cross, enums.RndPeriod.RND_OPEN)
