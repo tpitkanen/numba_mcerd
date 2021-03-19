@@ -5,6 +5,7 @@ converted objects to share their attributes with with originals.
 """
 from typing import Any
 
+import numba as nb
 import numpy as np
 
 import numba_mcerd.mcerd.objects as o
@@ -162,13 +163,15 @@ def convert_scattering(scat: o.Scattering) -> oj.Scattering:
 
 # TODO: correct type hints
 def convert_scattering_nested(scat: Any) -> Any:
-    scat_new = []
+    scat_new = nb.typed.List()
     for i in range(len(scat)):
-        scat_new.append([])
+        # Numba can't infer types of nested empty lists, so fill first
+        inner_list = nb.typed.List()
         for j in range(len(scat[i])):
             if not isinstance(scat[i][j].angle, np.ndarray):
                 break  # Remove unused arrays
-            scat_new[i].append(convert_scattering(scat[i][j]))
+            inner_list.append(convert_scattering(scat[i][j]))
+        scat_new.append(inner_list)
     return scat_new
 
 
