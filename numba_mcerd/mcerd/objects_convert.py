@@ -192,7 +192,6 @@ def convert_target_ele(ele: o.Target_ele) -> oj.Target_ele:
     return _base_convert(ele, oj.Target_ele, convert)
 
 
-# Untested
 def convert_target_sto(sto: o.Target_sto) -> oj.Target_sto:
     def convert(values):
         values["vel"] = _convert_array(values["vel"])
@@ -206,7 +205,7 @@ def convert_target_layer(layer: o.Target_layer) -> oj.Target_layer:
     def convert(values):
         values["atom"] = _convert_array(values["atom"])
         values["N"] = _convert_array(values["N"])
-        values["sto"] = None  # TODO: Implement
+        values["sto"] = [convert_target_sto(sto) for sto in values["sto"]]
         values["type"] = values["type"].value
 
     return _base_convert(layer, oj.Target_layer, convert)

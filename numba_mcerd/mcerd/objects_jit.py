@@ -411,7 +411,7 @@ class Target_sto:
     "atom": int64[:],
     "N": float64[:],
     "Ntot": float64,
-    # "sto": nb.types.List(Target_sto.class_type.instance_type),
+    "sto": nb.types.List(Target_sto.class_type.instance_type),
     "type": int64,  # constants.TargetType
     "gas": boolean,
     "stofile_prefix": nb.types.string
@@ -425,12 +425,12 @@ class Target_layer:
         self.atom = np.zeros(constants.MAXATOMS, dtype=np.int64)  # Array of the indices of the target elements
         self.N = np.zeros(constants.MAXATOMS, dtype=np.float64)  # Array of the atomic densities
         self.Ntot = 0.0  # Total atomic density in the layer
-        # self.sto = [Target_sto()]  # Electronic stopping for different ions  # len g.nions
+        self.sto = [Target_sto()]  # Electronic stopping for different ions  # len g.nions
         self.type = -1  # Type of the target layer
         self.gas = False  # Whether the target layer is gas or not
         self.stofile_prefix = ""  # len MAXSTOFILEPREFIXLEN
 
-        # self.sto.clear()  # Needed to clear
+        self.sto.clear()  # Needed to clear
 
 
 @jitclass({
