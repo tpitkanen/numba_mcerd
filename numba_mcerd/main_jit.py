@@ -179,6 +179,7 @@ def main(args):
             outer_loop_count += 1
 
             ion_simu_jit.next_scattering(g, cur_ion, target, scat, snext)
+            nscat = ion_simu_jit.move_ion(g, cur_ion, target, snext)
 
             print("End of loop")
 
