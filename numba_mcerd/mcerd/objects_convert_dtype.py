@@ -48,9 +48,14 @@ def _base_convert(obj, target_dtype, converter):
 
 # TODO: Correct return types for instances of dtypes?
 
-
 def convert_point(point: o.Point) -> od.Point:
-    pass
+    values = vars(point)
+    # converter(values)
+
+    converted_point = np.zeros((), dtype=od.Point)
+    setkey_all(converted_point, values)
+
+    return converted_point
 
 
 def convert_point2(point: o.Point2) -> od.Point2:
@@ -71,7 +76,13 @@ def convert_ion_opt(ion_opt: o.Ion_opt) -> od.Ion_opt:
 
 
 def convert_vector(vector: o.Vector) -> od.Vector:
-    pass
+    values = vars(vector)
+    values["p"] = convert_point(values["p"])
+
+    converted_vector = np.zeros((), dtype=od.Vector)
+    setkey_all(converted_vector, values)
+
+    return converted_vector
 
 
 def convert_rec_hist(rec_hist: o.Rec_hist) -> od.Rec_hist:
@@ -141,3 +152,20 @@ def convert_det_foil(foil: o.Det_foil) -> od.Det_foil:
 
 def convert_detector(detector: o.Detector) -> od.Detector:
     pass
+
+
+def main():
+    point = o.Point(1., 2., 3.)
+    conv_point = convert_point(point)
+    print(point)
+    print(conv_point)
+    print()
+
+    vector = o.Vector(p=o.Point(2., 4., 6.), theta=1.0, fii=0.5, v=0.2)
+    conv_vector = convert_vector(vector)
+    print(vector)
+    print(conv_vector)
+
+
+if __name__ == "__main__":
+    main()
