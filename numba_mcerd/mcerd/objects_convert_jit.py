@@ -15,11 +15,30 @@ import numba_mcerd.mcerd.objects_jit as oj
 # https://numba.pydata.org/numba-doc/latest/reference/deprecation.html#deprecation-of-reflection-for-list-and-set-types
 
 
-class ConvertError(Exception):
+class JitclassConvertError(Exception):
     """Error while converting"""
 
 
+def setattr_all(obj: Any, values: dict) -> None:
+    """Set attributes for all values. Attributes with None value are skipped."""
+    for key, val in values.items():
+        if val is not None:
+            setattr(obj, key, val)
+
+
 def _base_convert(obj, target_class, converter):
+    """Base conversion function for all classes
+
+    Args:
+        obj: Original object to convert
+        target_class: Target class for the converted object
+        converter: Conversion function for mapping attributes to converted types
+
+    Returns:
+        Converted object
+    """
+    # TODO: Non-destructive version:
+    # values = copy.deepcopy(vars(obj))
     values = vars(obj)
     converter(values)
 
@@ -44,14 +63,7 @@ def _convert_array(array) -> np.ndarray:
         return np.array(array, dtype=np.bool)
     if isinstance(array, np.ndarray):
         return array
-    raise ConvertError(f"Unsupported array type: '{type(array)}'")
-
-
-def setattr_all(obj: Any, values: dict) -> None:
-    """Set attributes for all values. Attributes with None value are skipped."""
-    for key, val in values.items():
-        if val is not None:
-            setattr(obj, key, val)
+    raise JitclassConvertError(f"Unsupported array type: '{type(array)}'")
 
 
 def convert_point(point: o.Point) -> oj.Point:

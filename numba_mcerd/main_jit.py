@@ -10,7 +10,7 @@ from numba_mcerd.mcerd import (
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.objects_jit as oj
-import numba_mcerd.mcerd.objects_convert as oc
+import numba_mcerd.mcerd.objects_convert_jit as ocj
 
 
 # These are too annoying to type
@@ -144,15 +144,15 @@ def main(args):
 
     logging.info("Converting objects to JIT")
 
-    g = oc.convert_global(g)
-    detector = oc.convert_detector(detector)
-    target = oc.convert_target(target)
-    snext = oc.convert_snext(snext)
-    scat = oc.convert_scattering_nested(scat)
+    g = ocj.convert_global(g)
+    detector = ocj.convert_detector(detector)
+    target = ocj.convert_target(target)
+    snext = ocj.convert_snext(snext)
+    scat = ocj.convert_scattering_nested(scat)
 
     for i in range(len(ions_moving)):
         ions_moving[i].status = enums.IonStatus.NOT_FINISHED
-        ions_moving[i] = oc.convert_ion(ions_moving[i])
+        ions_moving[i] = ocj.convert_ion(ions_moving[i])
 
     logging.info("Starting simulation")
 
