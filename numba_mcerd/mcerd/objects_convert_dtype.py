@@ -49,13 +49,10 @@ def _base_convert(obj, target_dtype, converter):
 # TODO: Correct return types for instances of dtypes?
 
 def convert_point(point: o.Point) -> od.Point:
-    values = vars(point)
-    # converter(values)
+    def convert(values):
+        pass
 
-    converted_point = np.zeros((), dtype=od.Point)
-    setkey_all(converted_point, values)
-
-    return converted_point
+    return _base_convert(point, od.Point, convert)
 
 
 def convert_point2(point: o.Point2) -> od.Point2:
@@ -76,13 +73,10 @@ def convert_ion_opt(ion_opt: o.Ion_opt) -> od.Ion_opt:
 
 
 def convert_vector(vector: o.Vector) -> od.Vector:
-    values = vars(vector)
-    values["p"] = convert_point(values["p"])
+    def convert(values):
+        values["p"] = convert_point(values["p"])
 
-    converted_vector = np.zeros((), dtype=od.Vector)
-    setkey_all(converted_vector, values)
-
-    return converted_vector
+    return _base_convert(vector, od.Vector, convert)
 
 
 def convert_rec_hist(rec_hist: o.Rec_hist) -> od.Rec_hist:
