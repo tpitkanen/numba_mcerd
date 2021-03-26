@@ -426,10 +426,12 @@ class Target_layer:
         self.N = np.zeros(constants.MAXATOMS, dtype=np.float64)  # Array of the atomic densities
         self.Ntot = 0.0  # Total atomic density in the layer
         self.sto = [Target_sto()]  # Electronic stopping for different ions  # len g.nions
+        # self.sto = nb.typed.List()  # Typed list, doesn't work in ion_simu_jit.move_ion()
         self.type = -1  # Type of the target layer
         self.gas = False  # Whether the target layer is gas or not
         self.stofile_prefix = ""  # len MAXSTOFILEPREFIXLEN
 
+        # self.sto.append(Target_sto())  # Typed list, doesn't work in ion_simu_jit.move_ion()
         self.sto.clear()  # Needed to clear
 
 

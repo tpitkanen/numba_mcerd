@@ -208,6 +208,14 @@ def convert_target_layer(layer: o.Target_layer) -> oj.Target_layer:
         values["sto"] = [convert_target_sto(sto) for sto in values["sto"]]
         values["type"] = values["type"].value
 
+        # Typed list, doesn't work properly in ion_simu_jit.move_ion(...):
+        # sto_list = nb.typed.List()
+        # for sto in values["sto"]:
+        #     sto_list.append(convert_target_sto(sto))
+        # values["sto"] = sto_list
+        #
+        # values["type"] = values["type"].value
+
     return _base_convert(layer, oj.Target_layer, convert)
 
 
@@ -235,6 +243,14 @@ def convert_target(target: o.Target) -> oj.Target:
         values["ele"] = [convert_target_ele(ele) for ele in values["ele"]]
         values["layer"] = [convert_target_layer(layer) for layer in values["layer"]
                            if layer.type is not None]  # Trim -> not the same as original
+
+        # Typed list, doesn't work properly in ion_simu_jit.move_ion(...):
+        # layer_list = nb.typed.List()
+        # for layer in values["layer"]:
+        #     if layer.type is not None:
+        #         layer_list.append(convert_target_layer(layer))
+        # values["layer"] = layer_list
+
         values["recdist"] = [convert_point2(rec) for rec in values["recdist"]]
         values["plane"] = convert_plane(values["plane"])
         values["efin"] = _convert_array(values["efin"])
