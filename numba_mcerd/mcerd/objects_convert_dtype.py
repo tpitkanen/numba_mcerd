@@ -5,12 +5,10 @@ converted objects to share their attributes with with originals.
 """
 from typing import Any
 
-import numba as nb
 import numpy as np
 
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.objects_dtype as od
-import numba_mcerd.mcerd.objects_convert_jit as ocj
 
 
 class DtypeConvertError(Exception):
@@ -44,6 +42,24 @@ def _base_convert(obj, target_dtype, converter):
     setkey_all(target_obj, values)
 
     return target_obj
+
+
+def _convert_array(array) -> np.ndarray:
+    """Helper for converting arrays to np.ndarray.
+
+    Needed because np.array(array) tries to do int32 arrays and such,
+    but Numba requires 64 bit variables.
+    """
+    # Numpy can't infer types for empty arrays so they are ignored here
+    if isinstance(array[0], int):
+        return np.array(array, dtype=np.int64)
+    if isinstance(array[0], float):
+        return np.array(array, dtype=np.float64)
+    if isinstance(array[0], bool):
+        return np.array(array, dtype=np.bool)
+    if isinstance(array, np.ndarray):
+        return array
+    raise DtypeConvertError(f"Unsupported array type: '{type(array)}'")
 
 
 # TODO: Correct return types for instances of dtypes?
@@ -117,23 +133,54 @@ def convert_snext(snext: o.SNext) -> od.SNext:
 
 
 def convert_target_ele(ele: o.Target_ele) -> od.Target_ele:
-    pass
+    def convert(values):
+        pass
+
+    return _base_convert(ele, od.Target_ele, convert)
 
 
 def convert_target_sto(sto: o.Target_sto) -> od.Target_sto:
-    pass
+    def convert(values):
+        values["vel"] = _convert_array(values["vel"])
+        values["sto"] = _convert_array(values["sto"])
+        values["stragg"] = _convert_array(values["stragg"])
+
+    return _base_convert(sto, od.Target_sto, convert)
 
 
 def convert_target_layer(layer: o.Target_layer) -> od.Target_layer:
-    pass
+    def convert(values):
+        values["atom"] = _convert_array(values["atom"])
+        values["N"] = _convert_array(values["N"])
+        # values["sto"] = [convert_target_sto(sto) for sto in values["sto"]]  # TODO: Does this work?
+        values["sto"] = np.array([convert_target_sto(sto) for sto in values["sto"]])  # dtype needed?
+        values["type"] = values["type"].value
+
+    return _base_convert(layer, od.Target_layer, convert)
 
 
 def convert_plane(plane: o.Plane) -> od.Plane:
-    pass
+    def convert(values):
+        values["type"] = values["type"].value
+
+    return _base_convert(plane, od.Plane, convert)
 
 
 def convert_target(target: o.Target) -> od.Target:
-    pass
+    def convert(values):
+        values["ele"] = np.array([convert_target_ele(ele) for ele in values["ele"]])
+        # FIXME: Trimming causes issues with length
+        values["layer"] = np.array(  # Trim -> not the same as original
+            [convert_target_layer(layer) for layer in values["layer"] if layer.type is not None])
+
+        values["recdist"] = np.array([convert_point2(rec) for rec in values["recdist"]])
+        values["plane"] = convert_plane(values["plane"])
+        values["efin"] = _convert_array(values["efin"])
+        values["recpar"] = np.array([convert_point2(rec) for rec in values["recpar"]])
+        values["surface"] = None  # TODO: Implement
+        values["cross"] = np.array(values["cross"], dtype=np.float64)
+
+    return _base_convert(target, od.Target, convert)
 
 
 def convert_line(line: o.Line) -> od.Line:
@@ -159,6 +206,16 @@ def main():
     conv_vector = convert_vector(vector)
     print(vector)
     print(conv_vector)
+
+    target_sto = o.Target_sto()
+    conv_target_sto = convert_target_sto(target_sto)
+    print(target_sto)
+    print(conv_target_sto)
+
+    target_layer = o.Target_layer()
+    conv_target_layer = convert_target_layer(target_layer)
+    print(target_layer)
+    print(conv_target_layer)
 
 
 if __name__ == "__main__":

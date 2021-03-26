@@ -6,6 +6,10 @@ from numba_mcerd.mcerd import constants
 # TODO: Copy comments from original
 # TODO: Are enums supported?
 
+LAYER_STO_COUNT_ERD = 2  # One sto for each beam ion in simulation (2 for ERD, 3 for RBS)
+LAYER_STO_COUNT_RBS = 3
+
+
 Point = np.dtype([
     ("x", np.float64),
     ("y", np.float64),
@@ -207,7 +211,7 @@ Target_layer = np.dtype([
     ("atom", np.int64, constants.MAXATOMS),
     ("N", np.float64, constants.MAXATOMS),
     ("Ntot", np.float64),
-    ("sto", Target_sto, 3),  # TODO: Correct number for sto
+    ("sto", Target_sto, LAYER_STO_COUNT_ERD),  # TODO: Correct number for sto
     ("type", np.int64),  # constants.TargetType
     ("gas", np.bool),  # TODO: np.bool or np.bool_ ?
     ("stofile_prefix", np.str, constants.MAXSTOFILEPREFIXLEN)
