@@ -22,7 +22,7 @@ def _get_path(name: str) -> Path:
 
 
 def dump(obj: Any, name: str) -> None:
-    """Dump obj to "{name}.pickle" file in project root"""
+    """Dump obj to "{name}.pickle" file"""
     pickle_file = _get_path(name)
 
     if not pickle_file.parent.exists():
@@ -33,7 +33,7 @@ def dump(obj: Any, name: str) -> None:
 
 
 def load(name: str) -> Any:
-    """Load obj from "{name}.pickle" file in project root"""
+    """Load obj from "{name}.pickle" file"""
     pickle_file = _get_path(name)
     with pickle_file.open("rb") as f:
         obj = pickle.load(f)
