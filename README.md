@@ -53,7 +53,7 @@ Note that different versions have varying levels of completeness (the normal ver
 
 ## Random number generation
 
-Random Number Generator can be selected in [Config](#Config).
+The used random number generator can be selected in [config](#Config).
 
 `random_vanilla.py` provides 20000 pre-generated random numbers. They were generated using the original MCERD's RNG. Select this to match the original MCERD's numbers (for debugging). Using more than 20000 numbers results in an `IndexError`.
 
