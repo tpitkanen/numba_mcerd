@@ -322,7 +322,9 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
         g.cpresimu = 0
         g.simstage = enums.SimStage.PRESIMULATION
 
-        g.presimu = [o.Presimu() for _ in range(g.npresimu)]
+        # Presimu count is random, therefore allocate extra space
+        # TODO: Turn (* 2) into a proper constant (PRESIMU_ALLOCATION_RATIO)
+        g.presimu = [o.Presimu() for _ in range(g.npresimu * g.nrecave * 2)]
     else:
         g.simstage = enums.SimStage.REALSIMULATION
 
