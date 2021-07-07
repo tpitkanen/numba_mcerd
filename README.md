@@ -30,26 +30,27 @@ python numba_mcerd\main_jit.py
 
 Activating the environment (`env\Scripts\activate`) is required once for each new shell session (window).
 
+## Versions
+
+There are currently two versions of Numba MCERD:
+- Normal Python: slow, easy to debug.
+- Just-in-time compiled: fast, harder to debug. Uses [Numba](https://numba.pydata.org/).
+
+A CUDA-based version using Numba is planned.
+
+Note that different versions have varying levels of completeness (the normal version is more complete).
+
 ## Data files
 
 Files under `data/input/` contain absolute paths. Update them to match their real location. Files with absolute paths:
 - Cl-Default
 - Cl-Default.erd_detector
 
+Absolute paths are used to match the original MCERD's behavior as closely as possible.
+
 ## Config
 
 The program's behavior can be configured in `numba_mcerd/config.py`. Changing the `PROJECT_ROOT` absolute path is required.
-
-## Versions
-
-There are currently two versions of Numba MCERD:
-
-- Normal Python: slow, easy to debug.
-- Just-in-time compiled (Numba): fast, harder to debug.
-
-A CUDA-based version using Numba is planned.
-
-Note that different versions have varying levels of completeness (the normal version is more complete).
 
 ## Random number generation
 
