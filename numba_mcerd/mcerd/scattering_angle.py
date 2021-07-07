@@ -3,8 +3,6 @@ import math
 from dataclasses import dataclass
 from typing import Tuple
 
-import scipy.integrate
-
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 
