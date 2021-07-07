@@ -1,5 +1,5 @@
 # Select random source here
-import numba_mcerd.mcerd.random_vanilla as rand
+import numba_mcerd.mcerd.random_numpy as rand
 
 PROJECT_ROOT = r"C:/kurssit/gradu/koodi/numba_mcerd"
 DATA_ROOT = rf"{PROJECT_ROOT}/data"
