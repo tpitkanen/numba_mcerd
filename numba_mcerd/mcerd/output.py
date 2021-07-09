@@ -49,7 +49,7 @@ def _output_tof(g: o.Global, cur_ion: o.Ion, target: o.Target, detector: o.Detec
             line_parts.append(f"{cur_ion.dt[0] / c.C_NS:7.3f}")
             line_parts.append(f"{cur_ion.dt[1] / c.C_NS:7.3f}")
         else:
-            line_parts.append(f"{cur_ion.dt[1] - cur_ion.dt[0] / c.C_NS:10.3f}")  # ToF
+            line_parts.append(f"{(cur_ion.dt[1] - cur_ion.dt[0]) / c.C_NS:10.3f}")  # ToF
 
         if not g.advanced_output:
             line_parts.append(f"{cur_ion.hit[0].x / c.C_MM:7.2f}")
