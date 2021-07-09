@@ -6,7 +6,6 @@ import numba_mcerd.mcerd.symbols as s
 from numba_mcerd.mcerd import erd_detector, enums
 
 
-# Untested (except for initial "if" which returns False in pre-simulation)
 def _output_tof(g: o.Global, cur_ion: o.Ion, target: o.Target, detector: o.Detector) -> None:
     # https://stackoverflow.com/questions/3167494/how-often-does-python-flush-to-a-file
 

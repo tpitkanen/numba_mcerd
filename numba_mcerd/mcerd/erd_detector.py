@@ -22,12 +22,10 @@ def is_in_energy_detector(g: o.Global, ion: o.Ion, target: o.Target, detector: o
     return False
 
 
-# Untested
 def move_to_erd_detector(g: o.Global, ion: o.Ion, target: o.Target, detector: o.Detector) -> None:
     """Recoil moves from the target to a detector foil or from one
     detector foil to the next
     """
-
     if ion.tlayer < 0:  # Just recoiled from the target
         ion.tlayer = target.ntarget
         for i in range(2):
