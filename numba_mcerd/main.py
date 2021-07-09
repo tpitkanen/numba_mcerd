@@ -96,6 +96,8 @@ def main(args):
 
     # (g.jibal.gsto.extrapolate = True)
 
+    # FIXME: init_simu.scattering_table outputs to fpout.
+    #        It should be output even if using pickler.
     if not config.LOAD_PICKLE:
         table_timer = timer.SplitTimer.init_and_start()
 
