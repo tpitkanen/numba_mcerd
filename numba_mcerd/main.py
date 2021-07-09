@@ -87,9 +87,6 @@ def main(args):
     logging.info("Initializing output files")
     init_params.init_io(g, primary_ion, target)
 
-    # Time screening tables
-    ptimer = timer.SplitTimer.init_and_start()
-
     pot = o.Potential()
     potential.make_screening_table(pot)
 
@@ -116,8 +113,9 @@ def main(args):
         table_timer.stop()
         pickler.dump(scat, "scat")
 
-        print(table_timer.start_time, table_timer.elapsed_laps)
+        print(f"table_timer: {table_timer}")
         # Times (03f95b0559f2c0eea3d92eb34eb8a37306a39231)
+        # print(table_timer.start_time, table_timer.elapsed_laps)
         # 1.8580092 [4.2860329, 28.060028000000003] (run)
         # 4.8511551 [11.4422601, 158.6126873] (debug)
     else:
@@ -166,6 +164,7 @@ def main(args):
 
     logging.info("Starting simulation")
 
+    presim_timer = timer.SplitTimer.init_and_start()
     for i in range(g.nsimu):
         g.cion = i
 
@@ -207,6 +206,11 @@ def main(args):
             if g.simstage == enums.SimStage.PRESIMULATION and g.cion == g.npresimu - 1:
                 pre_simulation.analyze_presimulation(g, target, detector)
                 init_params.init_recoiling_angle(target)
+
+                presim_timer.stop()
+                print(f"presim_timer: {presim_timer}")
+
+                main_sim_timer = timer.SplitTimer.init_and_start()
 
             if (nscat == enums.ScatteringType.MC_SCATTERING
                     and cur_ion.status == enums.IonStatus.NOT_FINISHED
@@ -277,6 +281,10 @@ def main(args):
         finish_ion.finish_ion(g, cur_ion)  # Print info if FIN_STOP or FIN_TRANS
 
     finalize.finalize(g)  # Print statistics
+
+    # noinspection PyUnboundLocalVariable
+    main_sim_timer.stop()
+    print(f"main_sim_timer: {main_sim_timer}")
 
 
 if __name__ == '__main__':
