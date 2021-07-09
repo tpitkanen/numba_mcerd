@@ -34,7 +34,7 @@ def _output_tof(g: o.Global, cur_ion: o.Ion, target: o.Target, detector: o.Detec
         if g.rough:
             raise NotImplementedError
 
-        line_parts.append(f"{cur_ion.E / c.C_KEV:8.4f}")
+        line_parts.append(f"{cur_ion.E / c.C_MEV:8.4f}")
 
         line_parts.append(f"{int(cur_ion.hist.Z + 0.5):3d}")
         line_parts.append(f"{cur_ion.hist.A / c.C_U:6.2f}")
