@@ -34,13 +34,11 @@ def scattering_table(g: o.Global, ion: o.Ion, target: o.Target, scat: o.Scatteri
     scat.logediv = 1.0 / estep
     scat.logydiv = 1.0 / ystep
 
-    text = f"""a, E2eps {scat.a} {scat.E2eps}
-emin, emax: {emin} {emax}
-ymin, ymax: {ymin} {ymax}
-estep, ystep: {estep} {ystep}
-"""
     with g.master.fpout.open("a") as f:
-        f.write(text)
+        f.write(f"a, E2eps {scat.a} {scat.E2eps}\n")
+        f.write(f"emin, emax: {emin} {emax}\n")
+        f.write(f"ymin, ymax: {ymin} {ymax}\n")
+        f.write(f"estep, ystep: {estep} {ystep}\n")
 
     scat_matrix = np.array(scat.angle, dtype=np.float64)  # Numba seems to do float64 instead of float32
     opt_e, opt_y = main_math(scat_matrix, pot, emin, estep, ymin, ystep)

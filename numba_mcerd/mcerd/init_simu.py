@@ -33,13 +33,11 @@ def scattering_table(g: o.Global, ion: o.Ion, target: o.Target, scat: o.Scatteri
 
     e = emin
 
-    text = f"""a, E2eps {scat.a} {scat.E2eps}
-emin, emax: {emin} {emax}
-ymin, ymax: {ymin} {ymax}
-estep, ystep: {estep} {ystep}
-"""
     with g.master.fpout.open("a") as f:
-        f.write(text)
+        f.write(f"a, E2eps {scat.a} {scat.E2eps}\n")
+        f.write(f"emin, emax: {emin} {emax}\n")
+        f.write(f"ymin, ymax: {ymin} {ymax}\n")
+        f.write(f"estep, ystep: {estep} {ystep}\n")
 
     for i in range(1, c.EPSNUM):
         exp_e = math.exp(e)

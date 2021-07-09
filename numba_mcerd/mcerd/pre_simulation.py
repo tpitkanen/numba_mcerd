@@ -72,11 +72,11 @@ def analyze_presimulation(g: o.Global, target: o.Target, detector: o.Detector) -
         for j in range(nlayer[i]):
             # C code uses format code 'i' instead of 'd', but Python doesn't
             # support 'i' for int anymore so 'd' is used instead
-            out_lines.append(f"{i:3d} {depth[i][j] / c.C_NM:10.4f} {angle[i][j] / c.C_DEG:10.4f}")
+            out_lines.append(f"{i:3d} {depth[i][j] / c.C_NM:10.4f} {angle[i][j] / c.C_DEG:10.4f}\n")
 
-        out_lines.append("")
+        out_lines.append("\n")
         out_lines.append(
-            f"{i:3d} {a * c.C_NM / c.C_DEG:10.5f} {b / c.C_DEG:10.5f} + 1.1 * {detector.thetamax / c.C_DEG:6.3f} * {max(1.0, max(detector.vsize[0], detector.vsize[1])):6.2f}")
+            f"{i:3d} {a * c.C_NM / c.C_DEG:10.5f} {b / c.C_DEG:10.5f} + 1.1 * {detector.thetamax / c.C_DEG:6.3f} * {max(1.0, max(detector.vsize[0], detector.vsize[1])):6.2f}\n")
         if nlayer[i] > 2:
             a, b = fit_linear(depth[i], angle[i], nlayer[i])
             target.recpar[i].x = a
@@ -92,21 +92,21 @@ def analyze_presimulation(g: o.Global, target: o.Target, detector: o.Detector) -
                     5.0 * c.C_DEG + 1.1 * detector.thetamax \
                     * max(1.0, max(detector.vsize[0], detector.vsize[1]))
 
-    out_lines.append("")
+    out_lines.append("\n")
 
     pre_lines = []
     for i in range(target.ntarget):
         x_temp = target.recpar[i].x * c.C_NM / c.C_DEG
         y_temp = target.recpar[i].y / c.C_DEG
-        out_lines.append(f"{i:3d} {x_temp:10.5f} {y_temp:10.5f}")
-        pre_lines.append(f"{x_temp:14.5e} {y_temp:14.5e}")
+        out_lines.append(f"{i:3d} {x_temp:10.5f} {y_temp:10.5f}\n")
+        pre_lines.append(f"{x_temp:14.5e} {y_temp:14.5e}\n")
 
     with g.master.fpout.open("a") as f:
-        f.write("\n".join(out_lines))
+        f.writelines(out_lines)
 
     pre_file = Path(f"{g.basename}.pre")
     with pre_file.open("a") as f:
-        f.write("\n".join(pre_lines))
+        f.writelines(pre_lines)
 
     print("Presimulation finished")
 
