@@ -7,7 +7,7 @@ from numba_mcerd import config, timer, pickler
 from numba_mcerd.mcerd import (
     init_params, read_input, potential, ion_stack, init_simu, cross_section, elsto,
     init_detector, ion_simu, erd_scattering, pre_simulation, erd_detector, output, finish_ion,
-    finalize, enums
+    finalize, enums, print_data
 )
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
@@ -145,8 +145,7 @@ def main(args):
 
     init_detector.init_detector(g, detector)
 
-    # TODO:
-    # print_data.print_data(g, ions, target, scat, detector)
+    print_data.print_data(g)
 
     if g.predata:
         init_params.init_recoiling_angle(target)
