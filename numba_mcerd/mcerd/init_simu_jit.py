@@ -39,7 +39,8 @@ emin, emax: {emin} {emax}
 ymin, ymax: {ymin} {ymax}
 estep, ystep: {estep} {ystep}
 """
-    g.master.fpout.write_text(text)
+    with g.master.fpout.open("a") as f:
+        f.write(text)
 
     scat_matrix = np.array(scat.angle, dtype=np.float64)  # Numba seems to do float64 instead of float32
     opt_e, opt_y = main_math(scat_matrix, pot, emin, estep, ymin, ystep)

@@ -38,7 +38,8 @@ emin, emax: {emin} {emax}
 ymin, ymax: {ymin} {ymax}
 estep, ystep: {estep} {ystep}
 """
-    g.master.fpout.write_text(text)
+    with g.master.fpout.open("a") as f:
+        f.write(text)
 
     for i in range(1, c.EPSNUM):
         exp_e = math.exp(e)

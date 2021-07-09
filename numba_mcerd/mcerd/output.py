@@ -74,14 +74,11 @@ def _output_tof(g: o.Global, cur_ion: o.Ion, target: o.Target, detector: o.Detec
             else:
                 line_parts.append(f"{0.0:7.4f}")
 
-        # TODO: Does write_text add a linebreak automatically?
-        # This causes a trailing space but it's the way to add a linebreak.
         # Original code generates a trailing space if g.advanced_output is False
-        line_parts.append("\n")
 
-        output = " ".join(line_parts)
         # TODO: Problematic for multi-threading, and possibly slow
-        g.master.fperd.write_text(output)
+        with g.master.fperd.open("a") as f:
+            f.write(" ".join(line_parts) + "\n")
 
 
 def _output_gas(g: o.Global, cur_ion: o.Ion, target: o.Target, detector: o.Detector) -> None:

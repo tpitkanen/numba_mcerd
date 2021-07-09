@@ -145,7 +145,15 @@ def init_io(g: o.Global, ion: o.Ion, target: o.Target) -> None:
 
     g.master.fpout = Path(g.basename + ".out")
     g.master.fpdat = Path(g.basename + ".dat")
-    # g.master.fpdebug  # Skipped
+    # g.master.fpdebug = Path(g.basename + ".debug")  # Skipped
     g.master.fperd = Path(g.basename + ".erd")
     g.master.fprange = Path(g.basename + ".range")
     g.master.fptrack = Path(g.basename + ".track")
+
+    # Clear previous files
+    g.master.fpout.write_text("")
+    g.master.fpdat.write_text("")
+    # g.master.fpdebug.write_text("")  # Skipped
+    g.master.fperd.write_text("")
+    g.master.fprange.write_text("")
+    g.master.fptrack.write_text("")

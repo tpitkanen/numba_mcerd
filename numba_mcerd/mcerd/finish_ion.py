@@ -7,6 +7,8 @@ def finish_ion(g: o.Global, ion: o.Ion) -> None:
     """Output information about stopped or transmitted ions to g.master.fprange"""
     # TODO: Problematic for multi-threading, and possibly slow
     if ion.status == enums.IonStatus.FIN_STOP:
-        g.master.fprange.write_text(f"R {ion.p.z / c.C_NM:10.3f}\n")
+        with g.master.fprange.open("a") as f:
+            f.write(f"R {ion.p.z / c.C_NM:10.3f}")
     if ion.status == enums.IonStatus.FIN_TRANS:
-        g.master.fprange.write_text(f"T {ion.E / c.C_MEV:12.6f}\n")
+        with g.master.fprange.open("a") as f:
+            f.write(f"T {ion.E / c.C_MEV:12.6f}")

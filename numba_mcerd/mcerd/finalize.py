@@ -13,4 +13,5 @@ def finalize(g: o.Global) -> None:
     if g.simtype == enums.SimType.SIM_RBS:
         raise NotImplementedError
 
-    g.master.fpdat.write_text("\n".join(dat_lines))
+    with g.master.fpdat.open("a") as f:
+        f.write("\n".join(dat_lines))

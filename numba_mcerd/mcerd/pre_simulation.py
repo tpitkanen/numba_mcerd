@@ -101,10 +101,12 @@ def analyze_presimulation(g: o.Global, target: o.Target, detector: o.Detector) -
         out_lines.append(f"{i:3d} {x_temp:10.5f} {y_temp:10.5f}")
         pre_lines.append(f"{x_temp:14.5e} {y_temp:14.5e}")
 
-    g.master.fpout.write_text("\n".join(out_lines))
+    with g.master.fpout.open("a") as f:
+        f.write("\n".join(out_lines))
 
     pre_file = Path(f"{g.basename}.pre")
-    pre_file.write_text("\n".join(pre_lines))
+    with pre_file.open("a") as f:
+        f.write("\n".join(pre_lines))
 
     print("Presimulation finished")
 
