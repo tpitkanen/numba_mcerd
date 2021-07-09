@@ -36,7 +36,7 @@ def init_detector(g: o.Global, detector: o.Detector) -> None:
     if g.virtualdet:
         detector.vfoil = copy.deepcopy(detector.foil[0])
         vfoil = detector.vfoil
-        if vfoil == enums.FoilType.CIRC:
+        if vfoil.type == enums.FoilType.CIRC:
             vfoil.size[1] = vfoil.size[0] * detector.vsize[1]
         else:
             vfoil.size[1] *= detector.vsize[1]
