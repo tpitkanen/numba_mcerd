@@ -104,8 +104,9 @@ def analyze_presimulation(g: o.Global, target: o.Target, detector: o.Detector) -
     with g.master.fpout.open("a") as f:
         f.writelines(out_lines)
 
+    # TODO: Move pre_file to g.master
     pre_file = Path(f"{g.basename}.pre")
-    with pre_file.open("a") as f:
+    with pre_file.open("w") as f:  # mode="w" overwrites
         f.writelines(pre_lines)
 
     print("Presimulation finished")
