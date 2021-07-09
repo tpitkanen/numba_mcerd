@@ -359,8 +359,7 @@ def mc_scattering(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target, dete
     cos_theta_recoil = math.cos(theta_recoil)  # cos(-x) = cos(x) so this won't be affected anyway
     # sin_theta_recoil = math.sin(theta_recoil)  # Unused
 
-    Ef = ((math.sqrt(targetA**2 - (ion.A * sin_theta)**2) + ion.A * cos_theta)
-          / (ion.A + targetA))
+    Ef = ((math.sqrt(targetA**2 - (ion.A * sin_theta)**2) + ion.A * cos_theta) / (ion.A + targetA))**2
     E_recoil = (1.0 - Ef) * ion.E
     if g.cascades and E_recoil > 2.0 * g.emin:  # TODO: 2.0 is a workaround for newly created recoil
         # Enough energy to be treated as a "true" recoil, the same way as the original particle
