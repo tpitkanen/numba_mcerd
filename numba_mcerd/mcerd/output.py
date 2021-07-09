@@ -23,7 +23,7 @@ def _output_tof(g: o.Global, cur_ion: o.Ion, target: o.Target, detector: o.Detec
         # 2. In the energy detector or beyond (if we are outputting trackpoints and energy detector layer is given)
         # 3. The particle missed (exited detector, hit an aperture), but output misses is on.
         line_parts.append(
-            f'{"S" if cur_ion.scale else "R"} {"V" if cur_ion.virtual else "R"} {"R" if g.simtype else "S"}')
+            f'{"S" if cur_ion.scale else "R"} {"V" if cur_ion.virtual else "R"} {"R" if g.simtype == enums.SimType.SIM_ERD else "S"}')
         if g.output_trackpoints:
             line_parts.append(f"{cur_ion.trackid:12d}")
         if g.advanced_output:
@@ -36,7 +36,7 @@ def _output_tof(g: o.Global, cur_ion: o.Ion, target: o.Target, detector: o.Detec
 
         line_parts.append(f"{cur_ion.E / c.C_KEV:8.4f}")
 
-        line_parts.append(f"{int(cur_ion.hist.Z + 0.5):3i}")
+        line_parts.append(f"{int(cur_ion.hist.Z + 0.5):3d}")
         line_parts.append(f"{cur_ion.hist.A / c.C_U:6.2f}")
 
         line_parts.append(f"{z / c.C_NM:10.4f}")
