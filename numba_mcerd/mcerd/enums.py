@@ -1,9 +1,9 @@
 """Enums from general.h"""
 
-from enum import Enum
+from enum import IntEnum
 
 
-class RndPeriod(Enum):
+class RndPeriod(IntEnum):
     """Random number generator value ranges"""
     RND_CLOSED = 0  # [a, b] (both closed)
     RND_OPEN = 1    # ]a, b[ (both open)
@@ -13,7 +13,7 @@ class RndPeriod(Enum):
     # RND_CONT = 1  # Do not reset random number generator  # Not needed
 
 
-class IonStatus(Enum):
+class IonStatus(IntEnum):
     """Ion status"""
     NOT_FINISHED = 0    # Ion continues
     FIN_STOP = 1        # Ion stopped
@@ -29,7 +29,7 @@ class IonStatus(Enum):
     # NIONSTATUS = 11   # Number of different ion statuses  # len(IonStatus)
 
 
-class IonType(Enum):
+class IonType(IntEnum):
     """Ion type"""
     PRIMARY = 0
     SECONDARY = 1
@@ -37,33 +37,33 @@ class IonType(Enum):
     GAS_RECOIL = 3
 
 
-class CoordTransformDirection(Enum):
+class CoordTransformDirection(IntEnum):
     """Direction for coordinate transform"""
     FORW = 1  # Forwards
     BACK = 2  # Backwards
 
 
-class IonMode(Enum):
+class IonMode(IntEnum):
     """Ion mode (?)"""
     STOPPING = 0
     STRAGGLING = 1
 
 
-class ScatteringType(Enum):
+class ScatteringType(IntEnum):
     """Element(?) scattering type"""
     NO_SCATTERING = 0
     MC_SCATTERING = 1
     ERD_SCATTERING = 2
 
 
-class SimType(Enum):
+class SimType(IntEnum):
     """Simulation type"""
     SIM_ERD = 1
     SIM_RANGE = 2  # TODO: What is this?
     SIM_RBS = 3
 
 
-class SimStage(Enum):
+class SimStage(IntEnum):
     """Simulation stage"""
     ANYSIMULATION = 0
     PRESIMULATION = 1
@@ -71,13 +71,13 @@ class SimStage(Enum):
     # SCALESIMULATION = 3  # This is actually not used
 
 
-class RecWidth(Enum):
+class RecWidth(IntEnum):
     """Recoiling angle width"""
     REC_NARROW = 1  # Recoiling to a narrow solid angle
     REC_WIDE = 0  # Recoiling to a wide solid angle
 
 
-class BeamProf(Enum):
+class BeamProf(IntEnum):
     """Beam profile"""
     BEAM_NONE = 0  # No beam divergence
     BEAM_GAUSS = 1  # Beam profile gaussian
@@ -85,38 +85,38 @@ class BeamProf(Enum):
     BEAM_DIST = 3  # Beam profile a given distribution
 
 
-class TargetType(Enum):
+class TargetType(IntEnum):
     TARGET_FILM = 0
     TARGET_BULK = 1
     TARGET_ABSORBER = 2
 
 
-class PlaneType(Enum):
+class PlaneType(IntEnum):
     GENERAL_PLANE = 0
     X_PLANE = 1
     Z_PLANE = 2
 
 
-class LineType(Enum):
+class LineType(IntEnum):
     L_GENERAL = 0
     L_XYPLANE = 1
     L_YAXIS = 2
 
 
-class Cross(Enum):
+class Cross(IntEnum):
     """Whether line crosses plane or not"""
     CROSS = True
     NO_CROSS = False
 
 
-class DetectorType(Enum):
+class DetectorType(IntEnum):
     """Detector type"""
     TOF = 1     # Originally DET_TOF
     GAS = 2     # Originally DET_GAS
     FOIL = 3    # Originally DET_FOIL
 
 
-class FoilType(Enum):
+class FoilType(IntEnum):
     """Foil type/shape"""
     CIRC = 0   # Originally FOIL_CIRC
     RECT = 1   # Originally FOIL_RECT
