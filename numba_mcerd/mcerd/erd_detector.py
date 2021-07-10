@@ -113,16 +113,16 @@ def get_line_params(d: o.Vector, p: o.Point) -> o.Line:
 
     if z == 0.0:
         if x == 0.0:
-            k.type = enums.LineType.L_YAXIS
+            k.type = enums.LineType.Y_AXIS
             k.a = p.x
             k.b = p.z
         else:
-            k.type = enums.LineType.L_XYPLANE
+            k.type = enums.LineType.XY_PLANE
             k.a = y / x
             k.b = p.y - k.a * p.x
             k.c = p.z
     else:
-        k.type = enums.LineType.L_GENERAL
+        k.type = enums.LineType.GENERAL
         k.a = x / z
         k.b = p.x - k.a * p.z
         k.c = y / z
@@ -138,7 +138,7 @@ def get_line_plane_cross(line: o.Line, plane: o.Plane) -> Tuple[enums.Cross, o.P
     cross_type = enums.Cross.NO_CROSS
 
     if p.type == enums.PlaneType.GENERAL_PLANE:
-        if q.type == enums.LineType.L_GENERAL:
+        if q.type == enums.LineType.GENERAL:
             if (q.a - p.b - p.a * q.c) != 0.0:
                 cross_type = enums.Cross.CROSS
                 k.z = (p.a * q.b + p.b * q.d + p.c) / (1.0 - p.a * q.a - p.b * q.c)
@@ -146,38 +146,38 @@ def get_line_plane_cross(line: o.Line, plane: o.Plane) -> Tuple[enums.Cross, o.P
                 k.y = q.c * k.z + q.d
             else:
                 cross_type = enums.Cross.NO_CROSS
-        elif q.type == enums.LineType.L_XYPLANE:
+        elif q.type == enums.LineType.XY_PLANE:
             cross_type = enums.Cross.CROSS
             k.x = -q.b / q.a - (-p.a * q.b - q.a * (-p.c - p.b * q.c)) / (q.a * (p.a - q.a))
             k.y = -(-p.a * q.b - q.a * (-p.c - p.b * q.c)) / (p.a - q.a)
             k.z = q.c
-        elif q.type == enums.LineType.L_YAXIS:
+        elif q.type == enums.LineType.Y_AXIS:
             k.x = q.a
             k.y = p.a * q.a + p.b * q.b + p.c
             k.z = q.b
             cross_type = enums.Cross.CROSS
     elif p.type == enums.PlaneType.Z_PLANE:
-        if q.type == enums.LineType.L_GENERAL:
+        if q.type == enums.LineType.GENERAL:
             cross_type = enums.Cross.CROSS
             k.x = q.c * p.a + q.d
             k.y = q.a * p.a + q.b
             k.z = p.a
-        elif q.type == enums.LineType.L_XYPLANE:
+        elif q.type == enums.LineType.XY_PLANE:
             cross_type = enums.Cross.NO_CROSS
-        elif q.type == enums.LineType.L_YAXIS:
+        elif q.type == enums.LineType.Y_AXIS:
             cross_type = enums.Cross.NO_CROSS
     elif p.type == enums.PlaneType.X_PLANE:
-        if q.type == enums.LineType.L_GENERAL:
+        if q.type == enums.LineType.GENERAL:
             cross_type = enums.Cross.CROSS
             k.x = p.a
             k.z = (p.a - q.d) / (q.c + 1.0e-20)
             k.y = k.z * q.a + q.b
-        elif q.type == enums.LineType.L_XYPLANE:
+        elif q.type == enums.LineType.XY_PLANE:
             cross_type = enums.Cross.CROSS
             k.x = p.a
             k.y = p.a * q.a + q.b
             k.z = q.c
-        elif q.type == enums.LineType.L_YAXIS:
+        elif q.type == enums.LineType.Y_AXIS:
             cross_type = enums.Cross.NO_CROSS
 
     return cross_type, k

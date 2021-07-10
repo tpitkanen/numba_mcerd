@@ -109,7 +109,7 @@ def main(args):
     table_timer = timer.SplitTimer.init_and_start()
     scat = []
     for i in range(g.nions):
-        if g.simtype == enums.SimType.SIM_RBS and i == enums.IonType.TARGET_ATOM.value:
+        if g.simtype == enums.SimType.RBS and i == enums.IonType.TARGET_ATOM.value:
             continue
         ions[i].scatindex = i
         scat.append([o.Scattering() for _ in range(c.MAXELEMENTS)])
@@ -125,7 +125,7 @@ def main(args):
         target.layer[j].sto = [o.Target_sto() for _ in range(g.nions)]
         for i in range(g.nions):
             gsto_index += 1
-            if g.simtype == enums.SimType.SIM_RBS and i == enums.IonType.TARGET_ATOM.value:
+            if g.simtype == enums.SimType.RBS and i == enums.IonType.TARGET_ATOM.value:
                 continue
             elsto.calc_stopping_and_straggling_const(g, ions[i], target, j, gsto_index)
             # TODO: Real gsto instead
@@ -139,7 +139,7 @@ def main(args):
     trackid *= 1_000_000
     ions_moving.append(copy.deepcopy(ions[PRIMARY]))
     ions_moving.append(copy.deepcopy(ions[SECONDARY]))
-    if g.simtype == enums.SimType.SIM_RBS:
+    if g.simtype == enums.SimType.RBS:
         ions_moving.append(copy.deepcopy(ions[TARGET_ATOM]))
 
     logging.info("Converting objects to JIT")

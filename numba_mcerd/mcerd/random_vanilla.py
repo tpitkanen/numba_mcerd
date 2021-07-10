@@ -68,7 +68,7 @@ def seed_rnd(seed: int):
     random_generator.load()
 
 
-def rnd(low: float, high: float, period: enums.RndPeriod = enums.RndPeriod.RND_CLOSED) -> float:
+def rnd(low: float, high: float, period: enums.RndPeriod = enums.RndPeriod.CLOSED) -> float:
     """Generate a random number from low to high."""
     length = high - low
 
@@ -77,15 +77,15 @@ def rnd(low: float, high: float, period: enums.RndPeriod = enums.RndPeriod.RND_C
 
     return length * random_generator.random() + low
     # TODO: Implement these unlikely cases:
-    # if period == enums.RndPeriod.RND_CLOSED:
+    # if period == enums.RndPeriod.CLOSED:
     #     raise NotImplementedError
-    # elif period == enums.RndPeriod.RND_OPEN:
+    # elif period == enums.RndPeriod.OPEN:
     #     raise NotImplementedError
-    # elif period == enums.RndPeriod.RND_LEFT:
+    # elif period == enums.RndPeriod.LEFT:
     #     raise NotImplementedError
-    # elif period == enums.RndPeriod.RND_RIGHT:
+    # elif period == enums.RndPeriod.RIGHT:
     #     raise NotImplementedError
-    # elif period == enums.RndPeriod.RND_SEED:
+    # elif period == enums.RndPeriod.SEED:
     #     raise NotImplementedError
     # else:
     #     raise exceptions.IonSimulationError

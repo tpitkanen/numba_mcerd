@@ -59,15 +59,15 @@ def hit_virtual_detector(g: o.Global, ion: o.Ion, target: o.Target, det: o.Detec
 
     v_real_foil = o.Vector()
     if det.vfoil.type == enums.FoilType.CIRC:
-        r = det.foil[0].size[0] * math.sqrt(rand.rnd(0.0, 1.0, enums.RndPeriod.RND_CLOSED))
-        fii = rand.rnd(0.0, 2.0 * c.C_PI, enums.RndPeriod.RND_CLOSED)
+        r = det.foil[0].size[0] * math.sqrt(rand.rnd(0.0, 1.0, enums.RndPeriod.CLOSED))
+        fii = rand.rnd(0.0, 2.0 * c.C_PI, enums.RndPeriod.CLOSED)
         v_real_foil.p.x = r * math.cos(fii)
         v_real_foil.p.y = r * math.sin(fii)
     elif det.vfoil.type == enums.FoilType.RECT:
         dx = det.foil[0].size[0]
-        v_real_foil.p.x = rand.rnd(-dx, dx, enums.RndPeriod.RND_CLOSED)
+        v_real_foil.p.x = rand.rnd(-dx, dx, enums.RndPeriod.CLOSED)
         dy = det.foil[0].size[1]
-        v_real_foil.p.y = rand.rnd(-dy, dy, enums.RndPeriod.RND_CLOSED)
+        v_real_foil.p.y = rand.rnd(-dy, dy, enums.RndPeriod.CLOSED)
     v_real_foil.p.z = 0.0
     theta = det.angle
     fii = 0.0
@@ -112,16 +112,16 @@ def hit_virtual_detector(g: o.Global, ion: o.Ion, target: o.Target, det: o.Detec
     v_recreal_pri.theta, v_recreal_pri.fii = rotate.rotate(
         v_recvirt_pri.theta, v_recvirt_pri.fii, v_diff_lab.theta, v_diff_lab.fii)
 
-    if g.simtype == enums.SimType.SIM_RBS:
+    if g.simtype == enums.SimType.RBS:
         raise NotImplementedError
 
     # dE1: relative change in ion energy in the kinematics correction
     # dE2: energy loss correction
 
     dE1 = 0.0
-    if g.simtype == enums.SimType.SIM_ERD:
+    if g.simtype == enums.SimType.ERD:
         dE1 = (math.cos(v_recreal_pri.theta) / math.cos(v_recvirt_pri.theta)) **2 - 1.0
-    elif g.simtype == enums.SimType.SIM_RBS:
+    elif g.simtype == enums.SimType.RBS:
         raise NotImplementedError
 
     # p_rec_tar:   recoiling point in target coordinates
@@ -168,9 +168,9 @@ def hit_virtual_detector(g: o.Global, ion: o.Ion, target: o.Target, det: o.Detec
     # detector to the real detector
 
     dw = 0.0
-    if g.simtype == enums.SimType.SIM_ERD:
+    if g.simtype == enums.SimType.ERD:
         dw = (math.cos(v_recvirt_pri.theta) / math.cos(v_recreal_pri.theta))**3
-    elif g.simtype == enums.SimType.SIM_RBS:
+    elif g.simtype == enums.SimType.RBS:
         raise NotImplementedError
 
     n = ion.tlayer - target.ntarget  # n = foil number

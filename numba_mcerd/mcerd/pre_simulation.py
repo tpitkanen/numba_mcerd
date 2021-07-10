@@ -112,7 +112,7 @@ def analyze_presimulation(g: o.Global, target: o.Target, detector: o.Detector) -
     print("Presimulation finished")
 
     del g.presimu
-    g.simstage = enums.SimStage.REALSIMULATION
+    g.simstage = enums.SimStage.REAL
 
 
 def fit_linear(x: List[float], y: List[float], n: int) -> Tuple[float, float]:

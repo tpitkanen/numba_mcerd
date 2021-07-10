@@ -164,10 +164,10 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
     for key, value in zip(keys, values):
         if key == SettingsLine.I_TYPE.value:
             if value == "ERD":
-                g.simtype = enums.SimType.SIM_ERD
+                g.simtype = enums.SimType.ERD
                 g.nions = 2  # Incident and recoil
             elif value == "RBS":
-                g.simtype = enums.SimType.SIM_RBS
+                g.simtype = enums.SimType.RBS
                 g.nions = 3  # Incident, target and scattered incident
             else:
                 raise ValueError(f"No such type for simulation: '{value}'")
@@ -247,9 +247,9 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
         elif key == SettingsLine.I_RECWIDTH.value:
             width, _ = get_word(value)
             if width.lower() == "wide":
-                g.recwidth = enums.RecWidth.REC_WIDE
+                g.recwidth = enums.RecWidth.WIDE
             else:
-                g.recwidth = enums.RecWidth.REC_NARROW
+                g.recwidth = enums.RecWidth.NARROW
         elif key == SettingsLine.I_PREDATA.value:
             # Note that this is commented out in settings file ('*' in
             # the middle of the key)
@@ -271,9 +271,9 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
         elif key == SettingsLine.I_BPROF.value:
             beam_profile, _ = get_word(value)
             if beam_profile.lower() == "flat":
-                g.beamprof = enums.BeamProf.BEAM_FLAT
+                g.beamprof = enums.BeamProf.FLAT
             else:
-                g.beamprof = enums.BeamProf.BEAM_GAUSS
+                g.beamprof = enums.BeamProf.GAUSS
         elif key == SettingsLine.I_SURFACE.value:
             raise NotImplementedError
         elif key == SettingsLine.I_SURFSIZE.value:
@@ -306,27 +306,27 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
 
     target.plane = init_detector.get_plane_params(p1, p2, p3)
 
-    if g.recwidth == enums.RecWidth.REC_WIDE and g.npresimu > 0:
+    if g.recwidth == enums.RecWidth.WIDE and g.npresimu > 0:
         g.presimu = 0
         logging.warning("Presimulation not needed with wide recoil angle scheme")
 
-    if g.recwidth == enums.RecWidth.REC_WIDE:
+    if g.recwidth == enums.RecWidth.WIDE:
         g.predata = False
 
     if g.predata:
         g.presimu = 0
-    elif g.npresimu == 0 and g.recwidth == enums.RecWidth.REC_NARROW:
+    elif g.npresimu == 0 and g.recwidth == enums.RecWidth.NARROW:
         raise ReadInputError("No precalculated recoiling data in the narrow recoiling scheme")
 
     if g.npresimu > 0:
         g.cpresimu = 0
-        g.simstage = enums.SimStage.PRESIMULATION
+        g.simstage = enums.SimStage.PRE
 
         # Presimu count is random, therefore allocate extra space
         # TODO: Turn (* 2) into a proper constant (PRESIMU_ALLOCATION_RATIO)
         g.presimu = [o.Presimu() for _ in range(g.npresimu * g.nrecave * 2)]
     else:
-        g.simstage = enums.SimStage.REALSIMULATION
+        g.simstage = enums.SimStage.REAL
 
     target.ntarget = target.nlayers - detector.nfoils
 
@@ -345,10 +345,10 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
 
     M = 4.0 * primary_ion.A * secondary_ion.A / (primary_ion.A + secondary_ion.A) ** 2
 
-    if g.simtype == enums.SimType.SIM_ERD:
+    if g.simtype == enums.SimType.ERD:
         g.costhetamax = math.sqrt(g.emin / g.E0 * M)
         g.costhetamin = 1.0
-    elif g.simtype == enums.SimType.SIM_RBS:
+    elif g.simtype == enums.SimType.RBS:
         if primary_ion.A <= secondary_ion.A:
             g.costhetamax = -1.0
         else:

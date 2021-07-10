@@ -10,7 +10,7 @@ def finalize(g: o.Global) -> None:
         for j in range(len(enums.IonStatus)):
             dat_lines.append(f"{i:2d} {j:2d}: {g.finstat[i][j]:5d}\n")
 
-    if g.simtype == enums.SimType.SIM_RBS:
+    if g.simtype == enums.SimType.RBS:
         raise NotImplementedError
 
     with g.master.fpdat.open("a") as f:

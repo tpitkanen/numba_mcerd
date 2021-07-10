@@ -5,12 +5,12 @@ from enum import IntEnum
 
 class RndPeriod(IntEnum):
     """Random number generator value ranges"""
-    RND_CLOSED = 0  # [a, b] (both closed)
-    RND_OPEN = 1    # ]a, b[ (both open)
-    RND_LEFT = 2    # ]a, b] (left open)
-    RND_RIGHT = 3   # [a, b[ (right open)
-    RND_SEED = 4  # Set the seed number for random number generator  # Not really needed
-    # RND_CONT = 1  # Do not reset random number generator  # Not needed
+    CLOSED = 0  # [a, b] (both closed)  # Originally RND_CLOSED
+    OPEN = 1    # ]a, b[ (both open)    # Originally RND_OPEN
+    LEFT = 2    # ]a, b] (left open)    # Originally RND_LEFT
+    RIGHT = 3   # [a, b[ (right open)   # Originally RND_RIGHT
+    SEED = 4  # Set the seed number for random number generator  # Not really needed  # Originally RND_SEED
+    # CONT = 1  # Do not reset random number generator  # Not needed  # Originally RND_CONT
 
 
 class IonStatus(IntEnum):
@@ -58,37 +58,37 @@ class ScatteringType(IntEnum):
 
 class SimType(IntEnum):
     """Simulation type"""
-    SIM_ERD = 1
-    SIM_RANGE = 2  # TODO: What is this?
-    SIM_RBS = 3
+    ERD = 1    # Originally SIM_ERD
+    RANGE = 2  # Originally SIM_RANGE
+    RBS = 3    # Originally SIM_RBS
 
 
 class SimStage(IntEnum):
     """Simulation stage"""
-    ANYSIMULATION = 0
-    PRESIMULATION = 1
-    REALSIMULATION = 2
-    # SCALESIMULATION = 3  # This is actually not used
+    ANY = 0   # Originally ANYSIMULATION
+    PRE = 1   # Originally PRESIMULATION
+    REAL = 2  # Originally REALSIMULATION
+    # SCALE = 3  # This is actually not used  # Originally SCALESIMULATION
 
 
 class RecWidth(IntEnum):
     """Recoiling angle width"""
-    REC_NARROW = 1  # Recoiling to a narrow solid angle
-    REC_WIDE = 0  # Recoiling to a wide solid angle
+    NARROW = 1  # Recoiling to a narrow solid angle  # Originally REC_NARROW
+    WIDE = 0  # Recoiling to a wide solid angle      # Originally REC_WIDE
 
 
 class BeamProf(IntEnum):
     """Beam profile"""
-    BEAM_NONE = 0  # No beam divergence
-    BEAM_GAUSS = 1  # Beam profile gaussian
-    BEAM_FLAT = 2  # Beam profile flat
-    BEAM_DIST = 3  # Beam profile a given distribution
+    NONE = 0  # No beam divergence                 # Originally BEAM_NONE
+    GAUSS = 1  # Beam profile gaussian             # Originally BEAM_GAUSS
+    FLAT = 2  # Beam profile flat                  # Originally BEAM_FLAT
+    DIST = 3  # Beam profile a given distribution  # Originally BEAM_DIST
 
 
 class TargetType(IntEnum):
-    TARGET_FILM = 0
-    TARGET_BULK = 1
-    TARGET_ABSORBER = 2
+    FILM = 0      # Originally TARGET_FILM
+    BULK = 1      # Originally TARGET_BULK
+    ABSORBER = 2  # Originally TARGET_ABSORBER
 
 
 class PlaneType(IntEnum):
@@ -98,9 +98,9 @@ class PlaneType(IntEnum):
 
 
 class LineType(IntEnum):
-    L_GENERAL = 0
-    L_XYPLANE = 1
-    L_YAXIS = 2
+    GENERAL = 0   # Originally L_GENERAL
+    XY_PLANE = 1  # Originally L_XYPLANE
+    Y_AXIS = 2    # Originally L_YAXIS
 
 
 class Cross(IntEnum):

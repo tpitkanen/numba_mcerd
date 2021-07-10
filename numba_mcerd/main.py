@@ -103,7 +103,7 @@ def main(args):
 
         scat = []
         for i in range(g.nions):
-            if g.simtype == enums.SimType.SIM_RBS and i == enums.IonType.TARGET_ATOM.value:
+            if g.simtype == enums.SimType.RBS and i == enums.IonType.TARGET_ATOM.value:
                 continue
             ions[i].scatindex = i
             scat.append([o.Scattering() for _ in range(c.MAXELEMENTS)])
@@ -130,7 +130,7 @@ def main(args):
         target.layer[j].sto = [o.Target_sto() for _ in range(g.nions)]
         for i in range(g.nions):
             gsto_index += 1
-            if g.simtype == enums.SimType.SIM_RBS and i == enums.IonType.TARGET_ATOM.value:
+            if g.simtype == enums.SimType.RBS and i == enums.IonType.TARGET_ATOM.value:
                 continue
             # TODO: This is a temporary way to avoid implementing GSTO
             elsto.calc_stopping_and_straggling_const(g, ions[i], target, j, gsto_index)
@@ -141,7 +141,7 @@ def main(args):
             #              f"{target.layer[j].sto[ions[i].scatindex].stodiv}")
 
     # TODO: Needed for RBS
-    # if g.simtype == c.SimType.SIM_RBS:
+    # if g.simtype == c.SimType.RBS:
     #     ion_stack.copy_ions(primary_ion, target, TARGET_ATOM, SECONDARY, False)
     #     ion_stack.copy_ions(primary_ion, target, SECONDARY, PRIMARY, True)
 
@@ -156,7 +156,7 @@ def main(args):
     trackid *= 1_000_000
     ions_moving.append(copy.deepcopy(ions[PRIMARY]))
     ions_moving.append(copy.deepcopy(ions[SECONDARY]))
-    if g.simtype == enums.SimType.SIM_RBS:
+    if g.simtype == enums.SimType.RBS:
         ions_moving.append(copy.deepcopy(ions[TARGET_ATOM]))
 
     # Debugging counters
@@ -197,14 +197,14 @@ def main(args):
                     cur_ion = ions_moving[SECONDARY]
 
             if cur_ion.status == enums.IonStatus.FIN_RECOIL or cur_ion.status == enums.IonStatus.FIN_OUT_DET:
-                if g.simstage == enums.SimStage.PRESIMULATION:
+                if g.simstage == enums.SimStage.PRE:
                     pre_simulation.finish_presimulation(g, detector, cur_ion)
                     cur_ion = ions_moving[PRIMARY]
                 else:
                     erd_detector.move_to_erd_detector(g, cur_ion, target, detector)
 
             # TODO: Separate loop to pre and main, move this in-between
-            if g.simstage == enums.SimStage.PRESIMULATION and g.cion == g.npresimu - 1:
+            if g.simstage == enums.SimStage.PRE and g.cion == g.npresimu - 1:
                 pre_simulation.analyze_presimulation(g, target, detector)
                 init_params.init_recoiling_angle(target)
 
@@ -222,7 +222,7 @@ def main(args):
                     cur_ion = ions_moving[SECONDARY]  # ion_stack.next_ion()
                     found = False
                     for j in range(g.nions):
-                        if j == TARGET_ATOM and g.simtype == enums.SimType.SIM_RBS:
+                        if j == TARGET_ATOM and g.simtype == enums.SimType.RBS:
                             continue
                         if (round(ions[j].Z) == round(cur_ion.Z)
                                 and round(ions[j].A / c.C_U) == round(ions[j].A / c.C_U)):

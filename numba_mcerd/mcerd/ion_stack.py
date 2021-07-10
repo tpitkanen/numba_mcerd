@@ -15,7 +15,7 @@ from numba_mcerd.mcerd import enums
 def next_ion(g: o.Global, cur_ion_index: int) -> Optional[int]:
     """Get the next ion's index. Original code returns a pointer instead."""
     next_ion_index = cur_ion_index + 1
-    if g.simtype == enums.SimType.SIM_RBS and next_ion_index == enums.IonType.TARGET_ATOM.value:
+    if g.simtype == enums.SimType.RBS and next_ion_index == enums.IonType.TARGET_ATOM.value:
         # In RBS ions_moving[TARGET_ATOM] has a special role
         next_ion_index += 1
     if next_ion_index >= g.ncascades:
@@ -28,7 +28,7 @@ def next_ion(g: o.Global, cur_ion_index: int) -> Optional[int]:
 def prev_ion(g: o.Global, cur_ion_index: int) -> Optional[int]:
     """Get the previous ion's index. Original code returns a pointer instead."""
     prev_ion_index = cur_ion_index - 1
-    if g.simtype == enums.SimType.SIM_RBS and prev_ion_index == enums.IonType.TARGET_ATOM.value:
+    if g.simtype == enums.SimType.RBS and prev_ion_index == enums.IonType.TARGET_ATOM.value:
         prev_ion_index -= 1
     if prev_ion_index <= 0:
         return None

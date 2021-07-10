@@ -19,7 +19,7 @@ def erd_scattering(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target,
     if ion.scale and ion.p.z > c.SCALE_DEPTH:
         return False
 
-    if g.simtype == enums.SimType.SIM_RBS:
+    if g.simtype == enums.SimType.RBS:
         raise NotImplementedError
 
     recoil.w = ion.w
@@ -28,7 +28,7 @@ def erd_scattering(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target,
 
     sc_target = o.Vector()
     sc_ion = o.Vector()
-    if g.recwidth == enums.RecWidth.REC_NARROW:
+    if g.recwidth == enums.RecWidth.NARROW:
         # Recoiling direction in the laboratory coordinate system
         sc_lab = get_recoiling_dir(g, ion, recoil, target, detector)
 
@@ -56,7 +56,7 @@ def erd_scattering(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target,
 
     recoil.scale = ion.scale
 
-    if g.simtype == enums.SimType.SIM_ERD:
+    if g.simtype == enums.SimType.ERD:
         if sc_ion.theta < c.C_PI / 2.0:  # TODO: Could do * 0.5
             if recoil.I.n > 0:
                 recoil.A = get_isotope(recoil.I)
@@ -73,7 +73,7 @@ def erd_scattering(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target,
             # Rutherford cross sections for scaling ions if False
             table = False if ion.scale else target.table
             recoil.w *= cross_section(ion.Z, ion.A, recoil.Z, recoil.A, ion.E, sc_ion.theta,
-                                      target.cross, table, enums.SimType.SIM_ERD)
+                                      target.cross, table, enums.SimType.ERD)
             recoil.time = 0.0
             recoil.type = enums.IonType.SECONDARY
             recoil.status = enums.IonStatus.NOT_FINISHED
@@ -87,7 +87,7 @@ def erd_scattering(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target,
         else:
             recoil.status = ion.status = enums.IonStatus.FIN_NO_RECOIL
             return False
-    elif g.simtype == enums.SimType.SIM_RBS:
+    elif g.simtype == enums.SimType.RBS:
         raise NotImplementedError
     else:
         raise ErdScatteringError(f"Unknown simulation type {g.simtype}")
@@ -95,7 +95,7 @@ def erd_scattering(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target,
 
 def get_isotope(I: o.Isotopes) -> float:
     assert 0.9999 < I.c_sum < 1.0001
-    r = rand.rnd(0.0, I.c_sum, enums.RndPeriod.RND_OPEN)
+    r = rand.rnd(0.0, I.c_sum, enums.RndPeriod.OPEN)
 
     i = 0
     conc = 0.0
@@ -152,11 +152,11 @@ def get_recoiling_dir(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target,
      """
 
     d = o.Vector()
-    if g.simstage == enums.SimStage.PRESIMULATION:
+    if g.simstage == enums.SimStage.PRE:
         theta = 0.0
         fii = 0.0
         d.theta, d.fii = rotate.rotate(detector.angle, 0.0, theta, fii)
-    elif g.recwidth == enums.RecWidth.REC_NARROW:
+    elif g.recwidth == enums.RecWidth.NARROW:
         n = ion.tlayer
         thetamax = target.recpar[n].x * ion.p.z + target.recpar[n].y
 
@@ -168,9 +168,9 @@ def get_recoiling_dir(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target,
         d_ion_theta_ok = True
         while d_ion_theta_ok:
             i += 1
-            t = rand.rnd(cos_thetamax, 1.0, enums.RndPeriod.RND_CLOSED)
+            t = rand.rnd(cos_thetamax, 1.0, enums.RndPeriod.CLOSED)
             theta = math.acos(t)
-            fii = rand.rnd(0, 2.0 * c.C_PI, enums.RndPeriod.RND_OPEN)
+            fii = rand.rnd(0, 2.0 * c.C_PI, enums.RndPeriod.OPEN)
             d_target.theta, d_target.fii = rotate.rotate(detector.angle, 0.0, theta, fii)
             d_ion.theta, d_ion.fii = rotate.rotate(
                 ion.theta, ion.fii - c.C_PI, d_target.theta, d_target.fii)
@@ -195,7 +195,7 @@ def get_recoiling_dir(g: o.Global, ion: o.Ion, recoil: o.Ion, target: o.Target,
 # TODO: type for cross
 def cross_section(z1: float, m1: float, z2: float, m2: float, E: float, theta: float,
                   cross, table: bool, ctype: enums.SimType) -> float:
-    if ctype == enums.SimType.SIM_ERD:
+    if ctype == enums.SimType.ERD:
         if theta >= c.C_PI * 0.5:
             value = -1.0
         else:

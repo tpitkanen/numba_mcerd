@@ -24,11 +24,11 @@ def create_ion(g: oj.Global, ion: oj.Ion, target: oj.Target) -> None:
     - ion: z-axis is along the direction of ion movement
     - detector: z-axis is along the detector direction
     """
-    if g.simtype != enums.SimType.SIM_ERD.value and g.simtype != enums.SimType.SIM_RBS.value:
+    if g.simtype != enums.SimType.ERD.value and g.simtype != enums.SimType.RBS.value:
         raise IonSimulationError("Unsupported simulation type")
 
-    x = random_jit.rnd(-g.bspot.x, g.bspot.x, enums.RndPeriod.RND_CLOSED.value)
-    y = random_jit.rnd(-g.bspot.y, g.bspot.y, enums.RndPeriod.RND_CLOSED.value)
+    x = random_jit.rnd(-g.bspot.x, g.bspot.x, enums.RndPeriod.CLOSED.value)
+    y = random_jit.rnd(-g.bspot.y, g.bspot.y, enums.RndPeriod.CLOSED.value)
     if g.beamangle > 0:
         z = x / math.tan(c.C_PI / 2.0 - g.beamangle)
     else:
@@ -40,7 +40,7 @@ def create_ion(g: oj.Global, ion: oj.Ion, target: oj.Target) -> None:
     ion.lab.p.y = y
     ion.lab.p.z = z
 
-    if g.simstage == enums.SimStage.REALSIMULATION.value and g.cion % (g.nscale + 1) == 0:
+    if g.simstage == enums.SimStage.REAL.value and g.cion % (g.nscale + 1) == 0:
         # TODO: Calculating a random point goes to waste here. Move
         #       random point calculation to the else branch
         ion.scale = True
@@ -76,7 +76,7 @@ def create_ion(g: oj.Global, ion: oj.Ion, target: oj.Target) -> None:
     ion.lab.fii = c.C_PI
 
     # if __debug__:
-    #     debug.print_ion_position(g, ion, "L", enums.SimStage.ANYSIMULATION)
+    #     debug.print_ion_position(g, ion, "L", enums.SimStage.ANY)
 
 
 @nb.njit()
@@ -102,7 +102,7 @@ def next_scattering(g: oj.Global, ion: oj.Ion, target: oj.Target,
         b[i] = layer.N[i] * cross_section_jit.get_cross(ion, scat[ion.scatindex][p])
         cross += b[i]
 
-    rcross = random_jit.rnd(0.0, cross, enums.RndPeriod.RND_OPEN)
+    rcross = random_jit.rnd(0.0, cross, enums.RndPeriod.OPEN)
     i = 0
     while i < layer.natoms and rcross >= 0.0:
         rcross -= b[i]
@@ -114,7 +114,7 @@ def next_scattering(g: oj.Global, ion: oj.Ion, target: oj.Target,
     snext.natom = layer.atom[i]
 
     ion.opt.y = math.sqrt(-rcross / (c.C_PI * layer.N[i])) / scat[ion.scatindex][snext.natom].a
-    snext.d = -math.log(random_jit.rnd(0.0, 1.0, enums.RndPeriod.RND_RIGHT)) / cross
+    snext.d = -math.log(random_jit.rnd(0.0, 1.0, enums.RndPeriod.RIGHT)) / cross
 
 
 def move_ion(g: oj.Global, ion: oj.Ion, target: oj.Target, snext: oj.SNext) -> int:  # enums.ScatteringType
@@ -166,8 +166,8 @@ def move_ion(g: oj.Global, ion: oj.Ion, target: oj.Target, snext: oj.SNext) -> i
             cross_layer = False
             d = dreclayer
             sc = enums.ScatteringType.NO_SCATTERING.value
-        drec = -math.log(random_jit.rnd(0.0, 1.0, enums.RndPeriod.RND_CLOSED.value))
-        if g.recwidth == enums.RecWidth.REC_WIDE.value or g.simstage == enums.SimStage.PRESIMULATION.value:
+        drec = -math.log(random_jit.rnd(0.0, 1.0, enums.RndPeriod.CLOSED.value))
+        if g.recwidth == enums.RecWidth.WIDE.value or g.simstage == enums.SimStage.PRE.value:
             drec *= ion.effrecd / (math.cos(g.beamangle) * g.nrecave)
             ion.wtmp = -1.0
         else:

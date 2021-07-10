@@ -51,13 +51,13 @@ def read_target_file(filename: str, g: o.Global, target: o.Target) -> None:
     while line := fp.readline().strip():
         logging.info(f"layer: {nlayer}")
         layer = target.layer[nlayer]
-        layer.type = enums.TargetType.TARGET_FILM
+        layer.type = enums.TargetType.FILM
         layer.gas = False
 
         if line[0].isalpha():
             raise NotImplementedError  # TODO
 
-        if layer.type == enums.TargetType.TARGET_FILM:
+        if layer.type == enums.TargetType.FILM:
             number, line = read_input.get_float(line)
             unit, line = read_input.get_unit_value(line, c.C_NM)
             logging.info(f"thickness {number * unit / c.C_NM} nm")
