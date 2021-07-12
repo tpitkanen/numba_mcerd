@@ -12,7 +12,7 @@ git clone git@github.com:tpitkanen/numba_mcerd.git
 cd numba_mcerd
 ```
 
-2. Install to a virtual environtment (on Windows)
+2. Install to a virtual environment (on Windows)
 
 ```
 py -3.8 -m venv env
