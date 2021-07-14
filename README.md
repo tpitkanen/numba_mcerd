@@ -6,13 +6,15 @@ Numba MCERD is a version of [MCERD](https://github.com/JYU-IBA/mcerd) in Python.
 
 Python 3.8 or newer is required. Git is required for version control and cloning the repository.
 
+These instructions are for Windows. Other operating systems use fundamentally similar commands, but the specifics differ.
+
 1. Clone the repository
 ```
 git clone git@github.com:tpitkanen/numba_mcerd.git
 cd numba_mcerd
 ```
 
-2. Install to a virtual environment (on Windows)
+2. Install to a virtual environment
 
 ```
 py -3.8 -m venv env
