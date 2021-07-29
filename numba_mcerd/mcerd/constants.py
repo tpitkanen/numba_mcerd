@@ -35,8 +35,6 @@ NANGDIST = 200  # Number of points in reaction angular distribution
 
 MAXISOTOPES = 20
 
-# TODO: What does this mean?
-
 
 C_NM = 1.0e-9  # From rough_surface.c
 SCALE_DEPTH = (10.0*C_NM)  # All scaling particles are recoiled below this
@@ -46,15 +44,6 @@ PRESIMU_LEVEL = 0.01  # Ratio of ions for defining recoil solid angle
 # # Booleans
 # TRUE = 1
 # FALSE = 0
-
-
-# TODO: What is this? Used in erd_detector
-
-
-# TODO: What is this? Used in erd_detector
-
-
-# TODO: Is this needed? Used in erd_detector
 
 
 NSENE = 2000  # Maximum number of energies in the cross section table
