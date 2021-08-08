@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from enum import Enum
+from enum import IntEnum
 from pathlib import Path
 from typing import List, Optional
 
@@ -16,7 +16,7 @@ class JibalError(Exception):
     """Error in Jibal"""
 
 
-class JibalSelectIsotopes(Enum):
+class JibalSelectIsotopes(IntEnum):
     """Which isotopes to select. Positive isotopes are not listed."""
     ALL = -1      # Originally JIBAL_ALL_ISOTOPES
     NATURAL = 0  # Originally JIBAL_NAT_ISOTOPES
