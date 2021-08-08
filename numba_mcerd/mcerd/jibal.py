@@ -196,7 +196,8 @@ class Jibal:
         # Isotope count check shouldn't be needed, but it exists in the original code
 
         # Normalize element
-        if (conc_sum := sum(copied_element.concs)) == 0.0:
+        conc_sum = sum(copied_element.concs)
+        if conc_sum == 0.0:
             raise JibalError(f"No concentrations found for element '{copied_element.Z=}'")
         for i in range(len(copied_element.concs)):
             copied_element.concs[i] = copied_element.concs[i] / conc_sum
