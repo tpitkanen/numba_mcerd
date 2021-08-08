@@ -162,9 +162,8 @@ class Jibal:
 
         Args:
             element: element to copy
-            # which_elements: which types of elements to include in concentration calculations
-            A: isotope to copy. All isotopes if -1, all natural isotopes if 0,
-                otherwise isotope with specific mass number
+            A: isotopes to copy. All isotopes if -1, all natural isotopes if 0,
+                otherwise a single isotope with this mass number
 
         Returns:
             Element with concentrations
