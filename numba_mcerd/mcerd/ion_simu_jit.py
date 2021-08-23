@@ -138,6 +138,7 @@ def move_ion(g: oj.Global, ion: oj.Ion, target: oj.Target, snext: oj.SNext) -> i
     sc = enums.ScatteringType.MC_SCATTERING.value
 
     d = snext.d
+    # TODO: Jitclass crashes here sometimes
     layer = target.layer[ion.tlayer]
 
     nextp = oj.Point()
