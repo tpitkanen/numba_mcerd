@@ -152,7 +152,6 @@ def convert_target_layer(layer: o.Target_layer) -> od.Target_layer:
     def convert(values):
         values["atom"] = _convert_array(values["atom"])
         values["N"] = _convert_array(values["N"])
-        # values["sto"] = [convert_target_sto(sto) for sto in values["sto"]]  # TODO: Does this work?
         values["sto"] = np.array([convert_target_sto(sto) for sto in values["sto"]])  # dtype needed?
         values["type"] = values["type"].value
 
@@ -169,9 +168,9 @@ def convert_plane(plane: o.Plane) -> od.Plane:
 def convert_target(target: o.Target) -> od.Target:
     def convert(values):
         values["ele"] = np.array([convert_target_ele(ele) for ele in values["ele"]])
-        # FIXME: Trimming causes issues with length
-        values["layer"] = np.array(  # Trim -> not the same as original
-            [convert_target_layer(layer) for layer in values["layer"] if layer.type is not None])
+        values["layer"] = np.array(
+            [convert_target_layer(layer) if layer.type is not None else np.zeros((), dtype=od.Target_layer)
+             for layer in values["layer"]])
 
         values["recdist"] = np.array([convert_point2(rec) for rec in values["recdist"]])
         values["plane"] = convert_plane(values["plane"])
@@ -212,7 +211,10 @@ def main():
     print(target_sto)
     print(conv_target_sto)
 
+    from numba_mcerd.mcerd import enums
     target_layer = o.Target_layer()
+    target_layer.sto = [o.Target_sto() for _ in range(2)]
+    target_layer.type = enums.TargetType.FILM
     conv_target_layer = convert_target_layer(target_layer)
     print(target_layer)
     print(conv_target_layer)
