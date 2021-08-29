@@ -37,7 +37,7 @@ Presimu = np.dtype([
 
 
 Global = np.dtype([
-    ("mpi", np.bool),
+    ("mpi", bool),
     ("E0", np.float64),
     ("nions", np.int64),
     ("ncascades", np.int64),
@@ -62,25 +62,25 @@ Global = np.dtype([
     ("costhetamax", np.float64),
     ("costhetamin", np.float64),
     ("recwidth", np.int64),  # constants.RecWidth
-    ("virtualdet", np.bool),
-    ("basename", np.str, 100),  # TODO: size?
+    ("virtualdet", bool),
+    ("basename", str, 100),  # TODO: size?
     ("finstat", np.int64, (2, 11)),  # len [SECONDARY + 1][NIONSTATUS]
     ("beamdiv", np.int64),
     ("beamprof", np.int64),  # constants.BeamProf
-    ("rough", np.bool),
+    ("rough", bool),
     ("nmclarge", np.int64),
     ("nmc", np.int64),
-    ("output_trackpoints", np.bool),
-    ("output_misses", np.bool),
-    ("cascades", np.bool),
-    ("advanced_output", np.bool),
+    ("output_trackpoints", bool),
+    ("output_misses", bool),
+    ("cascades", bool),
+    ("advanced_output", bool),
     # ( "jibal", Jibal),
-    ("nomc", np.bool)
+    ("nomc", bool)
 ])
 
 
 Ion_opt = np.dtype([
-    ("valid", np.bool),
+    ("valid", bool),
     ("cos_theta", np.float64),
     ("sin_theta", np.float64),
     ("e", np.float64),
@@ -141,11 +141,11 @@ Ion = np.dtype([
     ("type", np.int64),  # constants.IonType
     ("hist", Rec_hist),
     ("dist", np.float64),
-    ("virtual", np.bool),
+    ("virtual", bool),
     ("hit", Point, constants.MAXLAYERS),
     ("Ed", np.float64, constants.MAXLAYERS),
     ("dt", np.float64, 50),
-    ("scale", np.bool),
+    ("scale", bool),
     ("effrecd", np.float64),
     ("trackid", np.int64),
     ("scatindex", np.int64),
@@ -185,7 +185,7 @@ Scattering = np.dtype([
 SNext = np.dtype([
     ("d", np.float64),
     ("natom", np.int64),
-    ("r", np.bool)
+    ("r", bool)
 ])
 
 
@@ -213,8 +213,8 @@ Target_layer = np.dtype([
     ("Ntot", np.float64),
     ("sto", Target_sto, LAYER_STO_COUNT_ERD),  # TODO: Correct number for sto
     ("type", np.int64),  # constants.TargetType
-    ("gas", np.bool),  # TODO: np.bool or np.bool_ ?
-    ("stofile_prefix", np.str, constants.MAXSTOFILEPREFIXLEN)
+    ("gas", bool),
+    ("stofile_prefix", str, constants.MAXSTOFILEPREFIXLEN)
 ])
 
 
@@ -243,7 +243,7 @@ Target = np.dtype([
     ("angave", np.float64),
     # ("surface", Surface),
     ("cross", np.float64, (constants.NSENE, constants.NSANGLE)),
-    ("table", np.bool)
+    ("table", bool)
 ])
 
 
@@ -265,7 +265,7 @@ Line = np.dtype([
 
 Det_foil = np.dtype([
     ("type", np.int64),
-    ("virtual", np.bool),
+    ("virtual", bool),
     ("dist", np.float64),
     ("angle", np.float64),
     ("size", np.float64, 2),
@@ -278,7 +278,7 @@ Detector = np.dtype([
     ("type", np.int64),
     ("angle", np.float64),
     ("nfoils", np.int64),
-    ("virtual", np.bool),
+    ("virtual", bool),
     ("vsize", np.float64, 2),
     ("tdet", np.int64, 2),
     ("edet", np.int64, constants.MAXLAYERS),

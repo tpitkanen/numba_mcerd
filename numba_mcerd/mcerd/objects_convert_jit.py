@@ -60,7 +60,7 @@ def _convert_array(array) -> np.ndarray:
     if isinstance(array[0], float):
         return np.array(array, dtype=np.float64)
     if isinstance(array[0], bool):
-        return np.array(array, dtype=np.bool)
+        return np.array(array, dtype=bool)
     if isinstance(array, np.ndarray):
         return array
     raise JitclassConvertError(f"Unsupported array type: '{type(array)}'")
