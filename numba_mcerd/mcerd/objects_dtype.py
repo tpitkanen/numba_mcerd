@@ -158,7 +158,7 @@ Cross_section = np.dtype([
     ("emin", np.float64),
     ("emax", np.float64),
     ("estep", np.float64),
-    ("b", np.float, constants.EPSIMP)  # TODO: Correct size?
+    ("b", np.float64, constants.EPSIMP)  # TODO: Correct size?
 ])
 
 
