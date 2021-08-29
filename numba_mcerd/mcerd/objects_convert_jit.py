@@ -48,6 +48,7 @@ def _base_convert(obj, target_class, converter):
     return target_obj
 
 
+# TODO: Is this still needed? np.array seems to return 64-bit arrays now
 def _convert_array(array) -> np.ndarray:
     """Helper for converting arrays to np.ndarray.
 
