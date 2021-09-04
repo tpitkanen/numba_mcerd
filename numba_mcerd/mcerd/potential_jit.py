@@ -5,6 +5,7 @@ import numpy as np
 import numba
 
 import numba_mcerd.mcerd.objects_jit as oj
+import numba_mcerd.mcerd.objects_dtype as od
 
 
 NPOINTS = 50
@@ -54,6 +55,32 @@ def make_screening_table_cached() -> Tuple[int, int, np.ndarray, np.ndarray]:
         x += xstep
 
     return n, d, ux, uy
+
+
+# TODO: Replace make_screening_table_cached with this: faster & better return type
+# @numba.njit  # Fails with: 'Record' object has no attribute 'bitwidth'
+# https://github.com/numba/numba/issues/3158
+def make_screening_table_dtype() -> od.Potential:
+    xmax = get_max_x()
+    n = get_npoints(xmax)
+    xstep = xmax / (n - 1)
+    d = round(1 / xstep)
+
+    # This initialization style doesn't work in Numba, even if using a
+    # simple dtype:
+    # pot = np.zeros((), dtype=od.Potential)
+
+    pot = np.zeros(1, dtype=od.Potential)[0]
+
+    pot["n"] = n
+    pot["d"] = d
+
+    x = 0
+    for i in range(pot["n"]):
+        pot["u"][i] = x, U(x)
+        x += xstep
+
+    return pot
 
 
 @numba.njit(cache=True)
