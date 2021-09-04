@@ -41,7 +41,10 @@ def _base_convert(obj, target_dtype, converter):
     target_obj = np.zeros((), dtype=target_dtype)
     setkey_all(target_obj, values)
 
-    return target_obj
+    # TODO: Is this the only place that needs .view(np.recarray)?
+    # TODO: Should some things be np.record instead?
+    # TODO: Does this affect performance?
+    return target_obj.view(np.recarray)
 
 
 def _convert_array(array) -> np.ndarray:
