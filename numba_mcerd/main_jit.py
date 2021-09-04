@@ -1,7 +1,7 @@
 import copy
 import logging
 
-from numba_mcerd import config, timer
+from numba_mcerd import config, timer, patch_numba
 from numba_mcerd.mcerd import (
     random_jit, init_params, read_input, potential, ion_stack, init_simu, cross_section,
     potential_jit, init_simu_jit, cross_section_jit, elsto, init_detector, output, ion_simu_jit,
@@ -39,6 +39,7 @@ def main(args):
     # Misc setup
 
     setup_logging()
+    patch_numba.patch_nested_array()
 
     # Variables
 
