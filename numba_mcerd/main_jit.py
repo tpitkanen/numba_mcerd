@@ -103,6 +103,8 @@ def main(args):
     # pot = potential_jit.make_screening_table_dtype.py_func()  # type(pot) == <class 'numpy.void'>
     # pot = pot.view(np.recarray)  # type(pot) == <class 'numpy.record'>
 
+    # TODO: Always convert Numpy objects to records to make debugging
+    #       easier when using .py_func()?
     pot = potential_jit.make_screening_table_dtype()
 
     ion_stack.cascades_create_additional_ions(g, detector, target, [])
