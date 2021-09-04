@@ -5,12 +5,13 @@ import numpy as np
 
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
+import numba_mcerd.mcerd.objects_dtype as od
 # import numba_mcerd.mcerd.symbols as s
 from numba_mcerd.mcerd import scattering_angle_jit
 
 
 def scattering_table(g: o.Global, ion: o.Ion, target: o.Target, scat: o.Scattering,
-                     pot: o.Potential, natom: int) -> None:
+                     pot: od.Potential, natom: int) -> None:
     """Create a lookup table for scattering (energies?)"""
     targetZ = target.ele[natom].Z
     targetA = target.ele[natom].A
@@ -49,8 +50,8 @@ def scattering_table(g: o.Global, ion: o.Ion, target: o.Target, scat: o.Scatteri
 
 # Can't be parallelized automatically. A manual option would be to split
 # scat_matrix into pieces, and then calculate exp_e and exp_y like so:
-# exp_e = math.exp(emin + (i-1) * estep)
-# exp_y = math.exp(ymin + (j-1) * ystep)
+#   exp_e = math.exp(emin + (i-1) * estep)
+#   exp_y = math.exp(ymin + (j-1) * ystep)
 # scat_matrix[i][0] and scat_matrix[0][j] need to be done separately
 @numba.njit(cache=True)
 def main_math(scat_matrix, pot, emin, estep, ymin, ystep):
