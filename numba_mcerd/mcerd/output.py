@@ -85,6 +85,7 @@ def _output_gas(g: o.Global, cur_ion: o.Ion, target: o.Target, detector: o.Detec
 
 
 def output_erd(g: o.Global, cur_ion: o.Ion, target: o.Target, detector: o.Detector) -> None:
+    """Output ERD information to g.master.fperd"""
     if detector.type == enums.DetectorType.TOF:
         _output_tof(g, cur_ion, target, detector)
         return
