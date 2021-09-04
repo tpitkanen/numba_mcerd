@@ -44,6 +44,8 @@ def main(args):
 
     logging.debug("Initializing variables")
 
+    initialization_timer = timer.SplitTimer.init_and_start()
+
     g = o.Global()
     primary_ion = o.Ion()
     secondary_ion = o.Ion()
@@ -140,6 +142,9 @@ def main(args):
         ions_moving.append(copy.deepcopy(ions[TARGET_ATOM]))
 
     logging.info("Converting objects to JIT")
+
+    initialization_timer.stop()
+    print(f"initialization_timer: {initialization_timer}")
 
     g = ocj.convert_global(g)
     detector = ocj.convert_detector(detector)

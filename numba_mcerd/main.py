@@ -42,6 +42,8 @@ def main(args):
 
     logging.debug("Initializing variables")
 
+    initialization_timer = timer.SplitTimer.init_and_start()
+
     g = o.Global()
     primary_ion = o.Ion()  # Not really used in the simulation loop
     secondary_ion = o.Ion()  # Not really used in the simulation loop
@@ -158,6 +160,9 @@ def main(args):
     ions_moving.append(copy.deepcopy(ions[SECONDARY]))
     if g.simtype == enums.SimType.RBS:
         ions_moving.append(copy.deepcopy(ions[TARGET_ATOM]))
+
+    initialization_timer.stop()
+    print(f"initialization_timer: {initialization_timer}")
 
     # Debugging counters
     outer_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
