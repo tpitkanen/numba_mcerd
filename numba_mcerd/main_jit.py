@@ -117,7 +117,7 @@ def main(args):
             cross_section_jit.calc_cross_sections(g, scat[i][j], pot)
 
     table_timer.stop()
-    print(table_timer.start_time, table_timer.elapsed_laps)
+    print(f"table_timer: {table_timer}")
 
     gsto_index = -1
     for j in range(target.nlayers):
