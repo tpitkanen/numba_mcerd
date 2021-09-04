@@ -9,7 +9,6 @@ from numba_mcerd.mcerd import (
 )
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
-import numba_mcerd.mcerd.objects_jit as oj
 import numba_mcerd.mcerd.objects_convert_jit as ocj
 
 
@@ -96,10 +95,7 @@ def main(args):
     init_params.init_io(g, primary_ion, target)
 
     # TODO: Rename to pot(ential)
-    n, d, ux, uy = potential_jit.make_screening_table_cached()
-    pot = oj.Potential(n, d)
-    pot.ux = ux
-    pot.uy = uy
+    pot = potential_jit.make_screening_table_dtype()
 
     ion_stack.cascades_create_additional_ions(g, detector, target, [])
 

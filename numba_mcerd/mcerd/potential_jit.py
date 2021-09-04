@@ -15,6 +15,7 @@ MAXPOINTS = 30000
 XMAX = 1000.0
 
 
+# TODO: Unused -> remove
 @numba.njit()
 def make_screening_table() -> oj.Potential:
     """Create and return a Potential object.
@@ -37,6 +38,7 @@ def make_screening_table() -> oj.Potential:
     return pot
 
 
+# TODO: Unused -> remove
 @numba.njit(cache=True)
 def make_screening_table_cached() -> Tuple[int, int, np.ndarray, np.ndarray]:
     """Create and return the pieces needed for a Potential object"""
@@ -57,17 +59,15 @@ def make_screening_table_cached() -> Tuple[int, int, np.ndarray, np.ndarray]:
     return n, d, ux, uy
 
 
-# TODO: Replace make_screening_table_cached with this: faster & better return type
-# @numba.njit  # Fails with: 'Record' object has no attribute 'bitwidth'
-# https://github.com/numba/numba/issues/3158
+@numba.njit(cache=True)
 def make_screening_table_dtype() -> od.Potential:
     xmax = get_max_x()
     n = get_npoints(xmax)
     xstep = xmax / (n - 1)
     d = round(1 / xstep)
 
-    # This initialization style doesn't work in Numba, even if using a
-    # simple dtype:
+    # This initialization works in Numba, but requires attribute-style
+    # access (.attribute_name), which doesn't work without Numba.
     # pot = np.zeros((), dtype=od.Potential)
 
     pot = np.zeros(1, dtype=od.Potential)[0]
@@ -77,7 +77,10 @@ def make_screening_table_dtype() -> od.Potential:
 
     x = 0
     for i in range(pot["n"]):
-        pot["u"][i] = x, U(x)
+        # TODO: Is there a way to do this in Numba?:
+        # pot["u"][i] = x, U(x)
+        pot["u"][i]["x"] = x
+        pot["u"][i]["y"] = U(x)
         x += xstep
 
     return pot

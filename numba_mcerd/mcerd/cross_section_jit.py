@@ -5,13 +5,14 @@ import numba as nb
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.objects_jit as oj
+import numba_mcerd.mcerd.objects_dtype as od
 # import numba_mcerd.mcerd.symbols as s
 
 from numba_mcerd.mcerd import scattering_angle_jit
 
 
 # Doesn't need JIT
-def calc_cross_sections(g: o.Global, scat: o.Scattering, pot: oj.Potential) -> None:
+def calc_cross_sections(g: o.Global, scat: o.Scattering, pot: od.Potential) -> None:
     """Calculate cross sections for scat.cross"""
     scat.cross.emin = math.log(0.99 * g.emin * scat.E2eps)
     scat.cross.emax = math.log(1.01 * g.ionemax * scat.E2eps)
@@ -31,7 +32,7 @@ MAXSTEPS = 50
 
 
 # Doesn't need JIT
-def calc_cross(angle: float, e: float, scat: o.Scattering, pot: oj.Potential) -> float:
+def calc_cross(angle: float, e: float, scat: o.Scattering, pot: od.Potential) -> float:
     # scat is unused because it has been commented out in the original code
 
     step = 0

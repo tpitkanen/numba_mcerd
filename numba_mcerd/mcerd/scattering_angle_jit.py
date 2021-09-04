@@ -6,8 +6,7 @@ import numba
 from numba.experimental import jitclass
 
 import numba_mcerd.mcerd.constants as c
-# import numba_mcerd.mcerd.objects as o
-import numba_mcerd.mcerd.objects_jit as oj
+import numba_mcerd.mcerd.objects_dtype as od
 
 
 EPS = 1e-5
@@ -35,7 +34,7 @@ class Opt:
 
 
 @numba.njit(cache=True)
-def scattering_angle(pot: oj.Potential, ion_opt_e, ion_opt_y) -> float:
+def scattering_angle(pot: od.Potential, ion_opt_e, ion_opt_y) -> float:
     """Get scattering angle for ion's specific optimization state (ion.opt)"""
     opt = Opt()
 
@@ -58,20 +57,20 @@ def scattering_angle(pot: oj.Potential, ion_opt_e, ion_opt_y) -> float:
 
 
 @numba.njit(cache=True)
-def Ut(pot: oj.Potential, x: float) -> float:
+def Ut(pot: od.Potential, x: float) -> float:
     if x < 0:
-        return pot.uy[0]
-    if x > pot.ux[pot.n - 2]:
-        return pot.uy[pot.n - 2]
+        return pot["u"][0]["y"]
+    if x > pot["u"][pot["n"] - 2]["x"]:
+        return pot["u"][pot["n"] - 2]["y"]
 
     # Unused
     # xstep = pot.u[1].x - pot.u[0].x
 
     i = int(x * pot.d)
 
-    xlow = pot.ux[i]
-    ylow = pot.uy[i]
-    yhigh = pot.uy[i + 1]
+    xlow = pot["u"][i]["x"]
+    ylow = pot["u"][i]["y"]
+    yhigh = pot["u"][i + 1]["y"]
 
     value = ylow + (yhigh - ylow) * (x - xlow) * pot.d
     return value
@@ -79,7 +78,7 @@ def Ut(pot: oj.Potential, x: float) -> float:
 
 # TODO: Check that this still produces the same results as before
 @numba.njit(cache=True)
-def Angint(u: float, pot: oj.Potential, opt: Opt) -> float:
+def Angint(u: float, pot: od.Potential, opt: Opt) -> float:
     u2 = u**2
 
     tmp0 = opt.x0 / (1.0 - u2)
@@ -105,7 +104,7 @@ def Angint(u: float, pot: oj.Potential, opt: Opt) -> float:
 
 
 @numba.njit(cache=True)
-def trapezoid(a: float, b: float, value: float, nextn: int, pot: oj.Potential,
+def trapezoid(a: float, b: float, value: float, nextn: int, pot: od.Potential,
               n: int, opt: Opt) -> Tuple[float, int]:
     if n == 1:
         value = 0.5 * (b - a) * (Angint(a, pot, opt) + Angint(b, pot, opt))
@@ -124,7 +123,7 @@ def trapezoid(a: float, b: float, value: float, nextn: int, pot: oj.Potential,
 
 
 @numba.njit(cache=True)
-def simpson(a: float, b: float, pot: oj.Potential, stmp: Opt) -> float:
+def simpson(a: float, b: float, pot: od.Potential, stmp: Opt) -> float:
     old_s = old_st = -1e30
     st = 0.0  # Also value in trapezoid
     nextn = 1
@@ -146,7 +145,7 @@ def simpson(a: float, b: float, pot: oj.Potential, stmp: Opt) -> float:
 
 
 @numba.njit(cache=True)
-def mindist(pot: oj.Potential, opt: Opt) -> float:
+def mindist(pot: od.Potential, opt: Opt) -> float:
     x1 = (1 + math.sqrt(1 + 4 * opt.y**2 * opt.e**2)) / (2 * opt.e)
 
     while Psi(x1, pot, opt) < 0.0:
@@ -173,6 +172,6 @@ def mindist(pot: oj.Potential, opt: Opt) -> float:
 
 
 @numba.njit(cache=True)
-def Psi(x: float, pot: oj.Potential, opt: Opt) -> float:
+def Psi(x: float, pot: od.Potential, opt: Opt) -> float:
     value = x**2 * opt.i_y2 - x * Ut(pot, x) * opt.i_ey2 - 1.0
     return value
