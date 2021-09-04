@@ -72,6 +72,10 @@ def make_screening_table_dtype() -> od.Potential:
 
     pot = np.zeros(1, dtype=od.Potential)[0]
 
+    # Works in Numba, but not in vanilla Python:
+    # pot.n = n
+    # pot.d = d
+
     pot["n"] = n
     pot["d"] = d
 
@@ -79,6 +83,13 @@ def make_screening_table_dtype() -> od.Potential:
     for i in range(pot["n"]):
         # TODO: Is there a way to do this in Numba?:
         # pot["u"][i] = x, U(x)
+
+        # Can't access arrays with .property notation (before an object
+        # is converted to a np.recarray or similar, which doesn't seem
+        # possible in a JITed function). Inner properties are accessible.
+        # pot["u"][i].x = x
+        # pot["u"][i].y = U(x)
+
         pot["u"][i]["x"] = x
         pot["u"][i]["y"] = U(x)
         x += xstep

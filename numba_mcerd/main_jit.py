@@ -1,6 +1,8 @@
 import copy
 import logging
 
+import numpy as np
+
 from numba_mcerd import config, timer, patch_numba
 from numba_mcerd.mcerd import (
     random_jit, init_params, read_input, potential, ion_stack, init_simu, cross_section,
@@ -97,6 +99,10 @@ def main(args):
     init_params.init_io(g, primary_ion, target)
 
     # TODO: Rename to pot(ential)
+    # Vanilla Python:
+    # pot = potential_jit.make_screening_table_dtype.py_func()  # type(pot) == <class 'numpy.void'>
+    # pot = pot.view(np.recarray)  # type(pot) == <class 'numpy.record'>
+
     pot = potential_jit.make_screening_table_dtype()
 
     ion_stack.cascades_create_additional_ions(g, detector, target, [])

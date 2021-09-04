@@ -59,18 +59,18 @@ def scattering_angle(pot: od.Potential, ion_opt_e, ion_opt_y) -> float:
 @numba.njit(cache=True)
 def Ut(pot: od.Potential, x: float) -> float:
     if x < 0:
-        return pot["u"][0]["y"]
-    if x > pot["u"][pot["n"] - 2]["x"]:
-        return pot["u"][pot["n"] - 2]["y"]
+        return pot.u[0].y
+    if x > pot.u[pot.n - 2].x:
+        return pot.u[pot.n - 2].y
 
     # Unused
     # xstep = pot.u[1].x - pot.u[0].x
 
     i = int(x * pot.d)
 
-    xlow = pot["u"][i]["x"]
-    ylow = pot["u"][i]["y"]
-    yhigh = pot["u"][i + 1]["y"]
+    xlow = pot.u[i].x
+    ylow = pot.u[i].y
+    yhigh = pot.u[i + 1].y
 
     value = ylow + (yhigh - ylow) * (x - xlow) * pot.d
     return value
