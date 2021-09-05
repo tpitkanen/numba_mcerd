@@ -11,6 +11,7 @@ from numba_mcerd.mcerd.jibal import Jibal
 # TODO: Dataclasses can't be optimized with @njit
 #       Replace the most performance-critical with something faster
 
+# TODO: make list names plural
 
 @dataclass
 class Point:  # TODO: should this be Point3?
@@ -416,6 +417,10 @@ class Det_foil:
     def __post_init__(self):
         if self.size is None:
             self.size = [0.0] * 2
+        if self.plane is None:
+            self.plane = Plane()
+        if self.center is None:
+            self.center = Point()
 
 
 @dataclass
