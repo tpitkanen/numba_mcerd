@@ -172,17 +172,17 @@ def main(args):
     print(f"dtype_conversion_timer: {dtype_conversion_timer}")
 
     # Jitclass conversions
-    jitclass_conversion_timer = timer.SplitTimer.init_and_start()
-
-    g = ocj.convert_global(g)
-    ions_moving = [ocj.convert_ion(ion) for ion in ions_moving]
-    target = ocj.convert_target(target)
-    scat = ocj.convert_scattering_nested(scat)
-    snext = ocj.convert_snext(snext)
-    detector = ocj.convert_detector(detector)
-
-    jitclass_conversion_timer.stop()
-    print(f"jitclass_conversion_timer: {jitclass_conversion_timer}")
+    # jitclass_conversion_timer = timer.SplitTimer.init_and_start()
+    #
+    # g = ocj.convert_global(g)
+    # ions_moving = [ocj.convert_ion(ion) for ion in ions_moving]
+    # target = ocj.convert_target(target)
+    # scat = ocj.convert_scattering_nested(scat)
+    # snext = ocj.convert_snext(snext)
+    # detector = ocj.convert_detector(detector)
+    #
+    # jitclass_conversion_timer.stop()
+    # print(f"jitclass_conversion_timer: {jitclass_conversion_timer}")
 
     logging.info("Starting simulation")
 
