@@ -50,8 +50,8 @@ def main(args):
     initialization_timer = timer.SplitTimer.init_and_start()
 
     g = o.Global()
-    primary_ion = o.Ion()
-    secondary_ion = o.Ion()
+    primary_ion = o.Ion()  # Not really used in the simulation loop
+    secondary_ion = o.Ion()  # Not really used in the simulation loop
     previous_trackpoint_ion = o.Ion()  # Not used unless simulation is RBS
     ions_moving = []  # TODO: Initialize a list of ions?
     target = o.Target()
@@ -159,22 +159,30 @@ def main(args):
         ion.status = enums.IonStatus.NOT_FINISHED
 
     # dtype conversions
-    g_d = ocd.convert_global(copy.deepcopy(g))
-    detector_d = ocd.convert_detector(copy.deepcopy(detector))
-    target_d = ocd.convert_target(copy.deepcopy(target))
-    snext_d = ocd.convert_snext(copy.deepcopy(snext))
-    scat_d = ocd.convert_scattering_nested(copy.deepcopy(scat))
+    dtype_conversion_timer = timer.SplitTimer.init_and_start()
 
+    g_d = ocd.convert_global(copy.deepcopy(g))
     ions_moving_d = np.array([ocd.convert_ion(copy.deepcopy(ion)) for ion in ions_moving])
+    target_d = ocd.convert_target(copy.deepcopy(target))
+    scat_d = ocd.convert_scattering_nested(copy.deepcopy(scat))
+    snext_d = ocd.convert_snext(copy.deepcopy(snext))
+    detector_d = ocd.convert_detector(copy.deepcopy(detector))
+
+    dtype_conversion_timer.stop()
+    print(f"dtype_conversion_timer: {dtype_conversion_timer}")
 
     # Jitclass conversions
-    g = ocj.convert_global(g)
-    detector = ocj.convert_detector(detector)
-    target = ocj.convert_target(target)
-    snext = ocj.convert_snext(snext)
-    scat = ocj.convert_scattering_nested(scat)
+    jitclass_conversion_timer = timer.SplitTimer.init_and_start()
 
+    g = ocj.convert_global(g)
     ions_moving = [ocj.convert_ion(ion) for ion in ions_moving]
+    target = ocj.convert_target(target)
+    scat = ocj.convert_scattering_nested(scat)
+    snext = ocj.convert_snext(snext)
+    detector = ocj.convert_detector(detector)
+
+    jitclass_conversion_timer.stop()
+    print(f"jitclass_conversion_timer: {jitclass_conversion_timer}")
 
     logging.info("Starting simulation")
 
