@@ -182,7 +182,7 @@ def convert_scattering_nested(scat: Any) -> Any:
         [[convert_scattering(scat) for scat in inner_list]
          for inner_list in scat])
 
-    return scat_new
+    return scat_new.view(np.recarray)
 
 
 def convert_snext(snext: o.SNext) -> od.SNext:
