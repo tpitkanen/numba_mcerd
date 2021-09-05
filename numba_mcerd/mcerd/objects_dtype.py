@@ -340,8 +340,14 @@ def main():
 
     # Values
     point = np.zeros(1, dtype=Point)[0]
-    point.x, point.y, point.x = 1., 2., 3.
+    point["x"], point["y"], point["z"] = 1., 2., 3.
     print(point)
+
+    # Views
+    point_view = point.view(np.recarray)
+    point_view.x, point_view.y, point_view.z = 4., 5., 6.
+    print(point)  # Views are shared with the original array
+    print(point_view)
 
     # Zeros
     vector = np.zeros(1, dtype=Vector)[0]
