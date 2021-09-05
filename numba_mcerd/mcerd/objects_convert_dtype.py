@@ -91,7 +91,15 @@ def convert_presimu(presimu: o.Presimu) -> od.Presimu:
 # TODO: Return Jibal and Master too
 def convert_global(g: o.Global) -> od.Global:
     def convert(values):
-        raise NotImplementedError
+        values["simtype"] = values["simtype"].value
+        values["bspot"] = convert_point2(values["bspot"])
+        values["simstage"] = values["simstage"].value
+        values["presimu"] = np.array([convert_presimu(presimu) for presimu in values["presimu"]])
+        values["master"] = None  # TODO: Implement
+        values["recwidth"] = values["recwidth"].value
+        values["finstat"] = np.array(values["finstat"], dtype=np.int64)
+        values["beamprof"] = values["beamprof"].value
+        values["jibal"] = None  # TODO: Implement
 
     return _base_convert(g, od.Global, convert)
 
@@ -264,15 +272,22 @@ def convert_detector(detector: o.Detector) -> od.Detector:
 
 def main():
     # TODO: copy.deepcopy() for test objects
-    import copy
+    # import copy
 
-    from numba_mcerd.mcerd import enums
+    from numba_mcerd.mcerd import constants, enums
 
     point = o.Point(1., 2., 3.)
     conv_point = convert_point(point)
     print(point)
     print(conv_point)
     print()
+
+    g = o.Global(simtype=enums.SimType.ERD, simstage=enums.SimStage.ANY,
+                 recwidth=enums.RecWidth.WIDE, beamprof=enums.BeamProf.NONE)
+    g.presimu = [o.Presimu() for _ in range(10000)]
+    conv_g = convert_global(g)
+    print(g)
+    print(conv_g)
 
     vector = o.Vector(p=o.Point(2., 4., 6.), theta=1.0, fii=0.5, v=0.2)
     conv_vector = convert_vector(vector)
@@ -295,6 +310,7 @@ def main():
     print(conv_target_sto)
 
     scat = o.Scattering()
+    scat.cross.b = [0.0] * constants.EPSIMP
     conv_scat = convert_scattering(scat)
     print(scat)
     print(conv_scat)
