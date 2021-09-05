@@ -343,6 +343,11 @@ def main():
     point["x"], point["y"], point["z"] = 1., 2., 3.
     print(point)
 
+    # Values (alternative)
+    # https://numpy.org/devdocs/reference/arrays.scalars.html#indexing
+    point_2 = np.array((1., 2., 3.), dtype=Point)[()]
+    print(point_2)
+
     # Views
     point_view = point.view(np.recarray)
     point_view.x, point_view.y, point_view.z = 4., 5., 6.
