@@ -1,7 +1,7 @@
 """Utilities for converting normal Python objects to NumPy dtype objects.
 
 Warning: expect conversions to modify/break original objects and for
-converted objects to share their attributes with with originals.
+converted objects to share their attributes with originals.
 """
 from typing import Any
 
