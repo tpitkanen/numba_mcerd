@@ -7,7 +7,7 @@ from numba_mcerd import config, timer, patch_numba
 from numba_mcerd.mcerd import (
     random_jit, init_params, read_input, potential, ion_stack, init_simu, cross_section,
     potential_jit, init_simu_jit, cross_section_jit, elsto, init_detector, output, ion_simu_jit,
-    enums
+    enums, erd_scattering_jit
 )
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
@@ -211,6 +211,12 @@ def main(args):
             ion_simu_jit.next_scattering(g, cur_ion, target, scat, snext)
             nscat = ion_simu_jit.move_ion(g, cur_ion, target, snext)
 
+            if nscat == enums.ScatteringType.ERD_SCATTERING:
+                if erd_scattering_jit.erd_scattering(
+                        g, ions_moving[PRIMARY], ions_moving[SECONDARY], target, detector):
+                    cur_ion = ions_moving[SECONDARY]
+
+            print("loop end")
     # TODO
     pass
 
