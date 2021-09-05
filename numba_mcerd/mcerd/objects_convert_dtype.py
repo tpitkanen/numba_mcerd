@@ -101,7 +101,8 @@ def convert_global(g: o.Global) -> od.Global:
         values["beamprof"] = values["beamprof"].value
         values["jibal"] = None  # TODO: Implement
 
-    return _base_convert(g, od.Global, convert)
+    global_dtype = od.get_global_dtype(len(g.presimu))
+    return _base_convert(g, global_dtype, convert)
 
 
 def convert_ion_opt(ion_opt: o.Ion_opt) -> od.Ion_opt:
@@ -284,7 +285,7 @@ def main():
 
     g = o.Global(simtype=enums.SimType.ERD, simstage=enums.SimStage.ANY,
                  recwidth=enums.RecWidth.WIDE, beamprof=enums.BeamProf.NONE)
-    g.presimu = [o.Presimu() for _ in range(10000)]
+    g.presimu = [o.Presimu() for _ in range(50)]
     conv_g = convert_global(g)
     print(g)
     print(conv_g)

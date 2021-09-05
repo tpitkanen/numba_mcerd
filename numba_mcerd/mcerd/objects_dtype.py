@@ -36,6 +36,7 @@ Presimu = np.dtype([
 # Master
 
 
+# Use get_global_dtype in code, this is just for use as a type annotation
 Global = np.dtype([
     ("mpi", bool),
     ("E0", np.float64),
@@ -55,7 +56,7 @@ Global = np.dtype([
     ("nscale", np.int64),
     ("nrecave", np.int64),
     ("cpresimu", np.int64),
-    ("presimu", Presimu, 10000),  # TODO: Variable size
+    ("presimu", Presimu, 10000),  # Real size is known only during runtime
     ("predata", np.int64),
     # ( "master", Master),
     ("frecmin", np.float64),
@@ -77,6 +78,51 @@ Global = np.dtype([
     # ( "jibal", Jibal),
     ("nomc", bool)
 ])
+
+
+def get_global_dtype(presimu_size: int) -> Global:
+    """Return a Global dtype with a presimu of specific size"""
+    return np.dtype([
+        ("mpi", bool),
+        ("E0", np.float64),
+        ("nions", np.int64),
+        ("ncascades", np.int64),
+        ("nsimu", np.int64),
+        ("emin", np.float64),
+        ("ionemax", np.float64),
+        ("minangle", np.float64),
+        ("seed", np.int64),
+        ("cion", np.int64),
+        ("simtype", np.int64),  # constants.SimType
+        ("beamangle", np.float64),
+        ("bspot", Point2),
+        ("simstage", np.int64),  # constants.SimStage
+        ("npresimu", np.int64),
+        ("nscale", np.int64),
+        ("nrecave", np.int64),
+        ("cpresimu", np.int64),
+        ("presimu", Presimu, presimu_size),  # Variable size
+        ("predata", np.int64),
+        # ( "master", Master),
+        ("frecmin", np.float64),
+        ("costhetamax", np.float64),
+        ("costhetamin", np.float64),
+        ("recwidth", np.int64),  # constants.RecWidth
+        ("virtualdet", bool),
+        ("basename", str, 100),  # TODO: size?
+        ("finstat", np.int64, (2, 11)),  # len [SECONDARY + 1][NIONSTATUS]
+        ("beamdiv", np.int64),
+        ("beamprof", np.int64),  # constants.BeamProf
+        ("rough", bool),
+        ("nmclarge", np.int64),
+        ("nmc", np.int64),
+        ("output_trackpoints", bool),
+        ("output_misses", bool),
+        ("cascades", bool),
+        ("advanced_output", bool),
+        # ( "jibal", Jibal),
+        ("nomc", bool)
+    ])
 
 
 Ion_opt = np.dtype([
@@ -211,7 +257,7 @@ Target_layer = np.dtype([
     ("atom", np.int64, constants.MAXATOMS),
     ("N", np.float64, constants.MAXATOMS),
     ("Ntot", np.float64),
-    ("sto", Target_sto, LAYER_STO_COUNT_ERD),  # TODO: Correct number for sto
+    ("sto", Target_sto, LAYER_STO_COUNT_ERD),  # TODO: Get correct size like in get_global_dtype
     ("type", np.int64),  # constants.TargetType
     ("gas", bool),
     ("stofile_prefix", str, constants.MAXSTOFILEPREFIXLEN)
