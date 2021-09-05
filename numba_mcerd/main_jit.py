@@ -155,12 +155,17 @@ def main(args):
     initialization_timer.stop()
     print(f"initialization_timer: {initialization_timer}")
 
+    for ion in ions_moving:
+        ion.status = enums.IonStatus.NOT_FINISHED
+
     # dtype conversions
     g_d = ocd.convert_global(copy.deepcopy(g))
     detector_d = ocd.convert_detector(copy.deepcopy(detector))
     target_d = ocd.convert_target(copy.deepcopy(target))
     snext_d = ocd.convert_snext(copy.deepcopy(snext))
     scat_d = ocd.convert_scattering_nested(copy.deepcopy(scat))
+
+    ions_moving_d = np.array([ocd.convert_ion(copy.deepcopy(ion)) for ion in ions_moving])
 
     # Jitclass conversions
     g = ocj.convert_global(g)
@@ -169,9 +174,7 @@ def main(args):
     snext = ocj.convert_snext(snext)
     scat = ocj.convert_scattering_nested(scat)
 
-    for i in range(len(ions_moving)):
-        ions_moving[i].status = enums.IonStatus.NOT_FINISHED
-        ions_moving[i] = ocj.convert_ion(ions_moving[i])
+    ions_moving = [ocj.convert_ion(ion) for ion in ions_moving]
 
     logging.info("Starting simulation")
 
