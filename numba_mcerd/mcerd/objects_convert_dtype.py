@@ -3,7 +3,7 @@
 Warning: expect conversions to modify/break original objects and for
 converted objects to share their attributes with originals.
 """
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 
@@ -22,7 +22,7 @@ def setkey_all(obj: Any, values: dict) -> None:
             obj[key] = val
 
 
-def _base_convert(obj, target_dtype, converter):
+def _base_convert(obj: Any, target_dtype: np.dtype, converter: Callable):
     """Base conversion function for all dtypes
 
     Args:
@@ -75,20 +75,32 @@ def convert_point(point: o.Point) -> od.Point:
 
 
 def convert_point2(point: o.Point2) -> od.Point2:
-    pass
+    def convert(values):
+        pass
+
+    return _base_convert(point, od.Point2, convert)
 
 
 def convert_presimu(presimu: o.Presimu) -> od.Presimu:
-    pass
+    def convert(values):
+        pass
+
+    return _base_convert(presimu, od.Presimu, convert)
 
 
 # TODO: Return Jibal and Master too
 def convert_global(g: o.Global) -> od.Global:
-    pass
+    def convert(values):
+        raise NotImplementedError
+
+    return _base_convert(g, od.Global, convert)
 
 
 def convert_ion_opt(ion_opt: o.Ion_opt) -> od.Ion_opt:
-    pass
+    def convert(values):
+        pass
+
+    return _base_convert(ion_opt, od.Ion_opt, convert)
 
 
 def convert_vector(vector: o.Vector) -> od.Vector:
@@ -99,19 +111,45 @@ def convert_vector(vector: o.Vector) -> od.Vector:
 
 
 def convert_rec_hist(rec_hist: o.Rec_hist) -> od.Rec_hist:
-    pass
+    def convert(values):
+        values["tar_recoil"] = convert_vector(values["tar_recoil"])
+        values["ion_recoil"] = convert_vector(values["ion_recoil"])
+        values["lab_recoil"] = convert_vector(values["lab_recoil"])
+        values["tar_primary"] = convert_vector(values["tar_primary"])
+        values["lab_primary"] = convert_vector(values["lab_primary"])
+
+    return _base_convert(rec_hist, od.Rec_hist, convert)
 
 
 def convert_isotopes(isotopes: o.Isotopes) -> od.Isotopes:
-    pass
+    def convert(values):
+        values["A"] = _convert_array(values["A"])
+        values["c"] = _convert_array(values["c"])
+
+    return _base_convert(isotopes, od.Isotopes, convert)
 
 
 def convert_ion(ion: o.Ion) -> od.Ion:
-    pass
+    def convert(values):
+        values["I"] = convert_isotopes(values["I"])
+        values["p"] = convert_point(values["p"])
+        values["status"] = values["status"].value
+        values["opt"] = convert_ion_opt(values["opt"])
+        values["lab"] = convert_vector(values["lab"])
+        values["type"] = values["type"].value
+        values["hist"] = convert_rec_hist(values["hist"])
+        values["hit"] = np.array([convert_point(point) for point in values["hit"]])
+        values["Ed"] = _convert_array(values["Ed"])
+        values["dt"] = _convert_array(values["dt"])
+
+    return _base_convert(ion, od.Ion, convert)
 
 
 def convert_cross_section(cross_section: o.Cross_section) -> od.Cross_section:
-    pass
+    def convert(values):
+        values["b"] = np.array(values["b"], dtype=np.float64)
+
+    return _base_convert(cross_section, od.Cross_section, convert)
 
 
 # Not needed
@@ -120,19 +158,27 @@ def convert_cross_section(cross_section: o.Cross_section) -> od.Cross_section:
 
 
 def convert_scattering(scat: o.Scattering) -> od.Scattering:
-    pass
+    def convert(values):
+        values["angle"] = np.array(values["angle"], dtype=np.float64)
+        values["cross"] = convert_cross_section(values["cross"])
+        # values["pot"] =  # Originally commented out
+
+    return _base_convert(scat, od.Scattering, convert)
 
 
 # TODO: correct type hints
 def convert_scattering_nested(scat: Any) -> Any:
-    pass
+    raise NotImplementedError
 
 
 def convert_snext(snext: o.SNext) -> od.SNext:
-    pass
+    def convert(values):
+        pass
+
+    return _base_convert(snext, od.SNext, convert)
 
 
-# def convert_surface(): pass  # Needed
+# def convert_surface(): pass  # Not needed
 
 
 def convert_target_ele(ele: o.Target_ele) -> od.Target_ele:
@@ -186,18 +232,42 @@ def convert_target(target: o.Target) -> od.Target:
 
 
 def convert_line(line: o.Line) -> od.Line:
-    pass
+    def convert(values):
+        values["type"] = values["type"].value
+
+    return _base_convert(line, od.Line, convert)
 
 
 def convert_det_foil(foil: o.Det_foil) -> od.Det_foil:
-    pass
+    def convert(values):
+        values["type"] = values["type"].value
+        values["size"] = _convert_array(values["size"])
+        values["plane"] = convert_plane(values["plane"])
+        values["center"] = convert_point(values["center"])
+
+    return _base_convert(foil, od.Det_foil, convert)
 
 
 def convert_detector(detector: o.Detector) -> od.Detector:
-    pass
+    def convert(values):
+        values["type"] = values["type"].value
+        values["vsize"] = _convert_array(values["vsize"])
+        values["tdet"] = _convert_array(values["tdet"])
+        values["edet"] = _convert_array(values["edet"])
+        values["foil"] = np.array(
+            [convert_det_foil(foil) if foil.type is not None else np.zeros((), dtype=od.Det_foil)
+             for foil in values["foil"]])
+        values["vfoil"] = convert_det_foil(values["vfoil"])
+
+    return _base_convert(detector, od.Detector, convert)
 
 
 def main():
+    # TODO: copy.deepcopy() for test objects
+    import copy
+
+    from numba_mcerd.mcerd import enums
+
     point = o.Point(1., 2., 3.)
     conv_point = convert_point(point)
     print(point)
@@ -209,18 +279,51 @@ def main():
     print(vector)
     print(conv_vector)
 
+    rec_hist = o.Rec_hist()
+    conv_rec_hist = convert_rec_hist(rec_hist)
+    print(rec_hist)
+    print(conv_rec_hist)
+
+    ion = o.Ion(status=enums.IonStatus.NOT_FINISHED, type=enums.IonType.PRIMARY)
+    conv_ion = convert_ion(ion)
+    print(ion)
+    print(conv_ion)
+
     target_sto = o.Target_sto()
     conv_target_sto = convert_target_sto(target_sto)
     print(target_sto)
     print(conv_target_sto)
 
-    from numba_mcerd.mcerd import enums
-    target_layer = o.Target_layer()
-    target_layer.sto = [o.Target_sto() for _ in range(2)]
-    target_layer.type = enums.TargetType.FILM
-    conv_target_layer = convert_target_layer(target_layer)
-    print(target_layer)
-    print(conv_target_layer)
+    scat = o.Scattering()
+    conv_scat = convert_scattering(scat)
+    print(scat)
+    print(conv_scat)
+
+    snext = o.SNext()
+    conv_snext = convert_snext(snext)
+    print(snext)
+    print(conv_snext)
+
+    target = o.Target()
+    target.plane.type = enums.PlaneType.GENERAL_PLANE
+    target.layer[0].sto = [o.Target_sto() for _ in range(2)]
+    target.layer[0].type = enums.TargetType.FILM
+    target_conv = convert_target(target)
+    print(target)
+    print(target_conv)
+
+    line = o.Line(type=enums.LineType.GENERAL)
+    conv_line = convert_line(line)
+    print(line)
+    print(conv_line)
+
+    det = o.Detector(type=enums.DetectorType.TOF)
+    det.foil[0].plane.type = enums.PlaneType.GENERAL_PLANE
+    det.vfoil.plane.type = enums.PlaneType.GENERAL_PLANE
+    det.vfoil.type = enums.FoilType.CIRC
+    conv_det = convert_detector(det)
+    print(det)
+    print(conv_det)
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ import numba_mcerd.mcerd.objects_jit as oj
 # TODO: Replace reflected lists:
 # https://numba.pydata.org/numba-doc/latest/reference/deprecation.html#deprecation-of-reflection-for-list-and-set-types
 
+# TODO: remove list trimming, see objects_convert_dtype for examples
 
 class JitclassConvertError(Exception):
     """Error while converting"""
@@ -195,7 +196,7 @@ def convert_snext(snext: o.SNext) -> oj.SNext:
     return _base_convert(snext, oj.SNext, convert)
 
 
-# def convert_surface(): pass  # Needed
+# def convert_surface(): pass  # Not needed
 
 
 def convert_target_ele(ele: o.Target_ele) -> oj.Target_ele:
