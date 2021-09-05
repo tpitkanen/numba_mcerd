@@ -12,6 +12,7 @@ from numba_mcerd.mcerd import (
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.objects_convert_jit as ocj
+import numba_mcerd.mcerd.objects_convert_dtype as ocd
 
 
 # These are too annoying to type
@@ -154,6 +155,14 @@ def main(args):
     initialization_timer.stop()
     print(f"initialization_timer: {initialization_timer}")
 
+    # dtype conversions
+    g_d = ocd.convert_global(copy.deepcopy(g))
+    detector_d = ocd.convert_detector(copy.deepcopy(detector))
+    target_d = ocd.convert_target(copy.deepcopy(target))
+    snext_d = ocd.convert_snext(copy.deepcopy(snext))
+    scat_d = ocd.convert_scattering_nested(copy.deepcopy(scat))
+
+    # Jitclass conversions
     g = ocj.convert_global(g)
     detector = ocj.convert_detector(detector)
     target = ocj.convert_target(target)
