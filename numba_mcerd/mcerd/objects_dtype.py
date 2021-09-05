@@ -339,7 +339,8 @@ def main():
     # Usage examples
 
     # Values
-    point = np.array((1., 2., 3.), dtype=Point)
+    point = np.zeros(1, dtype=Point)[0]
+    point.x, point.y, point.x = 1., 2., 3.
     print(point)
 
     # Zeros
@@ -357,7 +358,7 @@ def main():
     print(target_sto["vel"][0:5])  # Array slicing, not sure if supported in Numba
 
     target_layer = np.zeros(1, dtype=Target_layer)[0]
-    target_layer["stofile_prefix"] = "moi"
+    target_layer["stofile_prefix"] = "pref"
     print(target_layer)
 
     # -------------------------------------------------------------------------
@@ -366,7 +367,7 @@ def main():
 
     print("--------------------------------------------------------------------------------")
 
-    # Arrays are too big to print without filling the output buffer
+    # These arrays are too big to print without filling the output buffer
 
     target = np.zeros(1, dtype=Target)[0]
     # print(target)
