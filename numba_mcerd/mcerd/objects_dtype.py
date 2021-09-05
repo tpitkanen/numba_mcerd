@@ -343,7 +343,7 @@ def main():
     print(point)
 
     # Zeros
-    vector = np.zeros((), dtype=Vector)
+    vector = np.zeros(1, dtype=Vector)[0]
     print(vector)
 
     # Array
@@ -351,12 +351,12 @@ def main():
     print(points)
 
     # Object with arrays
-    target_sto = np.zeros((), dtype=Target_sto)
+    target_sto = np.zeros(1, dtype=Target_sto)[0]
     target_sto["vel"][0] = 1.
     print(target_sto)
     print(target_sto["vel"][0:5])  # Array slicing, not sure if supported in Numba
 
-    target_layer = np.zeros((), dtype=Target_layer)
+    target_layer = np.zeros(1, dtype=Target_layer)[0]
     target_layer["stofile_prefix"] = "moi"
     print(target_layer)
 
@@ -368,22 +368,22 @@ def main():
 
     # Arrays are too big to print without filling the output buffer
 
-    target = np.zeros((), dtype=Target)
+    target = np.zeros(1, dtype=Target)[0]
     # print(target)
 
-    g = np.zeros((), dtype=Global)
+    g = np.zeros(1, dtype=Global)[0]
     # print(g)
 
-    ion = np.zeros((), dtype=Ion)
+    ion = np.zeros(1, dtype=Ion)[0]
     # print(ion)
 
-    scattering = np.zeros((), dtype=Scattering)
+    scattering = np.zeros(1, dtype=Scattering)[0]
     # print(scattering)
 
-    line = np.zeros((), dtype=Line)
+    line = np.zeros(1, dtype=Line)[0]
     # print(line)
 
-    detector = np.zeros((), dtype=Detector)
+    detector = np.zeros(1, dtype=Detector)[0]
     # print(detector)
 
 

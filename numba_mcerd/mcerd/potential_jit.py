@@ -66,8 +66,9 @@ def make_screening_table_dtype() -> od.Potential:
     xstep = xmax / (n - 1)
     d = round(1 / xstep)
 
-    # This initialization works in Numba, but requires attribute-style
+    # This initialization somewhat works in Numba, but requires attribute-style
     # access (.attribute_name), which doesn't work without Numba.
+    # Causes issues when using e.g. math.cos(obj.angle).
     # pot = np.zeros((), dtype=od.Potential)
 
     pot = np.zeros(1, dtype=od.Potential)[0]

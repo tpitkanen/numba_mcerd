@@ -38,7 +38,7 @@ def _base_convert(obj: Any, target_dtype: np.dtype, converter: Callable):
     values = vars(obj)
     converter(values)
 
-    target_obj = np.zeros((), dtype=target_dtype)
+    target_obj = np.zeros(1, dtype=target_dtype)[0]
     setkey_all(target_obj, values)
 
     # TODO: Is this the only place that needs .view(np.recarray)?
@@ -232,7 +232,7 @@ def convert_target(target: o.Target) -> od.Target:
     def convert(values):
         values["ele"] = np.array([convert_target_ele(ele) for ele in values["ele"]])
         values["layer"] = np.array(
-            [convert_target_layer(layer) if layer.type is not None else np.zeros((), dtype=od.Target_layer)
+            [convert_target_layer(layer) if layer.type is not None else np.zeros(1, dtype=od.Target_layer)[0]
              for layer in values["layer"]])
 
         values["recdist"] = np.array([convert_point2(rec) for rec in values["recdist"]])
@@ -269,7 +269,7 @@ def convert_detector(detector: o.Detector) -> od.Detector:
         values["tdet"] = _convert_array(values["tdet"])
         values["edet"] = _convert_array(values["edet"])
         values["foil"] = np.array(
-            [convert_det_foil(foil) if foil.type is not None else np.zeros((), dtype=od.Det_foil)
+            [convert_det_foil(foil) if foil.type is not None else np.zeros(1, dtype=od.Det_foil)[0]
              for foil in values["foil"]])
         values["vfoil"] = convert_det_foil(values["vfoil"])
 
