@@ -188,7 +188,7 @@ def main(args):
 
     # TODO: Move this to a separate jit-compiled function to eliminate
     #       context-switching overhead
-    for i in range(g.nsimu):
+    for i in range(g_d.nsimu):
         print(i)
 
         g.cion = i  # TODO: Replace/remove for MT
@@ -198,9 +198,9 @@ def main(args):
 
         # output.output_data(g)  # Only prints status info
 
-        cur_ion = ions_moving[PRIMARY]
+        cur_ion = ions_moving_d[PRIMARY]
 
-        ion_simu_jit.create_ion(g, cur_ion, target)
+        ion_simu_jit.create_ion(g_d, cur_ion, target_d)
         if g.rough:
             ion_simu_jit.move_target(target)
 
@@ -208,10 +208,8 @@ def main(args):
         while not primary_finished:
             outer_loop_count += 1
 
-            ion_simu_jit.next_scattering(g, cur_ion, target, scat, snext)
-            nscat = ion_simu_jit.move_ion(g, cur_ion, target, snext)
-
-            print("End of loop")
+            ion_simu_jit.next_scattering(g_d, cur_ion, target_d, scat_d, snext_d)
+            nscat = ion_simu_jit.move_ion(g_d, cur_ion, target_d, snext_d)
 
     # TODO
     pass

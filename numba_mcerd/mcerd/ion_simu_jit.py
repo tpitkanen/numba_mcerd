@@ -7,6 +7,7 @@ import numpy as np
 from numba_mcerd.mcerd import random_jit, cross_section_jit, enums
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.objects_jit as oj
+import numba_mcerd.mcerd.objects_dtype as od
 import numba_mcerd.mcerd.constants as c
 
 
@@ -14,8 +15,8 @@ class IonSimulationError(Exception):
     """Error in ion simulation"""
 
 
-@nb.njit()
-def create_ion(g: oj.Global, ion: oj.Ion, target: oj.Target) -> None:
+@nb.njit(cache=True)
+def create_ion(g: od.Global, ion: od.Ion, target: od.Target) -> None:
     """Calculate parameters for ion (primary or secondary)
 
     About coordinate systems:
@@ -34,8 +35,6 @@ def create_ion(g: oj.Global, ion: oj.Ion, target: oj.Target) -> None:
     else:
         z = 0.0
 
-    # TODO: Is there an easier way to do this?
-    ion.lab.p = oj.Point()
     ion.lab.p.x = x
     ion.lab.p.y = y
     ion.lab.p.z = z
@@ -79,14 +78,17 @@ def create_ion(g: oj.Global, ion: oj.Ion, target: oj.Target) -> None:
     #     debug.print_ion_position(g, ion, "L", enums.SimStage.ANY)
 
 
-@nb.njit()
-def move_target(target: oj.Target) -> None:
+@nb.njit(cache=True)
+def move_target(target: od.Target) -> None:
     raise NotImplementedError
 
 
-@nb.njit()
-def next_scattering(g: oj.Global, ion: oj.Ion, target: oj.Target,
-                    scat: List[List[oj.Scattering]], snext: oj.SNext) -> None:
+# TODO: scat: List[List[od.Scattering]] causes an error:
+# TypeError: Parameters to generic types must be types. Got dtype(...)
+# TODO: Use numpy.typing for scat array
+@nb.njit(cache=True)
+def next_scattering(g: od.Global, ion: od.Ion, target: od.Target,
+                    scat: np.ndarray, snext: od.SNext) -> None:
     """Calculate impact parameter (ion.opt.y) and distance to the next
      scattering point (snext.d)
      """
@@ -117,7 +119,8 @@ def next_scattering(g: oj.Global, ion: oj.Ion, target: oj.Target,
     snext.d = -math.log(random_jit.rnd(0.0, 1.0, enums.RndPeriod.RIGHT)) / cross
 
 
-def move_ion(g: oj.Global, ion: oj.Ion, target: oj.Target, snext: oj.SNext) -> int:  # enums.ScatteringType
+@nb.njit(cache=True)
+def move_ion(g: od.Global, ion: od.Ion, target: od.Target, snext: od.SNext) -> int:  # enums.ScatteringType
     # TODO: Replace copy-paste documentation
     """Move ion to the next point, which is the closest of following
       i) next MC-scattering point, distance already calculated
@@ -138,7 +141,6 @@ def move_ion(g: oj.Global, ion: oj.Ion, target: oj.Target, snext: oj.SNext) -> i
     sc = enums.ScatteringType.MC_SCATTERING.value
 
     d = snext.d
-    # TODO: Jitclass crashes here sometimes
     layer = target.layer[ion.tlayer]
 
     nextp = oj.Point()
@@ -188,7 +190,6 @@ def move_ion(g: oj.Global, ion: oj.Ion, target: oj.Target, snext: oj.SNext) -> i
                 cross_recdist = False
 
     vel1 = math.sqrt(2.0 * ion.E / ion.A)
-    # FIXME: Jitclass crashes here
     sto1 = inter_sto(layer.sto[ion.scatindex], vel1, enums.IonMode.STOPPING.value)
 
     dE = sto1 * d
@@ -249,8 +250,8 @@ def move_ion(g: oj.Global, ion: oj.Ion, target: oj.Target, snext: oj.SNext) -> i
 
 
 # TODO: int instead of enum?
-@nb.njit()
-def inter_sto(stop: oj.Target_sto, vel: float, mode: enums.IonMode) -> float:
+@nb.njit(cache=True)
+def inter_sto(stop: od.Target_sto, vel: float, mode: enums.IonMode) -> float:
     """Interpolate the electronic stopping power or straggling value.
 
     stop.sto or stop.stragg must be equally spaced.
@@ -292,8 +293,8 @@ def inter_sto(stop: oj.Target_sto, vel: float, mode: enums.IonMode) -> float:
     return sto
 
 
-@nb.njit()
-def ion_finished(g: oj.Global, ion: oj.Ion, target: oj.Target) -> int:  # enums.IonStatus:
+@nb.njit(cache=True)
+def ion_finished(g: od.Global, ion: od.Ion, target: od.Target) -> int:  # enums.IonStatus:
     """Check finish conditions for ion and decide whether to finish it"""
     if ion.E < g.emin:
         ion.status = enums.IonStatus.FIN_STOP.value
@@ -324,7 +325,7 @@ def ion_finished(g: oj.Global, ion: oj.Ion, target: oj.Target) -> int:  # enums.
     # Comment in original: Here we should also check the case that the
     # recoil comes out of the detector layer from sides.
 
-    return ion.status.value
+    return ion.status
 
 
 # detector would be used in:
@@ -350,8 +351,8 @@ def ion_rotate(p: o.Ion, cos_theta: float, fii: float) -> None:
     raise NotImplementedError
 
 
-@nb.njit()
-def recdist_crossing(g: oj.Global, ion: oj.Ion, target: oj.Target, dist: float) -> Tuple[bool, float]:
+@nb.njit(cache=True)
+def recdist_crossing(g: od.Global, ion: od.Ion, target: od.Target, dist: float) -> Tuple[bool, float]:
     # TODO: Document what dreclayer is. Probably distance to next recoil layer
     """Check if ion is about to cross a layer in the recoil material distribution.
 
@@ -385,8 +386,8 @@ def recdist_crossing(g: oj.Global, ion: oj.Ion, target: oj.Target, dist: float) 
     return scross, d
 
 
-@nb.njit()
-def recdist_nonzero(g: oj.Global, ion: oj.Ion, target: oj.Target, drec: float) -> bool:
+@nb.njit(cache=True)
+def recdist_nonzero(g: od.Global, ion: od.Ion, target: od.Target, drec: float) -> bool:
     """Check if the recoil material distribution is nonzero at the point
     of the next recoil event.
 
@@ -410,8 +411,8 @@ def recdist_nonzero(g: oj.Global, ion: oj.Ion, target: oj.Target, drec: float) -
     return False
 
 
-@nb.njit()
-def get_reclayer(g: oj.Global, target: oj.Target, p: oj.Point) -> int:
+@nb.njit(cache=True)
+def get_reclayer(g: od.Global, target: od.Target, p: od.Point) -> int:
     z = p.z
     n = target.nrecdist
 
