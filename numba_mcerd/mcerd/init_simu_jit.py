@@ -5,13 +5,13 @@ import numpy as np
 
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
-import numba_mcerd.mcerd.objects_dtype as od
+import numba_mcerd.mcerd.objects_jit as oj
 # import numba_mcerd.mcerd.symbols as s
 from numba_mcerd.mcerd import scattering_angle_jit
 
 
 def scattering_table(g: o.Global, ion: o.Ion, target: o.Target, scat: o.Scattering,
-                     pot: od.Potential, natom: int) -> None:
+                     pot: oj.Potential, natom: int) -> None:
     """Create a lookup table for scattering (energies?)"""
     targetZ = target.ele[natom].Z
     targetA = target.ele[natom].A

@@ -60,7 +60,7 @@ def make_screening_table_cached() -> Tuple[int, int, np.ndarray, np.ndarray]:
 
 
 @numba.njit(cache=True)
-def make_screening_table_dtype() -> od.Potential:
+def make_screening_table_dtype() -> oj.Potential:
     xmax = get_max_x()
     n = get_npoints(xmax)
     xstep = xmax / (n - 1)
