@@ -177,7 +177,12 @@ def convert_scattering(scat: o.Scattering) -> od.Scattering:
 
 # TODO: correct type hints
 def convert_scattering_nested(scat: Any) -> Any:
-    raise NotImplementedError
+    # type(np.array(scat)[i][j]) == o.Scattering
+    scat_new = np.array(
+        [[convert_scattering(scat) for scat in inner_list]
+         for inner_list in scat])
+
+    return scat_new
 
 
 def convert_snext(snext: o.SNext) -> od.SNext:

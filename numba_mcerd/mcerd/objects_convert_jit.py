@@ -183,7 +183,7 @@ def convert_scattering_nested(scat: Any) -> Any:
         inner_list = nb.typed.List()
         for j in range(len(scat[i])):
             if not isinstance(scat[i][j].angle, np.ndarray):
-                break  # Remove unused arrays
+                break  # Trim unused arrays
             inner_list.append(convert_scattering(scat[i][j]))
         scat_new.append(inner_list)
     return scat_new
