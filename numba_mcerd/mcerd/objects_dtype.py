@@ -114,11 +114,11 @@ Rec_hist = np.dtype([
 
 
 Isotopes = np.dtype([
-    ("", np.float64, constants.MAXISOTOPES),
-    ("", np.float64, constants.MAXISOTOPES),
-    ("", np.float64),
-    ("", np.int64),
-    ("", np.float64)
+    ("A", np.float64, constants.MAXISOTOPES),
+    ("c", np.float64, constants.MAXISOTOPES),
+    ("c_sum", np.float64),
+    ("n", np.int64),
+    ("Am", np.float64)
 ])
 
 
