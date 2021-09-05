@@ -191,7 +191,7 @@ def main(args):
     for i in range(g_d.nsimu):
         print(i)
 
-        g.cion = i  # TODO: Replace/remove for MT
+        g_d.cion = i  # TODO: Replace/remove for MT
 
         outer_loop_count = 0
         inner_loop_count = 0
@@ -201,8 +201,8 @@ def main(args):
         cur_ion = ions_moving_d[PRIMARY]
 
         ion_simu_jit.create_ion(g_d, cur_ion, target_d)
-        if g.rough:
-            ion_simu_jit.move_target(target)
+        if g_d.rough:
+            ion_simu_jit.move_target(target_d)
 
         primary_finished = False
         while not primary_finished:
