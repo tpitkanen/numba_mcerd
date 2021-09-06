@@ -342,7 +342,7 @@ Det_foil = np.dtype([
     ("virtual", bool),
     ("dist", np.float64),
     ("angle", np.float64),
-    ("size", np.float64, 2),
+    ("size_", np.float64, 2),
     ("plane", Plane),
     ("center", Point)
 ])

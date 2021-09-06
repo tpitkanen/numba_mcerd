@@ -295,7 +295,7 @@ def convert_line(line: o.Line) -> oj.Line:
 def convert_det_foil(foil: o.Det_foil) -> oj.Det_foil:
     def convert(values):
         values["type"] = values["type"].value
-        values["size"] = _convert_array(values["size"])
+        values["size_"] = _convert_array(values["size_"])
         values["plane"] = convert_plane(values["plane"])
         values["center"] = convert_point(values["center"])
 

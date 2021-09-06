@@ -59,14 +59,14 @@ def hit_virtual_detector(g: o.Global, ion: o.Ion, target: o.Target, det: o.Detec
 
     v_real_foil = o.Vector()
     if det.vfoil.type == enums.FoilType.CIRC:
-        r = det.foil[0].size[0] * math.sqrt(rand.rnd(0.0, 1.0, enums.RndPeriod.CLOSED))
+        r = det.foil[0].size_[0] * math.sqrt(rand.rnd(0.0, 1.0, enums.RndPeriod.CLOSED))
         fii = rand.rnd(0.0, 2.0 * c.C_PI, enums.RndPeriod.CLOSED)
         v_real_foil.p.x = r * math.cos(fii)
         v_real_foil.p.y = r * math.sin(fii)
     elif det.vfoil.type == enums.FoilType.RECT:
-        dx = det.foil[0].size[0]
+        dx = det.foil[0].size_[0]
         v_real_foil.p.x = rand.rnd(-dx, dx, enums.RndPeriod.CLOSED)
-        dy = det.foil[0].size[1]
+        dy = det.foil[0].size_[1]
         v_real_foil.p.y = rand.rnd(-dy, dy, enums.RndPeriod.CLOSED)
     v_real_foil.p.z = 0.0
     theta = det.angle

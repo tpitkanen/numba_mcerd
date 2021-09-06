@@ -543,7 +543,7 @@ class Line:
     "virtual": boolean,
     "dist": float64,
     "angle": float64,
-    "size": float64[:],
+    "size_": float64[:],
     "plane": Plane.class_type.instance_type,
     "center": Point.class_type.instance_type
 })
@@ -553,7 +553,7 @@ class Det_foil:
         self.virtual = False  # Is this foil virtual
         self.dist = 0.0  # Distance from the target center
         self.angle = 0.0  # Angle of the foil
-        self.size = np.zeros(2, dtype=np.float64)  # Diameter for circular, width and height for rect.  # len 2
+        self.size_ = np.zeros(2, dtype=np.float64)  # Diameter for circular, width and height for rect.  # len 2
         self.plane = Plane()  # Plane of the detector foil
         self.center = Point()  # Point of the center of the foil
 

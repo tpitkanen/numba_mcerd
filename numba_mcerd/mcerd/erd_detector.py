@@ -205,10 +205,10 @@ def is_in_foil(p: o.Point, foil: o.Det_foil) -> bool:
     """(Point p is assumed to be on the plane of circle c)"""
     if foil.type == enums.FoilType.CIRC:
         if foil.virtual:
-            return math.sqrt((p.x / foil.size[0])**2 + (p.y / foil.size[1])**2) <= 1.0
-        return math.sqrt(p.x**2 + p.y**2) <= foil.size[0]
+            return math.sqrt((p.x / foil.size_[0])**2 + (p.y / foil.size_[1])**2) <= 1.0
+        return math.sqrt(p.x**2 + p.y**2) <= foil.size_[0]
     if foil.type == enums.FoilType.RECT:
-        return abs(p.x) <= foil.size[0] and abs(p.y) <= foil.size[1]
+        return abs(p.x) <= foil.size_[0] and abs(p.y) <= foil.size_[1]
     return False
 
 

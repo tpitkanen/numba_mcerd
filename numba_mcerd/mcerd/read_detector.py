@@ -105,15 +105,15 @@ def read_detector_file(filename: str, g: o.Global, detector: o.Detector, target:
             if key != DetectorSettingsLine.FOIL_DIAMETER.value:
                 raise ReadDetectorError
             # TODO: Size array could be set to specific size, or Foil could be subclassed
-            foil.size[0] = float(diameter) * 0.5 * c.C_MM
+            foil.size_[0] = float(diameter) * 0.5 * c.C_MM
         elif foil_type == "rectangular":
             foil.type = enums.FoilType.RECT
             key, sizes = next(lines_gen)
             sizes = sizes.split(maxsplit=1)
             if key != DetectorSettingsLine.FOIL_SIZE.value:
                 raise ReadDetectorError
-            foil.size[0] = float(sizes[0]) * 0.5 * c.C_MM
-            foil.size[1] = float(sizes[1]) * 0.5 * c.C_MM
+            foil.size_[0] = float(sizes[0]) * 0.5 * c.C_MM
+            foil.size_[1] = float(sizes[1]) * 0.5 * c.C_MM
         else:
             ReadDetectorError(f"Detector foil type {foil_type} not supported")
 

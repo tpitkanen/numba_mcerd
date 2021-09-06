@@ -273,9 +273,9 @@ class SNext:
 class Surface:
     z: List[List[float]] = None  # Depth data leveled below zero  # len [NSURFDATA][NSURFDATA]
     nsize: int = 0  # Number of data points per side
-    size: float = 0.0  # Physical length of the side
+    size_: float = 0.0  # Physical length of the side
     depth: float = 0.0  # Maximum depth in the data
-    step: float = 0.0  # size/(nsize - 1)
+    step: float = 0.0  # size_/(nsize - 1)
     origin: Point = None  # (Random) origin of the surface x-y -data
     sin_r: float = 0.0  # sinus of the rotation (for speed)
     cos_r: float = 0.0  # cosinus of the rotation (for speed)
@@ -410,13 +410,13 @@ class Det_foil:
     virtual: bool = False  # Is this foil virtual
     dist: float = 0.0  # Distance from the target center
     angle: float = 0.0  # Angle of the foil
-    size: List[float] = None  # Diameter for circular, width and height for rect.  # len 2
+    size_: List[float] = None  # Diameter for circular, width and height for rect.  # len 2
     plane: Plane = None  # Plane of the detector foil
     center: Point = None  # Point of the center of the foil
 
     def __post_init__(self):
-        if self.size is None:
-            self.size = [0.0] * 2
+        if self.size_ is None:
+            self.size_ = [0.0] * 2
         if self.plane is None:
             self.plane = Plane()
         if self.center is None:
