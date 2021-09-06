@@ -7,7 +7,7 @@ from numba_mcerd import config, timer, patch_numba
 from numba_mcerd.mcerd import (
     random_jit, init_params, read_input, potential, ion_stack, init_simu, cross_section,
     potential_jit, init_simu_jit, cross_section_jit, elsto, init_detector, output, ion_simu_jit,
-    enums, erd_scattering_jit
+    enums, erd_scattering_jit, pre_simulation_jit
 )
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
@@ -49,6 +49,7 @@ def main(args):
 
     initialization_timer = timer.SplitTimer.init_and_start()
 
+    # _o stands for original (not converted to Numpy dtype array/record)
     g_o = o.Global()
     primary_ion_o = o.Ion()  # Not really used in the simulation loop
     secondary_ion_o = o.Ion()  # Not really used in the simulation loop
@@ -215,6 +216,15 @@ def main(args):
                 if erd_scattering_jit.erd_scattering(
                         g, ions_moving[PRIMARY], ions_moving[SECONDARY], target, detector):
                     cur_ion = ions_moving[SECONDARY]
+
+            if cur_ion.status == enums.IonStatus.FIN_RECOIL or cur_ion.status == enums.IonStatus.FIN_OUT_DET:
+                if g.simstage == enums.SimStage.PRE:
+                    pre_simulation_jit.finish_presimulation(g, detector, cur_ion)
+                    cur_ion = ions_moving[PRIMARY]
+                else:
+                    # erd_detector_jit.move_to_erd_detector(g, cur_ion, target, detector)
+                    raise NotImplementedError
+
 
             print("loop end")
     # TODO
