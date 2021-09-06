@@ -34,9 +34,10 @@ def finish_presimulation(g: oj.Global, detector: oj.Detector, recoil: oj.Ion) ->
     g.cpresimu += 1
 
 
-# TODO: Untested
-@nb.njit(cache=True)
-def analyze_presimulation(g: oj.Global, target: oj.Target, detector: oj.Detector) -> None:
+# TODO: I/O not supported in Numba
+# @nb.njit(cache=True)
+def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
+                          detector: oj.Detector) -> None:
     """We determine here the solid angle as function of recoiling depth
     and layer, which contains all but PRESIMU_LEVEL portion of the
     recoils (typically 99%). The result is given as a linear fit
@@ -49,8 +50,7 @@ def analyze_presimulation(g: oj.Global, target: oj.Target, detector: oj.Detector
     nlevel = int(10.0 / c.PRESIMU_LEVEL)
     nlevel = max(nlevel, int(g.cpresimu / (NPRESIMU + 1)))
 
-    # This also resizes g.presimu
-    g.presimu = sorted(g.presimu[:g.cpresimu], key=lambda presimu: presimu.depth)
+    g.presimu = sorted(g.presimu, key=lambda presimu: presimu.depth)
 
     npre = 0
     while npre < g.cpresimu - int(nlevel / 2.0):
@@ -107,17 +107,17 @@ def analyze_presimulation(g: oj.Global, target: oj.Target, detector: oj.Detector
         out_lines.append(f"{i:3d} {x_temp:10.5f} {y_temp:10.5f}\n")
         pre_lines.append(f"{x_temp:14.5e} {y_temp:14.5e}\n")
 
-    with g.master.fpout.open("a") as f:
+    with Path(master.fpout).open("a") as f:
         f.writelines(out_lines)
 
-    # TODO: Move pre_file to g.master
+    # TODO: Move pre_file to master
     pre_file = Path(f"{g.basename}.pre")
     with pre_file.open("w") as f:  # mode="w" overwrites
         f.writelines(pre_lines)
 
     print("Presimulation finished")
 
-    del g.presimu
+    # del g.presimu  # Doesn't work with Numpy types
     g.simstage = enums.SimStage.REAL
 
 

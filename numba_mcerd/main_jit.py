@@ -231,7 +231,7 @@ def main(args):
 
             # TODO: Separate loop to pre and main, move this in-between
             if g.simstage == enums.SimStage.PRE and g.cion == g.npresimu - 1:
-                pre_simulation_jit.analyze_presimulation(g, target, detector)
+                pre_simulation_jit.analyze_presimulation(g, master, target, detector)
                 init_params.init_recoiling_angle(target)
 
                 presim_timer.stop()
