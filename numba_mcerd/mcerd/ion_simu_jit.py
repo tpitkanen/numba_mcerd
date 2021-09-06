@@ -101,7 +101,7 @@ def next_scattering(g: oj.Global, ion: oj.Ion, target: oj.Target,
     layer = target.layer[ion.tlayer]
     for i in range(layer.natoms):
         p = layer.atom[i]
-        b[i] = layer.N[i] * cross_section_jit.get_cross(ion, scat[ion.scatindex][p])
+        b[i] = layer.N[i] * cross_section_jit.get_cross(ion, scat[ion.scatindex, p])
         cross += b[i]
 
     rcross = random_jit.rnd(0.0, cross, enums.RndPeriod.OPEN)
@@ -115,7 +115,7 @@ def next_scattering(g: oj.Global, ion: oj.Ion, target: oj.Target,
 
     snext.natom = layer.atom[i]
 
-    ion.opt.y = math.sqrt(-rcross / (c.C_PI * layer.N[i])) / scat[ion.scatindex][snext.natom].a
+    ion.opt.y = math.sqrt(-rcross / (c.C_PI * layer.N[i])) / scat[ion.scatindex, snext.natom].a
     snext.d = -math.log(random_jit.rnd(0.0, 1.0, enums.RndPeriod.RIGHT)) / cross
 
 
@@ -343,7 +343,8 @@ def mc_scattering(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Target,
     targetA = target.ele[snext.natom].A  # TODO in original code
     targetZ = target.ele[snext.natom].Z
 
-    s = scat[ion.scatindex][snext.natom]  # TODO: "!!!" in original code, and give a better name
+    # TODO: This could be sliced in the main loop
+    s = scat[ion.scatindex, snext.natom]  # TODO: "!!!" in original code, and give a better name
 
     ion.opt.e = ion.E * s.E2eps
     if ion.E < g.emin:
@@ -351,8 +352,6 @@ def mc_scattering(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Target,
 
     n = ion.A / targetA
 
-    # FIXME: No implementation of function Function(<built-in function getitem>) found for signature:
-    #        >>> getitem(nestedarray(float64, (50, 100)), Literal[int](0))
     angle = get_angle(s, ion)
     cos_theta_cm = math.cos(angle)
     sin_theta_cm = math.sin(angle)
@@ -430,15 +429,15 @@ def get_angle(scat: oj.Scattering, ion: oj.Ion) -> float:
         # formatted number print
         return 0.0
 
-    ylow = scat.angle[0][j]
-    yhigh = scat.angle[0][j + 1]
-    elow = scat.angle[i][0]
-    ehigh = scat.angle[i + 1][0]
+    ylow = scat.angle[0, j]
+    yhigh = scat.angle[0, j + 1]
+    elow = scat.angle[i, 0]
+    ehigh = scat.angle[i + 1, 0]
 
-    angle11 = scat.angle[i][j]
-    angle12 = scat.angle[i][j + 1]
-    angle21 = scat.angle[i + 1][j]
-    angle22 = scat.angle[i + 1][j + 1]
+    angle11 = scat.angle[i, j]
+    angle12 = scat.angle[i, j + 1]
+    angle21 = scat.angle[i + 1, j]
+    angle22 = scat.angle[i + 1, j + 1]
 
     tmp0 = 1.0 / (yhigh - ylow)
     tmp1 = angle11 + (y - ylow) * (angle12 - angle11) * tmp0
