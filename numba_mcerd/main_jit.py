@@ -287,8 +287,7 @@ def main(args):
                 # No new track is made if ion doesn't make it to the
                 # energy detector or if it's a scaling ion
 
-                # TODO: doesn't work with ndarray
-                if ions_moving.index(cur_ion) <= SECONDARY:  # This is possibly wrong
+                if cur_ion.type <= SECONDARY:
                     output.output_erd(g, cur_ion, target, detector)
                 if cur_ion.type == PRIMARY:
                     primary_finished = True
