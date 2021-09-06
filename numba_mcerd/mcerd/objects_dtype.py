@@ -33,7 +33,35 @@ Presimu = np.dtype([
 # Jibal
 
 
-# Master
+# Use get_master_dtype in code, this is just for use as a type annotation
+Master = np.dtype([
+    # ("args", str, (2, 100)),
+    ("fdata", str, 100),
+    ("fpout", str, 100),
+    ("fpdebug", str, 100),
+    ("fpdat", str, 100),
+    ("fperd", str, 100),
+    ("fprange", str, 100),
+    ("fptrack", str, 100)
+    # Not needed:
+    # ("argc", np.int64)
+])
+
+
+def get_master_dtype(g):
+    return np.dtype([
+        # FIXME: ValueError: invalid itemsize in generic type tuple
+        # ("args", str, (len(g.master.args), len(max(g.master.args, key=len)))),
+        ("fdata", str, len(str(g.master.fdata)) if g.master.fdata else 0),
+        ("fpout", str, len(str(g.master.fpout)) if g.master.fpout else 0),
+        ("fpdebug", str, len(str(g.master.fpdebug)) if g.master.fpdebug else 0),
+        ("fpdat", str, len(str(g.master.fpdat)) if g.master.fpdat else 0),
+        ("fperd", str, len(str(g.master.fperd)) if g.master.fperd else 0),
+        ("fprange", str, len(str(g.master.fprange)) if g.master.fprange else 0),
+        ("fptrack", str, len(str(g.master.fptrack)) if g.master.fptrack else 0)
+        # Not needed:
+        # argc
+    ])
 
 
 # Use get_global_dtype in code, this is just for use as a type annotation

@@ -89,14 +89,21 @@ def convert_presimu(presimu: o.Presimu) -> oj.Presimu:
     return _base_convert(presimu, oj.Presimu, convert)
 
 
-# TODO: Return Jibal and Master too
+def convert_master(g: o.Global) -> oj.Master:
+    def convert(values):
+        values["args"] = None  # TODO: Implement if needed
+
+    return _base_convert(g, oj.Master, convert)
+
+
+# TODO: Return Jibal if needed
 def convert_global(g: o.Global) -> oj.Global:
     def convert(values):
         values["simtype"] = values["simtype"].value
         values["bspot"] = convert_point2(values["bspot"])
         values["simstage"] = values["simstage"].value
         values["presimu"] = [convert_presimu(presimu) for presimu in values["presimu"]]
-        values["master"] = None  # TODO: Implement
+        values["master"] = None  # Implemented in a separate function
         values["recwidth"] = values["recwidth"].value
         values["finstat"] = np.array(values["finstat"], dtype=np.int64)
         values["beamprof"] = values["beamprof"].value

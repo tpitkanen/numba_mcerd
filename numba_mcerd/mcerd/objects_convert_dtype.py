@@ -88,14 +88,29 @@ def convert_presimu(presimu: o.Presimu) -> od.Presimu:
     return _base_convert(presimu, od.Presimu, convert)
 
 
-# TODO: Return Jibal and Master too
+def convert_master(g: o.Global) -> od.Master:
+    def convert(values):
+        values["args"] = None  # TODO: Implement if needed
+        values["fdata"] = str(g.master.fdata) if g.master.fdata else ""
+        values["fpout"] = str(g.master.fpout) if g.master.fpout else ""
+        values["fpdebug"] = str(g.master.fpdebug) if g.master.fpdebug else ""
+        values["fpdat"] = str(g.master.fpdat) if g.master.fpdat else ""
+        values["fperd"] = str(g.master.fperd) if g.master.fperd else ""
+        values["fprange"] = str(g.master.fprange) if g.master.fprange else ""
+        values["fptrack"] = str(g.master.fptrack) if g.master.fptrack else ""
+
+    master_dtype = od.get_master_dtype(g)
+    return _base_convert(g.master, master_dtype, convert)
+
+
+# TODO: Return Jibal if needed
 def convert_global(g: o.Global) -> od.Global:
     def convert(values):
         values["simtype"] = values["simtype"].value
         values["bspot"] = convert_point2(values["bspot"])
         values["simstage"] = values["simstage"].value
         values["presimu"] = np.array([convert_presimu(presimu) for presimu in values["presimu"]])
-        values["master"] = None  # TODO: Implement
+        values["master"] = None  # Implemented in a separate function
         values["recwidth"] = values["recwidth"].value
         values["finstat"] = np.array(values["finstat"], dtype=np.int64)
         values["beamprof"] = values["beamprof"].value

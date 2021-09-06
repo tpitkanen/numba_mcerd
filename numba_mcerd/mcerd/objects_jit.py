@@ -72,8 +72,29 @@ class Presimu:
 
 
 # TODO: Separate this from global
-# class Master:
-#     pass
+@jitclass({
+    # "args": nb.types.List(nb.types.string),
+    "fdata": nb.types.string,
+    "fpout": nb.types.string,
+    "fpdebug": nb.types.string,
+    "fpdat": nb.types.string,
+    "fperd": nb.types.string,
+    "fprange": nb.types.string,
+    "fptrack": nb.types.string
+    # Not needed:
+    # argc: int64
+})
+class Master:
+    def __init__(self):
+        # self.args = [""]
+        self.fdata = ""
+        self.fpout = ""
+        self.fpdebug = ""
+        self.fpdat = ""
+        self.fperd = ""
+        self.fprange = ""
+        self.fptrack = ""
+        # self.argc = 0
 
 
 @jitclass({

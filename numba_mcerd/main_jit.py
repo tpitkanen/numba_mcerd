@@ -163,6 +163,7 @@ def main(args):
     dtype_conversion_timer = timer.SplitTimer.init_and_start()
 
     g = ocd.convert_global(copy.deepcopy(g_o))
+    master = ocd.convert_master(copy.deepcopy(g_o))
     ions_moving = np.array([ocd.convert_ion(copy.deepcopy(ion)) for ion in ions_moving_o])
     target = ocd.convert_target(copy.deepcopy(target_o))
     scat = ocd.convert_scattering_nested(copy.deepcopy(scat_o))
