@@ -87,10 +87,10 @@ class Presimu:
     "minangle": float64,
     "seed": int64,
     "cion": int64,
-    "simtype": int64,  # constants.SimType
+    "simtype": int64,  # enums.SimType
     "beamangle": float64,
     "bspot": Point2.class_type.instance_type,
-    "simstage": int64,  # constants.SimStage
+    "simstage": int64,  # enums.SimStage
     "npresimu": int64,
     "nscale": int64,
     "nrecave": int64,
@@ -101,12 +101,12 @@ class Presimu:
     "frecmin": float64,
     "costhetamax": float64,
     "costhetamin": float64,
-    "recwidth": int64,  # constants.RecWidth
+    "recwidth": int64,  # enums.RecWidth
     "virtualdet": boolean,
     "basename": nb.types.string,
     "finstat": int64[:, :],
     "beamdiv": int64,
-    "beamprof": int64,  # constants.BeamProf
+    "beamprof": int64,  # enums.BeamProf
     "rough": boolean,
     "nmclarge": int64,
     "nmc": int64,
@@ -129,10 +129,10 @@ class Global:
         self.minangle = 0.0  # Minimum angle of the scattering
         self.seed = 0  # Seed number of the random number generator  # Positive
         self.cion = 0  # Number of the current ion
-        self.simtype = 0  # Type of the simulation  # constants.SimType
+        self.simtype = 0  # Type of the simulation  # enums.SimType
         self.beamangle = 0.0  # Angle between target surface normal and beam
         self.bspot = Point2()  # Size of the beam spot
-        self.simstage = 0  # Presimulation or real simulation  # constants.SimStage
+        self.simstage = 0  # Presimulation or real simulation  # enums.SimStage
         self.npresimu = 0  # Number of simulated ions in the presimulation
         self.nscale = 0  # Number of simulated ions per scaling ions
         self.nrecave = 0  # Average number of recoils per primary ion
@@ -143,14 +143,14 @@ class Global:
         self.frecmin = 0.0
         self.costhetamax = 0.0
         self.costhetamin = 0.0
-        self.recwidth = 0  # Recoiling angle width type  # constants.RecWidth
+        self.recwidth = 0  # Recoiling angle width type  # enums.RecWidth
         self.virtualdet = False  # Do we use the virtual detector
         self.basename = ""  # len NFILE
         # Doesn't work:
         # self.finstat = np.zeros((constants.IonType.SECONDARY.value + 1, len(constants.IonStatus)), dtype=np.int64)  # len [SECONDARY + 1][NIONSTATUS]
         self.finstat = np.zeros((2, 11), dtype=np.int64)  # len [SECONDARY + 1][NIONSTATUS]
         self.beamdiv = 0  # Angular divergence of the beam, width or FWHM  # TODO: Should this be int or float?
-        self.beamprof = 0  # Beam profile: flat, gaussian, given distribution  # constants.BeamProf
+        self.beamprof = 0  # Beam profile: flat, gaussian, given distribution  # enums.BeamProf
         self.rough = False  # Rough or non-rough sample surface
         self.nmclarge = 0  # Number of rejected (large) MC scatterings (RBS)
         self.nmc = 0  # Number of all MC-scatterings
@@ -251,14 +251,14 @@ class Isotopes:
     "theta": float64,
     "fii": float64,
     "nsct": int64,
-    "status": int64,  # constants.IonStatus
+    "status": int64,  # enums.IonStatus
     "opt": Ion_opt.class_type.instance_type,
     "w": float64,
     "wtmp": float64,
     "time": float64,
     "tlayer": int64,
     "lab": Vector.class_type.instance_type,
-    "type": int64,  # constants.IonType
+    "type": int64,  # enums.IonType
     "hist": Rec_hist.class_type.instance_type,
     "dist": float64,
     "virtual": boolean,
@@ -282,14 +282,14 @@ class Ion:
         self.theta = 0.0  # Laboratory theta-angle of the ion [0,PI]
         self.fii = 0.0  # Laboratory fii-angle of the ion [0,2*PI]
         self.nsct = 0  # Number of scatterings of the ion
-        self.status = -1  # constants.IonStatus  # Status value for ion (stopped, recoiled etc.)
+        self.status = -1  # enums.IonStatus  # Status value for ion (stopped, recoiled etc.)
         self.opt = Ion_opt()  # Structure for the optimization-variables
         self.w = 0.0  # Statistical weight of the ion
         self.wtmp = 0.0  # Temporary statistical weight of the ion
         self.time = 0.0  # Time since the creation of the ion
         self.tlayer = 0  # Number of the current target layer
         self.lab = Vector()  # Translation and rotation of the current coordinate system in the laboratory coordinate system
-        self.type = -1  # constants.IonType  # Primary, secondary etc.
+        self.type = -1  # enums.IonType  # Primary, secondary etc.
         self.hist = Rec_hist()  # Variables saved at the moment of the recoiling event
         self.dist = 0.0  # Distance to the next ERD-scattering point
         self.virtual = False  # Did we only hit the virtual detector area
@@ -412,7 +412,7 @@ class Target_sto:
     "N": float64[:],
     "Ntot": float64,
     "sto": nb.types.List(Target_sto.class_type.instance_type),
-    "type": int64,  # constants.TargetType
+    "type": int64,  # enums.TargetType
     "gas": boolean,
     "stofile_prefix": nb.types.string
 })
@@ -439,7 +439,7 @@ class Target_layer:
     "a": float64,
     "b": float64,
     "c": float64,
-    "type": int64  # constants.PlaneType
+    "type": int64  # enums.PlaneType
 })
 class Plane:
     def __init__(self):
@@ -503,7 +503,7 @@ class Line:
         self.b = 0.0
         self.c = 0.0
         self.d = 0.0
-        self.type = -1  # constants.LineType
+        self.type = -1  # enums.LineType
 
 
 # Unused
@@ -528,7 +528,7 @@ class Line:
 })
 class Det_foil:
     def __init__(self):
-        self.type = -1  # constants.FoilType  # Rectangular or circular
+        self.type = -1  # enums.FoilType  # Rectangular or circular
         self.virtual = False  # Is this foil virtual
         self.dist = 0.0  # Distance from the target center
         self.angle = 0.0  # Angle of the foil
@@ -552,7 +552,7 @@ class Det_foil:
 })
 class Detector:
     def __init__(self):
-        self.type = -1  # constants.DetectorType  # TOF, GAS or FOIL
+        self.type = -1  # enums.DetectorType  # TOF, GAS or FOIL
         self.angle = 0.0  # Detector angle relative to the beam direction
         self.nfoils = 0  # Number of foils in the detector
         self.virtual = False  # Do we have the virtual detector

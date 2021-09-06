@@ -48,10 +48,10 @@ Global = np.dtype([
     ("minangle", np.float64),
     ("seed", np.int64),
     ("cion", np.int64),
-    ("simtype", np.int64),  # constants.SimType
+    ("simtype", np.int64),  # enums.SimType
     ("beamangle", np.float64),
     ("bspot", Point2),
-    ("simstage", np.int64),  # constants.SimStage
+    ("simstage", np.int64),  # enums.SimStage
     ("npresimu", np.int64),
     ("nscale", np.int64),
     ("nrecave", np.int64),
@@ -62,12 +62,12 @@ Global = np.dtype([
     ("frecmin", np.float64),
     ("costhetamax", np.float64),
     ("costhetamin", np.float64),
-    ("recwidth", np.int64),  # constants.RecWidth
+    ("recwidth", np.int64),  # enums.RecWidth
     ("virtualdet", bool),
     ("basename", str, 100),  # TODO: size?
     ("finstat", np.int64, (2, 11)),  # len [SECONDARY + 1][NIONSTATUS]
     ("beamdiv", np.int64),
-    ("beamprof", np.int64),  # constants.BeamProf
+    ("beamprof", np.int64),  # enums.BeamProf
     ("rough", bool),
     ("nmclarge", np.int64),
     ("nmc", np.int64),
@@ -93,10 +93,10 @@ def get_global_dtype(presimu_size: int) -> Global:
         ("minangle", np.float64),
         ("seed", np.int64),
         ("cion", np.int64),
-        ("simtype", np.int64),  # constants.SimType
+        ("simtype", np.int64),  # enums.SimType
         ("beamangle", np.float64),
         ("bspot", Point2),
-        ("simstage", np.int64),  # constants.SimStage
+        ("simstage", np.int64),  # enums.SimStage
         ("npresimu", np.int64),
         ("nscale", np.int64),
         ("nrecave", np.int64),
@@ -107,12 +107,12 @@ def get_global_dtype(presimu_size: int) -> Global:
         ("frecmin", np.float64),
         ("costhetamax", np.float64),
         ("costhetamin", np.float64),
-        ("recwidth", np.int64),  # constants.RecWidth
+        ("recwidth", np.int64),  # enums.RecWidth
         ("virtualdet", bool),
         ("basename", str, 100),  # TODO: size?
         ("finstat", np.int64, (2, 11)),  # len [SECONDARY + 1][NIONSTATUS]
         ("beamdiv", np.int64),
-        ("beamprof", np.int64),  # constants.BeamProf
+        ("beamprof", np.int64),  # enums.BeamProf
         ("rough", bool),
         ("nmclarge", np.int64),
         ("nmc", np.int64),
@@ -177,14 +177,14 @@ Ion = np.dtype([
     ("theta", np.float64),
     ("fii", np.float64),
     ("nsct", np.int64),
-    ("status", np.int64),  # constants.IonStatus
+    ("status", np.int64),  # enums.IonStatus
     ("opt", Ion_opt),
     ("w", np.float64),
     ("wtmp", np.float64),
     ("time", np.float64),
     ("tlayer", np.int64),
     ("lab", Vector),
-    ("type", np.int64),  # constants.IonType
+    ("type", np.int64),  # enums.IonType
     ("hist", Rec_hist),
     ("dist", np.float64),
     ("virtual", bool),
@@ -258,7 +258,7 @@ Target_layer = np.dtype([
     ("N", np.float64, constants.MAXATOMS),
     ("Ntot", np.float64),
     ("sto", Target_sto, LAYER_STO_COUNT_ERD),  # TODO: Get correct size like in get_global_dtype
-    ("type", np.int64),  # constants.TargetType
+    ("type", np.int64),  # enums.TargetType
     ("gas", bool),
     ("stofile_prefix", str, constants.MAXSTOFILEPREFIXLEN)
 ])
@@ -268,7 +268,7 @@ Plane = np.dtype([
     ("a", np.float64),
     ("b", np.float64),
     ("c", np.float64),
-    ("type", np.int64)
+    ("type", np.int64)  # enums.PlaneType
 ])
 
 
@@ -298,7 +298,7 @@ Line = np.dtype([
     ("b", np.float64),
     ("c", np.float64),
     ("d", np.float64),
-    ("type", np.int64)
+    ("type", np.int64)  # enums.LineType
 ])
 
 
@@ -310,7 +310,7 @@ Line = np.dtype([
 
 
 Det_foil = np.dtype([
-    ("type", np.int64),
+    ("type", np.int64),  # enums.FoilType
     ("virtual", bool),
     ("dist", np.float64),
     ("angle", np.float64),
@@ -321,7 +321,7 @@ Det_foil = np.dtype([
 
 
 Detector = np.dtype([
-    ("type", np.int64),
+    ("type", np.int64),  # enums.DetectorType
     ("angle", np.float64),
     ("nfoils", np.int64),
     ("virtual", bool),
