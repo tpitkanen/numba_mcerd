@@ -1,7 +1,11 @@
-# Select random source here
+from pathlib import Path
+
+# Select random source here for non-Numba use.
+# For Numba, import random_jit.py directly.
 import numba_mcerd.mcerd.random_numpy as rand
 
-PROJECT_ROOT = r"C:/kurssit/gradu/koodi/numba_mcerd"
+PROJECT_ROOT = str(Path.cwd().parent)  # Automatic path
+# PROJECT_ROOT = r"C:/path/to/numba_mcerd"  # Manual path
 DATA_ROOT = rf"{PROJECT_ROOT}/data"
 CONSTANTS_ROOT = rf"{DATA_ROOT}/constants"
 EXPORT_ROOT = rf"{DATA_ROOT}/export"

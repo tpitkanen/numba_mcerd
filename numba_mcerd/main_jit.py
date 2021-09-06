@@ -222,7 +222,6 @@ def main(args):
 
 
 if __name__ == '__main__':
-    # Path to data is hardcoded, change it to match your location
     # mcerd.exe is unused but included for similarity with original MCERD
     main_args = ["mcerd.exe", f"{config.PROJECT_ROOT}/data/input/Cl-Default"]
     main(main_args)

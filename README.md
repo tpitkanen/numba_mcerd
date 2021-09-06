@@ -62,7 +62,7 @@ Absolute paths are used to match the original MCERD's behavior as closely as pos
 
 ## Config
 
-The program's behavior can be configured in `numba_mcerd/config.py`. Changing the `PROJECT_ROOT` absolute path is required.
+The program's behavior can be configured in `numba_mcerd/config.py`.
 
 ## Random number generation
 
