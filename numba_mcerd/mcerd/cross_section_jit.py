@@ -2,6 +2,7 @@ import logging
 import math
 
 import numba as nb
+
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
 import numba_mcerd.mcerd.objects_jit as oj

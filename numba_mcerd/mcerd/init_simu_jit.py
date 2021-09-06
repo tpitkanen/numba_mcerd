@@ -1,6 +1,6 @@
 import math
 
-import numba
+import numba as nb
 import numpy as np
 
 import numba_mcerd.mcerd.constants as c
@@ -53,7 +53,7 @@ def scattering_table(g: o.Global, ion: o.Ion, target: o.Target, scat: o.Scatteri
 #   exp_e = math.exp(emin + (i-1) * estep)
 #   exp_y = math.exp(ymin + (j-1) * ystep)
 # scat_matrix[i][0] and scat_matrix[0][j] need to be done separately
-@numba.njit(cache=True)
+@nb.njit(cache=True)
 def main_math(scat_matrix, pot, emin, estep, ymin, ystep):
     exp_e = exp_y = 0.0
 
@@ -76,15 +76,15 @@ def main_math(scat_matrix, pot, emin, estep, ymin, ystep):
     return exp_e, exp_y
 
 
-@numba.njit(parallel=True)
+@nb.njit(parallel=True)
 def main_math_parallelized(scat_matrix, pot, emin, estep, ymin, ystep):
     """Can be parallelized, but doesn't offer any speedup. Incomplete, don't use."""
     exp_e = exp_y = 0.0
 
-    for i in numba.prange(1, scat_matrix.shape[0]):
+    for i in nb.prange(1, scat_matrix.shape[0]):
         # exp_e = math.exp(emin + (i - 1) * estep)  # Warning for this
         # scat_matrix[i][0] = exp_e
-        for j in numba.prange(1, scat_matrix.shape[1]):
+        for j in nb.prange(1, scat_matrix.shape[1]):
             # exp_y = math.exp(ymin + (j - 1) * ystep)  # Warning for this
             scat_matrix[i][j] = scattering_angle_jit.scattering_angle(
                 pot,

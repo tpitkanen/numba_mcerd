@@ -1,7 +1,7 @@
 """Objects from general.h adapted to jitclass"""
 
-import numpy as np
 import numba as nb
+import numpy as np
 from numba import int64, float64, boolean
 from numba.experimental import jitclass
 

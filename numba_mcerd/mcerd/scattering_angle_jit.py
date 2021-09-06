@@ -2,7 +2,7 @@
 import math
 from typing import Tuple
 
-import numba
+import numba as nb
 from numba.experimental import jitclass
 
 import numba_mcerd.mcerd.constants as c
@@ -16,12 +16,12 @@ DISTEPS = 1e-6
 
 
 @jitclass({
-    "x0": numba.float64,
-    "i_y2": numba.float64,
-    "i_ey2": numba.float64,
-    "tmp2": numba.float64,
-    "e": numba.float64,
-    "y": numba.float64
+    "x0": nb.float64,
+    "i_y2": nb.float64,
+    "i_ey2": nb.float64,
+    "tmp2": nb.float64,
+    "e": nb.float64,
+    "y": nb.float64
 })
 class Opt:
     def __init__(self):
@@ -33,7 +33,7 @@ class Opt:
         self.y = 0.0
 
 
-@numba.njit(cache=True)
+@nb.njit(cache=True)
 def scattering_angle(pot: oj.Potential, ion_opt_e, ion_opt_y) -> float:
     """Get scattering angle for ion's specific optimization state (ion.opt)"""
     opt = Opt()
@@ -56,7 +56,7 @@ def scattering_angle(pot: oj.Potential, ion_opt_e, ion_opt_y) -> float:
     return theta
 
 
-@numba.njit(cache=True)
+@nb.njit(cache=True)
 def Ut(pot: oj.Potential, x: float) -> float:
     if x < 0:
         return pot.u[0].y
@@ -77,7 +77,7 @@ def Ut(pot: oj.Potential, x: float) -> float:
 
 
 # TODO: Check that this still produces the same results as before
-@numba.njit(cache=True)
+@nb.njit(cache=True)
 def Angint(u: float, pot: oj.Potential, opt: Opt) -> float:
     u2 = u**2
 
@@ -103,7 +103,7 @@ def Angint(u: float, pot: oj.Potential, opt: Opt) -> float:
     return value
 
 
-@numba.njit(cache=True)
+@nb.njit(cache=True)
 def trapezoid(a: float, b: float, value: float, nextn: int, pot: oj.Potential,
               n: int, opt: Opt) -> Tuple[float, int]:
     if n == 1:
@@ -122,7 +122,7 @@ def trapezoid(a: float, b: float, value: float, nextn: int, pot: oj.Potential,
     return value, nextn
 
 
-@numba.njit(cache=True)
+@nb.njit(cache=True)
 def simpson(a: float, b: float, pot: oj.Potential, stmp: Opt) -> float:
     old_s = old_st = -1e30
     st = 0.0  # Also value in trapezoid
@@ -144,7 +144,7 @@ def simpson(a: float, b: float, pot: oj.Potential, stmp: Opt) -> float:
     return s
 
 
-@numba.njit(cache=True)
+@nb.njit(cache=True)
 def mindist(pot: oj.Potential, opt: Opt) -> float:
     x1 = (1 + math.sqrt(1 + 4 * opt.y**2 * opt.e**2)) / (2 * opt.e)
 
@@ -171,7 +171,7 @@ def mindist(pot: oj.Potential, opt: Opt) -> float:
     return x2
 
 
-@numba.njit(cache=True)
+@nb.njit(cache=True)
 def Psi(x: float, pot: oj.Potential, opt: Opt) -> float:
     value = x**2 * opt.i_y2 - x * Ut(pot, x) * opt.i_ey2 - 1.0
     return value

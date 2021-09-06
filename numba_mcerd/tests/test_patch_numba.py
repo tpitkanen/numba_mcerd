@@ -1,6 +1,6 @@
 import unittest
 
-import numba
+import numba as nb
 import numpy as np
 
 from numba_mcerd import patch_numba
@@ -18,7 +18,7 @@ PointContainer = np.dtype([
 ])
 
 
-@numba.njit
+@nb.njit
 def foo(obj):
     obj["p"]
 

@@ -1,8 +1,8 @@
 import math
 from typing import Tuple
 
+import numba as nb
 import numpy as np
-import numba
 
 import numba_mcerd.mcerd.objects_jit as oj
 import numba_mcerd.mcerd.objects_dtype as od
@@ -16,7 +16,7 @@ XMAX = 1000.0
 
 
 # TODO: Unused -> remove
-@numba.njit()
+@nb.njit()
 def make_screening_table() -> oj.Potential:
     """Create and return a Potential object.
 
@@ -39,7 +39,7 @@ def make_screening_table() -> oj.Potential:
 
 
 # TODO: Unused -> remove
-@numba.njit(cache=True)
+@nb.njit(cache=True)
 def make_screening_table_cached() -> Tuple[int, int, np.ndarray, np.ndarray]:
     """Create and return the pieces needed for a Potential object"""
     xmax = get_max_x()
@@ -59,7 +59,7 @@ def make_screening_table_cached() -> Tuple[int, int, np.ndarray, np.ndarray]:
     return n, d, ux, uy
 
 
-@numba.njit(cache=True)
+@nb.njit(cache=True)
 def make_screening_table_dtype() -> oj.Potential:
     xmax = get_max_x()
     n = get_npoints(xmax)
@@ -98,7 +98,7 @@ def make_screening_table_dtype() -> oj.Potential:
     return pot
 
 
-@numba.njit(cache=True)
+@nb.njit(cache=True)
 def get_max_x() -> float:
     x = 1.0
     while U(x) > POTMIN and x < XMAX:
@@ -111,7 +111,7 @@ def get_max_x() -> float:
     return x
 
 
-@numba.njit(cache=True)
+@nb.njit(cache=True)
 def get_npoints(xmax: float) -> int:
     maxdiff = 0.0
     x = 0.0
@@ -149,7 +149,7 @@ def get_npoints(xmax: float) -> int:
     return round(npoints)
 
 
-@numba.njit(cache=True)
+@nb.njit(cache=True)
 def U(x: float) -> float:
     """Universal screening potential function"""
     return (0.18175 * math.exp(-3.1998 * x)

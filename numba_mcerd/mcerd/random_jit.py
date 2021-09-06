@@ -4,8 +4,8 @@ This file is probably ok to import directly, as opposed to selecting
 the RNG source in config.py.
 """
 
-import numpy as np
 import numba as nb
+import numpy as np
 
 from numba_mcerd.mcerd import enums
 
