@@ -7,7 +7,8 @@ from numba_mcerd import config, timer, patch_numba
 from numba_mcerd.mcerd import (
     random_jit, init_params, read_input, potential, ion_stack, init_simu, cross_section,
     potential_jit, init_simu_jit, cross_section_jit, elsto, init_detector, output, ion_simu_jit,
-    enums, erd_scattering_jit, pre_simulation_jit, finish_ion_jit, finalize_jit, erd_detector_jit
+    enums, erd_scattering_jit, pre_simulation_jit, finish_ion_jit, finalize_jit, erd_detector_jit,
+    init_params_jit
 )
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
@@ -232,7 +233,7 @@ def main(args):
             # TODO: Separate loop to pre and main, move this in-between
             if g.simstage == enums.SimStage.PRE and g.cion == g.npresimu - 1:
                 pre_simulation_jit.analyze_presimulation(g, master, target, detector)
-                init_params.init_recoiling_angle(target)
+                init_params_jit.init_recoiling_angle(target)
 
                 presim_timer.stop()
                 print(f"presim_timer: {presim_timer}")
