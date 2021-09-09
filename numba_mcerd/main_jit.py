@@ -306,7 +306,7 @@ def main(args):
             g.finstat[PRIMARY][cur_ion.status] += 1
             finish_ion_jit.finish_ion(g, cur_ion)  # Print info if FIN_STOP or FIN_TRANS
 
-    finalize_jit.finalize(g)  # Print statistics
+    finalize_jit.finalize(g, master)  # Print statistics
 
     # noinspection PyUnboundLocalVariable
     main_sim_timer.stop()

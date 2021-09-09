@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import numba as nb
 
 import numba_mcerd.mcerd.objects_jit as oj
@@ -6,7 +8,7 @@ from numba_mcerd.mcerd import enums
 
 # TODO: I/O not supported in Numba
 # @nb.njit(cache=True)
-def finalize(g: oj.Global) -> None:
+def finalize(g: oj.Global, master: oj.Master) -> None:
     """Output statistics of ion finishes to g.master.fpout"""
     dat_lines = ["Statistics of ion finishes: \n"]
 
@@ -17,5 +19,5 @@ def finalize(g: oj.Global) -> None:
     if g.simtype == enums.SimType.RBS:
         raise NotImplementedError
 
-    with g.master.fpdat.open("a") as f:
+    with Path(master.fpdat).open("a") as f:
         f.writelines(dat_lines)
