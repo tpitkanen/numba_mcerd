@@ -230,6 +230,7 @@ def main(args):
                     pre_simulation_jit.finish_presimulation(g, detector, cur_ion)
                     cur_ion = ions_moving[PRIMARY]
                 else:
+                    # TODO: ZeroDivisionError sometimes in JIT
                     erd_detector_jit.move_to_erd_detector(g, cur_ion, target, detector)
 
             # TODO: Separate loop to pre and main, move this in-between
