@@ -103,11 +103,11 @@ class LineType(IntEnum):
     Y_AXIS = 2    # Originally L_YAXIS
 
 
-# TODO: This could be just a boolean
-class Cross(IntEnum):
-    """Whether line crosses plane or not"""
-    CROSS = True
-    NO_CROSS = False
+# Replaced with a bool
+# class Cross(IntEnum):
+#     """Whether line crosses plane or not"""
+#     CROSS = True
+#     NO_CROSS = False
 
 
 class DetectorType(IntEnum):
