@@ -3,11 +3,25 @@ import logging
 
 import numpy as np
 
-from numba_mcerd import config, timer, pickler
+from numba_mcerd import config, pickler, timer
 from numba_mcerd.mcerd import (
-    init_params, read_input, potential, ion_stack, init_simu, cross_section, elsto,
-    init_detector, ion_simu, erd_scattering, pre_simulation, erd_detector, output, finish_ion,
-    finalize, enums, print_data
+    cross_section,
+    elsto,
+    enums,
+    erd_detector,
+    erd_scattering,
+    finalize,
+    finish_ion,
+    init_detector,
+    init_params,
+    init_simu,
+    ion_simu,
+    ion_stack,
+    output,
+    potential,
+    pre_simulation,
+    print_data,
+    read_input
 )
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
