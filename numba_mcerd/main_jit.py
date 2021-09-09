@@ -6,7 +6,7 @@ import numpy as np
 from numba_mcerd import config, timer, patch_numba
 from numba_mcerd.mcerd import (
     random_jit, init_params, read_input, potential, ion_stack, init_simu, cross_section,
-    potential_jit, init_simu_jit, cross_section_jit, elsto, init_detector, output, ion_simu_jit,
+    potential_jit, init_simu_jit, cross_section_jit, elsto, init_detector, output_jit, ion_simu_jit,
     enums, erd_scattering_jit, pre_simulation_jit, finish_ion_jit, finalize_jit, erd_detector_jit,
     init_params_jit
 )
@@ -290,7 +290,7 @@ def main(args):
                 # energy detector or if it's a scaling ion
 
                 if cur_ion.type <= SECONDARY:
-                    output.output_erd(g, cur_ion, target, detector)
+                    output_jit.output_erd(g, master, cur_ion, target, detector)
                 if cur_ion.type == PRIMARY:
                     primary_finished = True
                     break
