@@ -17,6 +17,55 @@ class FitError(Exception):
 
 
 @nb.njit(cache=True)
+def swap_presimus(presimu: np.ndarray, i: int, j: int) -> None:
+    temp = presimu[i]["depth"], presimu[i]["angle"], presimu[i]["layer"]
+
+    presimu[i]["depth"] = presimu[j]["depth"]
+    presimu[i]["angle"] = presimu[j]["angle"]
+    presimu[i]["layer"] = presimu[j]["layer"]
+
+    presimu[j]["depth"], presimu[j]["angle"], presimu[j]["layer"] = temp
+
+
+@nb.njit(cache=True)
+def sort_presimu_by_depth(
+        presimu: np.ndarray, start: int = None, stop: int = None) -> None:
+    """Sort presimu by depth (ascending) in place.
+
+    Uses insertion sort.
+    """
+    if start is None:
+        start = 0
+    if stop is None:
+        stop = presimu.shape[0]
+
+    for i in range(start + 1, stop):
+        j = i
+        while j > start and presimu[j - 1]["depth"] > presimu[j]["depth"]:
+            swap_presimus(presimu, j, j - 1)
+            j -= 1
+
+
+@nb.njit(cache=True)
+def sort_presimu_by_angle(
+        presimu: np.ndarray, start: int = None, stop: int = None) -> None:
+    """Sort presimu by angle (descending) in place.
+
+    Uses insertion sort.
+    """
+    if start is None:
+        start = 0
+    if stop is None:
+        stop = presimu.shape[0]
+
+    for i in range(start + 1, stop):
+        j = i
+        while j > start and presimu[j - 1]["angle"] < presimu[j]["angle"]:
+            swap_presimus(presimu, j, j - 1)
+            j -= 1
+
+
+@nb.njit(cache=True)
 def finish_presimulation(g: oj.Global, detector: oj.Detector, recoil: oj.Ion) -> None:
     """In the presimulation stage we save the recoil angle relative to the
     detector when the recoil comes out of the target. Also the recoil
@@ -50,7 +99,8 @@ def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
     nlevel = int(10.0 / c.PRESIMU_LEVEL)
     nlevel = max(nlevel, int(g.cpresimu / (NPRESIMU + 1)))
 
-    g.presimu = sorted(g.presimu, key=lambda presimu: presimu.depth)
+    # Doesn't resize like in Vanilla
+    sort_presimu_by_depth(g.presimu, start=0, stop=g.cpresimu)
 
     npre = 0
     while npre < g.cpresimu - int(nlevel / 2.0):
@@ -63,8 +113,7 @@ def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
             n += 1
 
         if n > int(nlevel / 2):
-            g.presimu[npre:npre + n] = sorted(
-                g.presimu[npre:npre + n], key=lambda presimu: presimu.angle, reverse=True)
+            sort_presimu_by_angle(g.presimu, npre, npre + n)
             i = int(n * c.PRESIMU_LEVEL)
             depth[layer][nlayer[layer]] = sumdepth / n
             angle[layer][nlayer[layer]] = g.presimu[npre + i].angle
