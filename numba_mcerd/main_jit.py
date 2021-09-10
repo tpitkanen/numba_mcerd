@@ -204,6 +204,13 @@ def main(args):
     # jitclass_conversion_timer.stop()
     # print(f"jitclass_conversion_timer: {jitclass_conversion_timer}")
 
+    simulation_loop(g, master, ions, ions_moving, target, scat, snext, detector,
+                    trackid, ion_i, new_track)
+
+
+def simulation_loop(g, master, ions, ions_moving, target, scat, snext, detector,
+                    trackid, ion_i, new_track):
+    # TODO: initialize at least trackid, ion_i and new_track here
     outer_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
     inner_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
 
