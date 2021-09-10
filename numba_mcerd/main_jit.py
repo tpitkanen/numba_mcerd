@@ -70,7 +70,6 @@ def main(args):
     primary_ion_o = o.Ion()  # Not really used in the simulation loop
     secondary_ion_o = o.Ion()  # Not really used in the simulation loop
     previous_trackpoint_ion_o = o.Ion()  # Not used unless simulation is RBS
-    ions_moving_o = []
     target_o = o.Target()
     scat_o = None
     snext_o = o.SNext()
@@ -104,12 +103,10 @@ def main(args):
     #       excessively copy-pasting JIT-versions of each module?
     random_jit.seed_rnd(g_o.seed)
 
-    # Package ions into an array. Ions are (sometimes) accessed in the
-    # original code like this
     if g_o.nions == 2:
-        ions = [primary_ion_o, secondary_ion_o]
+        ions_o = [primary_ion_o, secondary_ion_o]
     elif g_o.nions == 3:
-        ions = [primary_ion_o, secondary_ion_o, previous_trackpoint_ion_o]
+        ions_o = [primary_ion_o, secondary_ion_o, previous_trackpoint_ion_o]
     else:
         raise NotImplementedError
 
@@ -136,10 +133,10 @@ def main(args):
     for i in range(g_o.nions):
         if g_o.simtype == enums.SimType.RBS and i == enums.IonType.TARGET_ATOM.value:
             continue
-        ions[i].scatindex = i
+        ions_o[i].scatindex = i
         scat_o.append([o.Scattering() for _ in range(c.MAXELEMENTS)])
         for j in range(target_o.natoms):
-            init_simu_jit.scattering_table(g_o, ions[i], target_o, scat_o[i][j], pot, j)
+            init_simu_jit.scattering_table(g_o, ions_o[i], target_o, scat_o[i][j], pot, j)
             cross_section_jit.calc_cross_sections(g_o, scat_o[i][j], pot)
 
     table_timer.stop()
@@ -152,7 +149,7 @@ def main(args):
             gsto_index += 1
             if g_o.simtype == enums.SimType.RBS and i == enums.IonType.TARGET_ATOM.value:
                 continue
-            elsto.calc_stopping_and_straggling_const(g_o, ions[i], target_o, j, gsto_index)
+            elsto.calc_stopping_and_straggling_const(g_o, ions_o[i], target_o, j, gsto_index)
             # TODO: Real gsto instead
 
     init_detector.init_detector(g_o, detector_o)
@@ -162,27 +159,26 @@ def main(args):
     if g_o.predata:
         init_params.init_recoiling_angle(target_o)
 
-    trackid = int(ions[SECONDARY].Z) * 1_000 + g_o.seed % 1_000
+    trackid = int(ions_o[SECONDARY].Z) * 1_000 + g_o.seed % 1_000
     trackid *= 1_000_000
-    ions_moving_o.append(copy.deepcopy(ions[PRIMARY]))
-    ions_moving_o.append(copy.deepcopy(ions[SECONDARY]))
-    if g_o.simtype == enums.SimType.RBS:
-        ions_moving_o.append(copy.deepcopy(ions[TARGET_ATOM]))
 
     logging.info("Converting objects to JIT")
 
     initialization_timer.stop()
     print(f"initialization_timer: {initialization_timer}")
 
-    for ion in ions_moving_o:
+    for ion in ions_o:
         ion.status = enums.IonStatus.NOT_FINISHED
 
     # dtype conversions
     dtype_conversion_timer = timer.SplitTimer.init_and_start()
 
+    # TODO: Add an intermediary function that converts originals to dtype
+    #       before calling simulation_loop and handles timers,
+    #       remove _o from original names
     g = ocd.convert_global(copy.deepcopy(g_o))
     master = ocd.convert_master(copy.deepcopy(g_o))
-    ions_moving = np.array([ocd.convert_ion(copy.deepcopy(ion)) for ion in ions_moving_o])
+    ions = np.array([ocd.convert_ion(copy.deepcopy(ion)) for ion in ions_o])
     target = ocd.convert_target(copy.deepcopy(target_o))
     scat = ocd.convert_scattering_nested(copy.deepcopy(scat_o))
     snext = ocd.convert_snext(copy.deepcopy(snext_o))
@@ -204,11 +200,11 @@ def main(args):
     # jitclass_conversion_timer.stop()
     # print(f"jitclass_conversion_timer: {jitclass_conversion_timer}")
 
-    simulation_loop(g, master, ions_moving, target, scat, snext, detector,
+    simulation_loop(g, master, ions, target, scat, snext, detector,
                     trackid, ion_i, new_track)
 
 
-def simulation_loop(g, master, ions_moving, target, scat, snext, detector,
+def simulation_loop(g, master, ions, target, scat, snext, detector,
                     trackid, ion_i, new_track):
     # TODO: initialize at least trackid, ion_i and new_track here
     outer_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
@@ -229,7 +225,7 @@ def simulation_loop(g, master, ions_moving, target, scat, snext, detector,
 
         # output.output_data(g)  # Only prints status info
 
-        cur_ion = ions_moving[PRIMARY]
+        cur_ion = ions[PRIMARY]
 
         ion_simu_jit.create_ion(g, cur_ion, target)
         if g.rough:
@@ -244,13 +240,13 @@ def simulation_loop(g, master, ions_moving, target, scat, snext, detector,
 
             if nscat == enums.ScatteringType.ERD_SCATTERING:
                 if erd_scattering_jit.erd_scattering(
-                        g, ions_moving[PRIMARY], ions_moving[SECONDARY], target, detector):
-                    cur_ion = ions_moving[SECONDARY]
+                        g, ions[PRIMARY], ions[SECONDARY], target, detector):
+                    cur_ion = ions[SECONDARY]
 
             if cur_ion.status == enums.IonStatus.FIN_RECOIL or cur_ion.status == enums.IonStatus.FIN_OUT_DET:
                 if g.simstage == enums.SimStage.PRE:
                     pre_simulation_jit.finish_presimulation(g, detector, cur_ion)
-                    cur_ion = ions_moving[PRIMARY]
+                    cur_ion = ions[PRIMARY]
                 else:
                     # TODO: ZeroDivisionError sometimes in JIT
                     erd_detector_jit.move_to_erd_detector(g, cur_ion, target, detector)
@@ -269,15 +265,15 @@ def simulation_loop(g, master, ions_moving, target, scat, snext, detector,
                     and cur_ion.status == enums.IonStatus.NOT_FINISHED
                     and not g.nomc):
                 if ion_simu_jit.mc_scattering(
-                        g, cur_ion, ions_moving[SECONDARY], target, detector, scat, snext):  # ion_stack.next_ion()
+                        g, cur_ion, ions[SECONDARY], target, detector, scat, snext):  # ion_stack.next_ion()
                     # This block is never reached in ERD mode
-                    cur_ion = ions_moving[SECONDARY]  # ion_stack.next_ion()
+                    cur_ion = ions[SECONDARY]  # ion_stack.next_ion()
                     found = False
                     for j in range(g.nions):
                         if j == TARGET_ATOM and g.simtype == enums.SimType.RBS:
                             continue
-                        if (round(ions_moving[j].Z) == round(cur_ion.Z)
-                                and round(ions_moving[j].A / c.C_U) == round(ions_moving[j].A / c.C_U)):
+                        if (round(ions[j].Z) == round(cur_ion.Z)
+                                and round(ions[j].A / c.C_U) == round(ions[j].A / c.C_U)):
                             # FIXME: Comparing average mass by rounding is a bad idea.
                             #        See the original code for more information.
                             found = True
@@ -319,7 +315,7 @@ def simulation_loop(g, master, ions_moving, target, scat, snext, detector,
                 if cur_ion.type == PRIMARY:
                     primary_finished = True
                     break
-                cur_ion = ions_moving[PRIMARY]  # ion_stack.prev_ion()
+                cur_ion = ions[PRIMARY]  # ion_stack.prev_ion()
                 if cur_ion.type != PRIMARY and g.output_trackpoints:
                     raise NotImplementedError
 

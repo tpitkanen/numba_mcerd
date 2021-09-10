@@ -62,7 +62,6 @@ def main(args):
     primary_ion = o.Ion()  # Not really used in the simulation loop
     secondary_ion = o.Ion()  # Not really used in the simulation loop
     previous_trackpoint_ion = o.Ion()  # Not used unless simulation is RBS
-    ions_moving = []  # TODO: Initialize a list of ions?
     target = o.Target()
     scat = None  # len [g.nions][MAXELEMENTS]
     snext = o.SNext()
@@ -91,8 +90,6 @@ def main(args):
     logging.info("Initializing input files")
     read_input.read_input(g, primary_ion, secondary_ion, previous_trackpoint_ion, target, detector)
 
-    # Package ions into an array. Ions are (sometimes) accessed in the
-    # original code like this
     if g.nions == 2:
         ions = [primary_ion, secondary_ion]
     elif g.nions == 3:
@@ -170,10 +167,6 @@ def main(args):
 
     trackid = int(ions[SECONDARY].Z) * 1_000 + g.seed % 1_000
     trackid *= 1_000_000
-    ions_moving.append(copy.deepcopy(ions[PRIMARY]))
-    ions_moving.append(copy.deepcopy(ions[SECONDARY]))
-    if g.simtype == enums.SimType.RBS:
-        ions_moving.append(copy.deepcopy(ions[TARGET_ATOM]))
 
     initialization_timer.stop()
     print(f"initialization_timer: {initialization_timer}")
@@ -193,7 +186,7 @@ def main(args):
 
         output.output_data(g)
 
-        cur_ion = ions_moving[PRIMARY]
+        cur_ion = ions[PRIMARY]
 
         # Pointer stuff, probably not needed in Python:
         # if debug:
@@ -212,13 +205,13 @@ def main(args):
 
             if nscat == enums.ScatteringType.ERD_SCATTERING:
                 if erd_scattering.erd_scattering(
-                        g, ions_moving[PRIMARY], ions_moving[SECONDARY], target, detector):
-                    cur_ion = ions_moving[SECONDARY]
+                        g, ions[PRIMARY], ions[SECONDARY], target, detector):
+                    cur_ion = ions[SECONDARY]
 
             if cur_ion.status == enums.IonStatus.FIN_RECOIL or cur_ion.status == enums.IonStatus.FIN_OUT_DET:
                 if g.simstage == enums.SimStage.PRE:
                     pre_simulation.finish_presimulation(g, detector, cur_ion)
-                    cur_ion = ions_moving[PRIMARY]
+                    cur_ion = ions[PRIMARY]
                 else:
                     erd_detector.move_to_erd_detector(g, cur_ion, target, detector)
 
@@ -236,15 +229,15 @@ def main(args):
                     and cur_ion.status == enums.IonStatus.NOT_FINISHED
                     and not g.nomc):
                 if ion_simu.mc_scattering(
-                        g, cur_ion, ions_moving[SECONDARY], target, detector, scat, snext):  # ion_stack.next_ion()
+                        g, cur_ion, ions[SECONDARY], target, detector, scat, snext):  # ion_stack.next_ion()
                     # This block is never reached in ERD mode
-                    cur_ion = ions_moving[SECONDARY]  # ion_stack.next_ion()
+                    cur_ion = ions[SECONDARY]  # ion_stack.next_ion()
                     found = False
                     for j in range(g.nions):
                         if j == TARGET_ATOM and g.simtype == enums.SimType.RBS:
                             continue
-                        if (round(ions_moving[j].Z) == round(cur_ion.Z)
-                                and round(ions_moving[j].A / c.C_U) == round(ions_moving[j].A / c.C_U)):
+                        if (round(ions[j].Z) == round(cur_ion.Z)
+                                and round(ions[j].A / c.C_U) == round(ions[j].A / c.C_U)):
                             # FIXME: Comparing average mass by rounding is a bad idea.
                             #        See the original code for more information.
                             found = True
@@ -286,7 +279,7 @@ def main(args):
                 if cur_ion.type.value == PRIMARY:
                     primary_finished = True
                     break
-                cur_ion = ions_moving[PRIMARY]  # ion_stack.prev_ion()
+                cur_ion = ions[PRIMARY]  # ion_stack.prev_ion()
                 if cur_ion.type.value != PRIMARY and g.output_trackpoints:
                     raise NotImplementedError
 
