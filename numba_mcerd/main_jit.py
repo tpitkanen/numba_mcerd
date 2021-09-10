@@ -316,13 +316,13 @@ def main(args):
                 if cur_ion.type != PRIMARY and g.output_trackpoints:
                     raise NotImplementedError
 
-            outer_loop_counts[g.cion] = outer_loop_count
-            inner_loop_counts[g.cion] = inner_loop_count
+        outer_loop_counts[g.cion] = outer_loop_count
+        inner_loop_counts[g.cion] = inner_loop_count
 
-            # logging.debug(...)
+        # logging.debug(...)
 
-            g.finstat[PRIMARY][cur_ion.status] += 1
-            finish_ion_jit.finish_ion(g, cur_ion)  # Print info if FIN_STOP or FIN_TRANS
+        g.finstat[PRIMARY][cur_ion.status] += 1
+        finish_ion_jit.finish_ion(g, cur_ion)  # Print info if FIN_STOP or FIN_TRANS
 
     finalize_jit.finalize(g, master)  # Print statistics
 
