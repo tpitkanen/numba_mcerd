@@ -135,19 +135,19 @@ def get_line_plane_cross(line: o.Line, plane: o.Plane) -> Tuple[bool, o.Point]:
     p = plane
     q = line
     k = o.Point()
-    cross_type = False
+    is_cross = False
 
     if p.type == enums.PlaneType.GENERAL_PLANE:
         if q.type == enums.LineType.GENERAL:
             if (q.a - p.b - p.a * q.c) != 0.0:
-                cross_type = True
+                is_cross = True
                 k.z = (p.a * q.b + p.b * q.d + p.c) / (1.0 - p.a * q.a - p.b * q.c)
                 k.x = q.a * k.z + q.b
                 k.y = q.c * k.z + q.d
             else:
-                cross_type = False
+                is_cross = False
         elif q.type == enums.LineType.XY_PLANE:
-            cross_type = True
+            is_cross = True
             k.x = -q.b / q.a - (-p.a * q.b - q.a * (-p.c - p.b * q.c)) / (q.a * (p.a - q.a))
             k.y = -(-p.a * q.b - q.a * (-p.c - p.b * q.c)) / (p.a - q.a)
             k.z = q.c
@@ -155,32 +155,32 @@ def get_line_plane_cross(line: o.Line, plane: o.Plane) -> Tuple[bool, o.Point]:
             k.x = q.a
             k.y = p.a * q.a + p.b * q.b + p.c
             k.z = q.b
-            cross_type = True
+            is_cross = True
     elif p.type == enums.PlaneType.Z_PLANE:
         if q.type == enums.LineType.GENERAL:
-            cross_type = True
+            is_cross = True
             k.x = q.c * p.a + q.d
             k.y = q.a * p.a + q.b
             k.z = p.a
         elif q.type == enums.LineType.XY_PLANE:
-            cross_type = False
+            is_cross = False
         elif q.type == enums.LineType.Y_AXIS:
-            cross_type = False
+            is_cross = False
     elif p.type == enums.PlaneType.X_PLANE:
         if q.type == enums.LineType.GENERAL:
-            cross_type = True
+            is_cross = True
             k.x = p.a
             k.z = (p.a - q.d) / (q.c + 1.0e-20)
             k.y = k.z * q.a + q.b
         elif q.type == enums.LineType.XY_PLANE:
-            cross_type = True
+            is_cross = True
             k.x = p.a
             k.y = p.a * q.a + q.b
             k.z = q.c
         elif q.type == enums.LineType.Y_AXIS:
-            cross_type = False
+            is_cross = False
 
-    return cross_type, k
+    return is_cross, k
 
 
 def get_distance(p1: o.Point, p2: o.Point) -> float:
