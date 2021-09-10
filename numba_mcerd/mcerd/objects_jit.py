@@ -167,9 +167,10 @@ class Global:
         self.recwidth = 0  # Recoiling angle width type  # enums.RecWidth
         self.virtualdet = False  # Do we use the virtual detector
         self.basename = ""  # len NFILE
-        # Doesn't work:
-        # self.finstat = np.zeros((constants.IonType.SECONDARY.value + 1, len(constants.IonStatus)), dtype=np.int64)  # len [SECONDARY + 1][NIONSTATUS]
         self.finstat = np.zeros((2, 11), dtype=np.int64)  # len [SECONDARY + 1][NIONSTATUS]
+        # TODO: Could pass len_ionstatus as parameter, or wait for len(IntEnum) support.
+        #       dtype version supports automatic finstat size.
+        # self.finstat = np.zeros((enums.IonType.SECONDARY.value + 1, len_ionstatus), dtype=np.int64)
         self.beamdiv = 0  # Angular divergence of the beam, width or FWHM  # TODO: Should this be int or float?
         self.beamprof = 0  # Beam profile: flat, gaussian, given distribution  # enums.BeamProf
         self.rough = False  # Rough or non-rough sample surface

@@ -1,6 +1,6 @@
 import numpy as np
 
-from numba_mcerd.mcerd import constants
+from numba_mcerd.mcerd import constants, enums
 
 # TODO: How to convert vanilla objects to these?
 # TODO: Copy comments from original
@@ -93,7 +93,7 @@ Global = np.dtype([
     ("recwidth", np.int64),  # enums.RecWidth
     ("virtualdet", bool),
     ("basename", str, 100),  # TODO: size?
-    ("finstat", np.int64, (2, 11)),  # len [SECONDARY + 1][NIONSTATUS]
+    ("finstat", np.int64, (enums.IonType.SECONDARY + 1, len(enums.IonStatus))),
     ("beamdiv", np.int64),
     ("beamprof", np.int64),  # enums.BeamProf
     ("rough", bool),
@@ -138,7 +138,7 @@ def get_global_dtype(presimu_size: int) -> Global:
         ("recwidth", np.int64),  # enums.RecWidth
         ("virtualdet", bool),
         ("basename", str, 100),  # TODO: size?
-        ("finstat", np.int64, (2, 11)),  # len [SECONDARY + 1][NIONSTATUS]
+        ("finstat", np.int64, (enums.IonType.SECONDARY + 1, len(enums.IonStatus))),
         ("beamdiv", np.int64),
         ("beamprof", np.int64),  # enums.BeamProf
         ("rough", bool),
