@@ -2,9 +2,10 @@ import math
 from typing import List
 
 import numba as nb
+import numpy as np
 
 import numba_mcerd.mcerd.constants as c
-import numba_mcerd.mcerd.objects as o
+import numba_mcerd.mcerd.objects_dtype as od
 import numba_mcerd.mcerd.objects_jit as oj
 from numba_mcerd.mcerd import copy_jit, enums, rotate_jit, random_jit
 
@@ -28,29 +29,29 @@ def erd_scattering(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Target,
     if ion.wtmp > 0:
         recoil.w *= ion.wtmp
 
-    sc_target = oj.Vector()
-    sc_ion = oj.Vector()
+    sc_target = np.zeros(1, dtype=od.Vector)[0]
+    sc_ion = np.zeros(1, dtype=od.Vector)[0]
     if g.recwidth == enums.RecWidth.NARROW:
         # Recoiling direction in the laboratory coordinate system
         sc_lab = get_recoiling_dir(g, ion, recoil, target, detector)
 
         # Recoiling direction in the target coordinate system
-        sc_target.theta, sc_target.fii = rotate_jit.rotate(
-            g.beamangle, 0.0, sc_lab.theta, sc_lab.fii)
+        sc_target["theta"], sc_target["fii"] = rotate_jit.rotate(
+            g.beamangle, 0.0, sc_lab["theta"], sc_lab["fii"])
 
         # Recoiling direction in the ion coordinate system
-        sc_ion.theta, sc_ion.fii = rotate_jit.rotate(
-            ion.theta, ion.fii - c.C_PI, sc_target.theta, sc_target.fii)
+        sc_ion["theta"], sc_ion["fii"] = rotate_jit.rotate(
+            ion.theta, ion.fii - c.C_PI, sc_target["theta"], sc_target["fii"])
     else:
         # Recoiling direction in the ion coordinate system
         sc_ion = get_recoiling_dir(g, ion, recoil, target, detector)
 
-        sc_target.theta, sc_target.fii = rotate_jit.rotate(
-            ion.theta, ion.fii, sc_ion.theta, sc_ion.fii)
+        sc_target["theta"], sc_target["fii"] = rotate_jit.rotate(
+            ion.theta, ion.fii, sc_ion["theta"], sc_ion["fii"])
 
-        sc_lab = oj.Vector()
-        sc_lab.theta, sc_lab.fii = rotate_jit.rotate(
-            g.beamangle, c.C_PI, sc_target.theta, sc_target.fii)
+        sc_lab = np.zeros(1, dtype=od.Vector)[0]
+        sc_lab["theta"], sc_lab["fii"] = rotate_jit.rotate(
+            g.beamangle, c.C_PI, sc_target["theta"], sc_target["fii"])
 
     if recoil.w > 1e7:
         # TODO: Print warning
@@ -59,13 +60,13 @@ def erd_scattering(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Target,
     recoil.scale = ion.scale
 
     if g.simtype == enums.SimType.ERD:
-        if sc_ion.theta < c.C_PI / 2.0:  # TODO: Could do * 0.5
+        if sc_ion["theta"] < c.C_PI / 2.0:  # TODO: Could do * 0.5
             if recoil.I.n > 0:
                 recoil.A = get_isotope(recoil.I)
-            recoil.E = (ion.E * math.cos(sc_ion.theta)**2 * 4.0
+            recoil.E = (ion.E * math.cos(sc_ion["theta"])**2 * 4.0
                         * (ion.A * recoil.A) / (ion.A + recoil.A)**2)
-            recoil.theta = sc_target.theta
-            recoil.fii = sc_target.fii
+            recoil.theta = sc_target["theta"]
+            recoil.fii = sc_target["fii"]
             recoil.opt.cos_theta = math.cos(recoil.theta)
             recoil.opt.sin_theta = math.sin(recoil.theta)
             copy_jit.copy_point(recoil.p, ion.p)
@@ -74,7 +75,7 @@ def erd_scattering(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Target,
 
             # Rutherford cross sections for scaling ions if False
             table = False if ion.scale else target.table
-            recoil.w *= cross_section(ion.Z, ion.A, recoil.Z, recoil.A, ion.E, sc_ion.theta,
+            recoil.w *= cross_section(ion.Z, ion.A, recoil.Z, recoil.A, ion.E, sc_ion["theta"],
                                       target.cross, table, enums.SimType.ERD)
             recoil.time = 0.0
             recoil.type = enums.IonType.SECONDARY
@@ -160,19 +161,19 @@ def get_recoiling_dir(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Targ
      ion coordinates (wide scheme)
      """
 
-    d = oj.Vector()
+    d = np.zeros(1, dtype=od.Vector)[0]
     if g.simstage == enums.SimStage.PRE:
         theta = 0.0
         fii = 0.0
-        d.theta, d.fii = rotate_jit.rotate(detector.angle, 0.0, theta, fii)
+        d["theta"], d["fii"] = rotate_jit.rotate(detector.angle, 0.0, theta, fii)
     elif g.recwidth == enums.RecWidth.NARROW:
         n = ion.tlayer
         thetamax = target.recpar[n].x * ion.p.z + target.recpar[n].y
 
         cos_thetamax = math.cos(thetamax)
 
-        d_ion = oj.Vector()
-        d_target = oj.Vector()
+        d_ion = np.zeros(1, dtype=od.Vector)[0]
+        d_target = np.zeros(1, dtype=od.Vector)[0]
         i = 0
         d_ion_theta_ok = True
         while d_ion_theta_ok:
@@ -180,9 +181,9 @@ def get_recoiling_dir(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Targ
             t = random_jit.rnd(cos_thetamax, 1.0, enums.RndPeriod.CLOSED)
             theta = math.acos(t)
             fii = random_jit.rnd(0, 2.0 * c.C_PI, enums.RndPeriod.OPEN)
-            d_target.theta, d_target.fii = rotate_jit.rotate(detector.angle, 0.0, theta, fii)
-            d_ion.theta, d_ion.fii = rotate_jit.rotate(
-                ion.theta, ion.fii - c.C_PI, d_target.theta, d_target.fii)
+            d_target["theta"], d_target["fii"] = rotate_jit.rotate(detector.angle, 0.0, theta, fii)
+            d_ion["theta"], d_ion["fii"] = rotate_jit.rotate(
+                ion.theta, ion.fii - c.C_PI, d_target["theta"], d_target["fii"])
 
             if i % 5 == 0:
                 thetamax = min(thetamax * 2.0, c.C_PI * 0.5)
@@ -191,9 +192,9 @@ def get_recoiling_dir(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Targ
             if i > 100:
                 raise ErdScatteringError("Too many calculation for recoiling angle")
 
-            d_ion_theta_ok = math.cos(d_ion.theta) > g.costhetamin
+            d_ion_theta_ok = math.cos(d_ion["theta"]) > g.costhetamin
 
-        d.theta, d.fii = rotate_jit.rotate(detector.angle, 0.0, theta, fii)
+        d["theta"], d["fii"] = rotate_jit.rotate(detector.angle, 0.0, theta, fii)
         recoil.w *= (thetamax / detector.thetamax)**2
     else:
         raise NotImplementedError
