@@ -204,11 +204,11 @@ def main(args):
     # jitclass_conversion_timer.stop()
     # print(f"jitclass_conversion_timer: {jitclass_conversion_timer}")
 
-    simulation_loop(g, master, ions, ions_moving, target, scat, snext, detector,
+    simulation_loop(g, master, ions_moving, target, scat, snext, detector,
                     trackid, ion_i, new_track)
 
 
-def simulation_loop(g, master, ions, ions_moving, target, scat, snext, detector,
+def simulation_loop(g, master, ions_moving, target, scat, snext, detector,
                     trackid, ion_i, new_track):
     # TODO: initialize at least trackid, ion_i and new_track here
     outer_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
@@ -276,8 +276,8 @@ def simulation_loop(g, master, ions, ions_moving, target, scat, snext, detector,
                     for j in range(g.nions):
                         if j == TARGET_ATOM and g.simtype == enums.SimType.RBS:
                             continue
-                        if (round(ions[j].Z) == round(cur_ion.Z)
-                                and round(ions[j].A / c.C_U) == round(ions[j].A / c.C_U)):
+                        if (round(ions_moving[j].Z) == round(cur_ion.Z)
+                                and round(ions_moving[j].A / c.C_U) == round(ions_moving[j].A / c.C_U)):
                             # FIXME: Comparing average mass by rounding is a bad idea.
                             #        See the original code for more information.
                             found = True

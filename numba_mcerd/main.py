@@ -243,8 +243,8 @@ def main(args):
                     for j in range(g.nions):
                         if j == TARGET_ATOM and g.simtype == enums.SimType.RBS:
                             continue
-                        if (round(ions[j].Z) == round(cur_ion.Z)
-                                and round(ions[j].A / c.C_U) == round(ions[j].A / c.C_U)):
+                        if (round(ions_moving[j].Z) == round(cur_ion.Z)
+                                and round(ions_moving[j].A / c.C_U) == round(ions_moving[j].A / c.C_U)):
                             # FIXME: Comparing average mass by rounding is a bad idea.
                             #        See the original code for more information.
                             found = True
