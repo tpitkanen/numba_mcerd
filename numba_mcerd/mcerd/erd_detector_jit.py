@@ -54,8 +54,6 @@ def move_to_erd_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, detector:
     direction["fii"] = out_fii
 
     ion_line = get_line_params(direction, pout)
-    # FIXME: NotImplementedError("use load_from_data_pointer() instead")
-    #        Pass a 'cross' parameter to be edited instead? (C-style multiple return)
     cross = np.zeros(1, dtype=od.Point)[0]
     is_cross = get_line_plane_cross(ion_line, foil.plane, cross)
     if is_cross:
