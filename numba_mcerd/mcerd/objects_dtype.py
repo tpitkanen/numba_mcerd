@@ -63,6 +63,10 @@ def get_master_dtype(g):
         # argc
     ])
 
+# TODO: Create a Master_data dtype for unformatted Master data (numbers and enums instead of text)
+#       - avoids I/O during simulation (unsupported by Numba & slow)
+#       - output data at the end of the simulation (or pass the dtype to a compatible program)
+#       - maybe create a separate dtype for each file type (at least .erd and .out)
 
 # Use get_global_dtype in code, this is just for use as a type annotation
 Global = np.dtype([

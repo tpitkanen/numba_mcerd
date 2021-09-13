@@ -84,7 +84,7 @@ def finish_presimulation(g: oj.Global, detector: oj.Detector, recoil: oj.Ion) ->
 
 
 # TODO: I/O not supported in Numba
-# @nb.njit(cache=True)
+@nb.njit(cache=True)
 def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
                           detector: oj.Detector) -> None:
     """We determine here the solid angle as function of recoiling depth
@@ -121,17 +121,19 @@ def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
 
         npre += n
 
-    out_lines = []
+    # TODO: Output to Master_data (see objects_dtype)
+    # out_lines = []
     a = b = 0.0
     for i in range(target.ntarget):
         for j in range(nlayer[i]):
+            pass
             # C code uses format code 'i' instead of 'd', but Python doesn't
             # support 'i' for int anymore so 'd' is used instead
-            out_lines.append(f"{i:3d} {depth[i][j] / c.C_NM:10.4f} {angle[i][j] / c.C_DEG:10.4f}\n")
+            # out_lines.append(f"{i:3d} {depth[i][j] / c.C_NM:10.4f} {angle[i][j] / c.C_DEG:10.4f}\n")
 
-        out_lines.append("\n")
-        out_lines.append(
-            f"{i:3d} {a * c.C_NM / c.C_DEG:10.5f} {b / c.C_DEG:10.5f} + 1.1 * {detector.thetamax / c.C_DEG:6.3f} * {max(1.0, max(detector.vsize[0], detector.vsize[1])):6.2f}\n")
+        # out_lines.append("\n")
+        # out_lines.append(
+        #     f"{i:3d} {a * c.C_NM / c.C_DEG:10.5f} {b / c.C_DEG:10.5f} + 1.1 * {detector.thetamax / c.C_DEG:6.3f} * {max(1.0, max(detector.vsize[0], detector.vsize[1])):6.2f}\n")
         if nlayer[i] > 2:
             a, b = fit_linear(depth[i], angle[i], nlayer[i])
             target.recpar[i].x = a
@@ -147,22 +149,22 @@ def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
                     5.0 * c.C_DEG + 1.1 * detector.thetamax \
                     * max(1.0, max(detector.vsize[0], detector.vsize[1]))
 
-    out_lines.append("\n")
+    # out_lines.append("\n")
 
-    pre_lines = []
-    for i in range(target.ntarget):
-        x_temp = target.recpar[i].x * c.C_NM / c.C_DEG
-        y_temp = target.recpar[i].y / c.C_DEG
-        out_lines.append(f"{i:3d} {x_temp:10.5f} {y_temp:10.5f}\n")
-        pre_lines.append(f"{x_temp:14.5e} {y_temp:14.5e}\n")
+    # pre_lines = []
+    # for i in range(target.ntarget):
+    #     x_temp = target.recpar[i].x * c.C_NM / c.C_DEG
+    #     y_temp = target.recpar[i].y / c.C_DEG
+    #     out_lines.append(f"{i:3d} {x_temp:10.5f} {y_temp:10.5f}\n")
+    #     pre_lines.append(f"{x_temp:14.5e} {y_temp:14.5e}\n")
 
-    with Path(master.fpout).open("a") as f:
-        f.writelines(out_lines)
+    # with Path(master.fpout).open("a") as f:
+    #     f.writelines(out_lines)
 
-    # TODO: Move pre_file to master
-    pre_file = Path(f"{g.basename}.pre")
-    with pre_file.open("w") as f:  # mode="w" overwrites
-        f.writelines(pre_lines)
+    # # TODO: Move pre_file to master
+    # pre_file = Path(f"{g.basename}.pre")
+    # with pre_file.open("w") as f:  # mode="w" overwrites
+    #     f.writelines(pre_lines)
 
     print("Presimulation finished")
 
