@@ -19,7 +19,7 @@ def is_in_energy_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, detector
     raise NotImplementedError
 
 
-# @nb.njit(cache=True)
+@nb.njit(cache=True)
 def move_to_erd_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, detector: oj.Detector) -> None:
     """Recoil moves from the target to a detector foil or from one
     detector foil to the next
