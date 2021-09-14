@@ -126,7 +126,7 @@ class Master:
     "virtualdet": boolean,
     "basename": nb.types.string,
     "finstat": int64[:, :],
-    "beamdiv": int64,
+    "beamdiv": float64,
     "beamprof": int64,  # enums.BeamProf
     "rough": boolean,
     "nmclarge": int64,
@@ -171,7 +171,7 @@ class Global:
         # TODO: Could pass len_ionstatus as parameter, or wait for len(IntEnum) support.
         #       dtype version supports automatic finstat size.
         # self.finstat = np.zeros((enums.IonType.SECONDARY.value + 1, len_ionstatus), dtype=np.int64)
-        self.beamdiv = 0  # Angular divergence of the beam, width or FWHM  # TODO: Should this be int or float?
+        self.beamdiv = 0.0  # Angular divergence of the beam, width or FWHM
         self.beamprof = 0  # Beam profile: flat, gaussian, given distribution  # enums.BeamProf
         self.rough = False  # Rough or non-rough sample surface
         self.nmclarge = 0  # Number of rejected (large) MC scatterings (RBS)

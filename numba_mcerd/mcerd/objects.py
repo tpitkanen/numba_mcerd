@@ -80,7 +80,7 @@ class Global:
     virtualdet: bool = False  # Do we use the virtual detector
     basename: str = None  # len NFILE
     finstat: List[List[int]] = None  # len [SECONDARY + 1][NIONSTATUS]
-    beamdiv: int = 0  # Angular divergence of the beam, width or FWHM  # TODO: Should this be int or float?
+    beamdiv: float = 0.0  # Angular divergence of the beam, width or FWHM
     beamprof: enums.BeamProf = None  # Beam profile: flat, gaussian, given distribution
     rough: bool = False  # Rough or non-rough sample surface
     nmclarge: int = 0  # Number of rejected (large) MC scatterings (RBS)

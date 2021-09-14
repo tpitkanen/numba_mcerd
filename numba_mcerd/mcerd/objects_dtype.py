@@ -96,7 +96,7 @@ Global = np.dtype([
     ("virtualdet", bool),
     ("basename", str, 100),  # TODO: size?
     ("finstat", np.int64, (enums.IonType.SECONDARY + 1, len(enums.IonStatus))),
-    ("beamdiv", np.int64),
+    ("beamdiv", np.float64),
     ("beamprof", np.int64),  # enums.BeamProf
     ("rough", bool),
     ("nmclarge", np.int64),
@@ -141,7 +141,7 @@ def get_global_dtype(presimu_size: int) -> Global:
         ("virtualdet", bool),
         ("basename", str, 100),  # TODO: size?
         ("finstat", np.int64, (enums.IonType.SECONDARY + 1, len(enums.IonStatus))),
-        ("beamdiv", np.int64),
+        ("beamdiv", np.float64),
         ("beamprof", np.int64),  # enums.BeamProf
         ("rough", bool),
         ("nmclarge", np.int64),
