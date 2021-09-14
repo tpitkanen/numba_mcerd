@@ -204,6 +204,8 @@ def main(args):
     simulation_loop(g, master, ions, target, scat, snext, detector,
                     trackid, ion_i, new_track)
 
+    print(g.finstat)  # TODO: Remove later
+
 
 # TODO: (not njit)
 def run_simulation(g, master, ions, target, scat, snext, detector,
