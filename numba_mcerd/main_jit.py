@@ -1,6 +1,7 @@
 import copy
 import logging
 
+import numba as nb
 import numpy as np
 
 from numba_mcerd import config, timer, patch_numba
@@ -296,7 +297,7 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
                 raise NotImplementedError
 
             if cur_ion.type == SECONDARY and cur_ion.status != enums.IonStatus.NOT_FINISHED:
-                g.finstat[SECONDARY][cur_ion.status] += 1
+                g.finstat[SECONDARY, cur_ion.status] += 1
 
             while ion_simu_jit.ion_finished(g, cur_ion, target):
                 inner_loop_count += 1
@@ -324,7 +325,7 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
 
         # logging.debug(...)
 
-        g.finstat[PRIMARY][cur_ion.status] += 1
+        g.finstat[PRIMARY, cur_ion.status] += 1
         finish_ion_jit.finish_ion(g, cur_ion)  # Print info if FIN_STOP or FIN_TRANS
 
     finalize_jit.finalize(g, master)  # Print statistics
