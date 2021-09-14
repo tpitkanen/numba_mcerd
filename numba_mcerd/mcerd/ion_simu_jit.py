@@ -6,7 +6,7 @@ import numba as nb
 import numpy as np
 
 from numba_mcerd.mcerd import random_jit, cross_section_jit, enums
-import numba_mcerd.mcerd.objects as o
+import numba_mcerd.mcerd.objects_dtype as od
 import numba_mcerd.mcerd.objects_jit as oj
 import numba_mcerd.mcerd.constants as c
 
@@ -143,12 +143,12 @@ def move_ion(g: oj.Global, ion: oj.Ion, target: oj.Target, snext: oj.SNext) -> i
     d = snext.d
     layer = target.layer[ion.tlayer]
 
-    nextp = oj.Point()
-    nextp.x = d * ion.opt.sin_theta * math.cos(ion.fii) + ion.p.x
-    nextp.y = d * ion.opt.sin_theta * math.sin(ion.fii) + ion.p.y
-    nextp.z = d * ion.opt.cos_theta + ion.p.z
+    nextp = np.zeros(1, dtype=od.Point)[0]
+    nextp["x"] = d * ion.opt.sin_theta * math.cos(ion.fii) + ion.p.x
+    nextp["y"] = d * ion.opt.sin_theta * math.sin(ion.fii) + ion.p.y
+    nextp["z"] = d * ion.opt.cos_theta + ion.p.z
 
-    nextz = nextp.z
+    nextz = nextp["z"]
 
     if g.rough and ion.tlayer < target.ntarget:
         raise NotImplementedError
@@ -507,12 +507,12 @@ def recdist_crossing(g: oj.Global, ion: oj.Ion, target: oj.Target, dist: float) 
     d = -1.0
     i = get_reclayer(g, target, ion.p)
 
-    nextp = oj.Point()
+    nextp = np.zeros(1, dtype=od.Point)[0]
     scross = s1cross = s2cross = False  # s1cross and s2cross unused if not g.rough
     if g.rough:
         raise NotImplementedError
     else:
-        nextp.z = dist * ion.opt.cos_theta + ion.p.z
+        nextp["z"] = dist * ion.opt.cos_theta + ion.p.z
         i1 = i
         i2 = get_reclayer(g, target, nextp)
         if i2 > i1:
@@ -538,12 +538,12 @@ def recdist_nonzero(g: oj.Global, ion: oj.Ion, target: oj.Target, drec: float) -
     Returns:
         Whether material distribution is nonzero
     """
-    nextp = oj.Point()
+    nextp = np.zeros(1, dtype=od.Point)[0]
 
     if g.rough:
         raise NotImplementedError
     else:
-        nextp.z = drec * ion.opt.cos_theta + ion.p.z
+        nextp["z"] = drec * ion.opt.cos_theta + ion.p.z
         i = get_reclayer(g, target, nextp)
 
     if i == 0 or i >= target.nrecdist:
@@ -555,7 +555,7 @@ def recdist_nonzero(g: oj.Global, ion: oj.Ion, target: oj.Target, drec: float) -
 
 @nb.njit(cache=True)
 def get_reclayer(g: oj.Global, target: oj.Target, p: oj.Point) -> int:
-    z = p.z
+    z = p["z"]
     n = target.nrecdist
 
     if g.rough:
