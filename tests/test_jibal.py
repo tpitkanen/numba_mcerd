@@ -4,7 +4,6 @@ import unittest
 from numba_mcerd.mcerd.jibal import Jibal, JibalSelectIsotopes
 
 
-# TODO: Update tests
 class TestJibal(unittest.TestCase):
     def test_jibal(self):
         jibal = Jibal()

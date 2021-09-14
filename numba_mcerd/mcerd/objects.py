@@ -8,9 +8,6 @@ from numba_mcerd.mcerd import constants, enums
 from numba_mcerd.mcerd.jibal import Jibal
 
 
-# TODO: Dataclasses can't be optimized with @njit
-#       Replace the most performance-critical with something faster
-
 # TODO: make list names plural
 
 @dataclass

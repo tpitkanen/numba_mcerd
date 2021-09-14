@@ -2,9 +2,7 @@ import numpy as np
 
 from numba_mcerd.mcerd import constants, enums
 
-# TODO: How to convert vanilla objects to these?
 # TODO: Copy comments from original
-# TODO: Are enums supported?
 
 LAYER_STO_COUNT_ERD = 2  # One sto for each beam ion in simulation (2 for ERD, 3 for RBS)
 LAYER_STO_COUNT_RBS = 3
