@@ -114,14 +114,7 @@ def main(args):
     logging.info("Initializing output files")
     init_params.init_io(g_o, primary_ion_o, target_o)
 
-    # TODO: Rename to pot(ential)
-    # Vanilla Python:
-    # pot = potential_jit.make_screening_table_dtype.py_func()  # type(pot) == <class 'numpy.void'>
-    # pot = pot.view(np.recarray)  # type(pot) == <class 'numpy.record'>
-
-    # Converting ndarray objects to views makes them easier to debug
-    # outside of Numba. They also seem to be slightly faster in Numba.
-    pot = potential_jit.make_screening_table_dtype().view(np.recarray)
+    pot = potential_jit.make_screening_table_dtype()
 
     ion_stack.cascades_create_additional_ions(g_o, detector_o, target_o, [])
 

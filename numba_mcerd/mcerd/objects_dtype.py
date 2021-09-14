@@ -238,11 +238,20 @@ Cross_section = np.dtype([
 ])
 
 
+# Use get_potential_dtype in code, this is just for use as a type annotation
 Potential = np.dtype([
     ("n", np.int64),
     ("d", np.int64),
-    ("u", Point2, 30000)  # TODO: Correct size? Now using potential.py MAXPOINTS
+    ("u", Point2, 30000)  # potential.py MAXPOINTS
 ])
+
+
+def get_potential_dtype(u_size) -> Potential:
+    return np.dtype([
+        ("n", np.int64),
+        ("d", np.int64),
+        ("u", Point2, u_size)  # Variable size
+    ])
 
 
 Scattering = np.dtype([

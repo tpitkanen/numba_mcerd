@@ -59,43 +59,30 @@ def make_screening_table_cached() -> Tuple[int, int, np.ndarray, np.ndarray]:
     return n, d, ux, uy
 
 
-@nb.njit(cache=True)
+# TODO: This returns a Potential, unlike the pure Python version.
+#       Change name here to underline the difference?
 def make_screening_table_dtype() -> oj.Potential:
     xmax = get_max_x()
     n = get_npoints(xmax)
     xstep = xmax / (n - 1)
     d = round(1 / xstep)
 
-    # This initialization somewhat works in Numba, but requires attribute-style
-    # access (.attribute_name), which doesn't work without Numba.
-    # Causes issues when using e.g. math.cos(obj.angle).
-    # pot = np.zeros((), dtype=od.Potential)
-
-    pot = np.zeros(1, dtype=od.Potential)[0]
-
-    # Works in Numba, but not in vanilla Python:
-    # pot.n = n
-    # pot.d = d
-
+    pot = np.zeros(1, dtype=od.get_potential_dtype(n))[0]
+    pot = pot.view(np.recarray)
     pot["n"] = n
     pot["d"] = d
 
+    populate_pot(pot, xstep)
+    return pot
+
+
+@nb.njit(cache=True)
+def populate_pot(pot: oj.Potential, xstep: float) -> None:
     x = 0
     for i in range(pot["n"]):
-        # TODO: Is there a way to do this in Numba?:
-        # pot["u"][i] = x, U(x)
-
-        # Can't access arrays with .property notation (before an object
-        # is converted to a np.recarray or similar, which doesn't seem
-        # possible in a JITed function). Inner properties are accessible.
-        # pot["u"][i].x = x
-        # pot["u"][i].y = U(x)
-
         pot["u"][i]["x"] = x
         pot["u"][i]["y"] = U(x)
         x += xstep
-
-    return pot
 
 
 @nb.njit(cache=True)
