@@ -205,19 +205,40 @@ def main(args):
                     trackid, ion_i, new_track)
 
 
+# TODO: (not njit)
+def run_simulation(g, master, ions, target, scat, snext, detector,
+                   trackid, ion_i, new_track):
+    # <Convert objects>
+
+    # presim_timer = ...
+    # run_pre_simulation(...)
+    # presim_timer.split()
+    # analyze_presimulation(...)
+    # presim_timer.stop()
+
+    # main_sim_timer = ...
+    # run_main_simulation(...)
+    # main_sim_timer.split()
+    # finalize_jit.finalize(g, master)
+    # main_sim_timer.stop()
+    raise NotImplementedError
+
+
+@nb.njit(cache=True)
 def simulation_loop(g, master, ions, target, scat, snext, detector,
                     trackid, ion_i, new_track):
     # TODO: initialize at least trackid, ion_i and new_track here
     outer_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
     inner_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
 
-    logging.info("Starting simulation")
+    # logging.info("Starting simulation")
 
-    presim_timer = timer.SplitTimer.init_and_start()
+    # presim_timer = timer.SplitTimer.init_and_start()
     # TODO: Move this to a separate jit-compiled function to eliminate
     #       context-switching overhead
     for i in range(g.nsimu):
-        print(i)
+        if i % 100 == 0:
+            print(i)
 
         g.cion = i  # TODO: Replace/remove for MT
 
@@ -257,10 +278,10 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
                 pre_simulation_jit.analyze_presimulation(g, master, target, detector)
                 init_params_jit.init_recoiling_angle(target)
 
-                presim_timer.stop()
-                print(f"presim_timer: {presim_timer}")
-
-                main_sim_timer = timer.SplitTimer.init_and_start()
+                # presim_timer.stop()
+                # print(f"presim_timer: {presim_timer}")
+                #
+                # main_sim_timer = timer.SplitTimer.init_and_start()
 
             if (nscat == enums.ScatteringType.MC_SCATTERING
                     and cur_ion.status == enums.IonStatus.NOT_FINISHED
@@ -280,8 +301,8 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
                             found = True
                             cur_ion.scatindex = j
                     if not found:
-                        logging.warning(
-                            f"Recoil cascade not possible, since recoiling ion Z={cur_ion.Z} and A={cur_ion.A / c.C_U} u are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
+                        # logging.warning(
+                        #     f"Recoil cascade not possible, since recoiling ion Z={cur_ion.Z} and A={cur_ion.A / c.C_U} u are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
                         raise NotImplementedError
                         # cur_ion = ion_stack.prev_ion()
                     else:
@@ -312,7 +333,8 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
                 # energy detector or if it's a scaling ion
 
                 if cur_ion.type <= SECONDARY:
-                    output_jit.output_erd(g, master, cur_ion, target, detector)
+                    # output_jit.output_erd(g, master, cur_ion, target, detector)
+                    pass
                 if cur_ion.type == PRIMARY:
                     primary_finished = True
                     break
@@ -326,13 +348,13 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
         # logging.debug(...)
 
         g.finstat[PRIMARY, cur_ion.status] += 1
-        finish_ion_jit.finish_ion(g, cur_ion)  # Print info if FIN_STOP or FIN_TRANS
+        # finish_ion_jit.finish_ion(g, cur_ion)  # Print info if FIN_STOP or FIN_TRANS
 
-    finalize_jit.finalize(g, master)  # Print statistics
+    # finalize_jit.finalize(g, master)  # Print statistics
 
     # noinspection PyUnboundLocalVariable
-    main_sim_timer.stop()
-    print(f"main_sim_timer: {main_sim_timer}")
+    # main_sim_timer.stop()
+    # print(f"main_sim_timer: {main_sim_timer}")
 
 
 if __name__ == '__main__':
