@@ -263,7 +263,7 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
         elif key == SettingsLine.I_MINSCAT.value:
             min_scat, line = get_float(value)
             unit, _ = get_unit_value(line, c.C_DEG)
-            g.beamdiv = math.cos(min_scat * unit)
+            g.costhetamin = math.cos(min_scat * unit)
         elif key == SettingsLine.I_BDIV.value:
             beam_div, line = get_float(value)
             unit, _ = get_unit_value(line, c.C_DEG)
