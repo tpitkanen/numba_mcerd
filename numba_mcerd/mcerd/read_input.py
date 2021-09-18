@@ -280,7 +280,7 @@ def read_input(g: o.Global, primary_ion: o.Ion, secondary_ion: o.Ion, tertiary_i
             raise NotImplementedError
         elif key == SettingsLine.I_NSCALE.value:
             nscale, _ = get_float(value)
-            g.nscale = nscale
+            g.nscale = int(nscale)
         elif key == SettingsLine.I_TRACKP.value:
             raise NotImplementedError
         elif key == SettingsLine.I_MISSES.value:
