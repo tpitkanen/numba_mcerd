@@ -246,7 +246,7 @@ Potential = np.dtype([
 ])
 
 
-def get_potential_dtype(u_size) -> Potential:
+def get_potential_dtype(u_size: int) -> Potential:
     return np.dtype([
         ("n", np.int64),
         ("d", np.int64),
@@ -311,6 +311,7 @@ Plane = np.dtype([
 ])
 
 
+# Use get_target_dtype in code, this is just for use as a type annotation
 Target = np.dtype([
     ("minN", np.float64),
     ("ele", Target_ele, constants.MAXELEMENTS),
@@ -332,14 +333,13 @@ Target = np.dtype([
 ])
 
 
-def get_target_dtype(table: bool) -> np.dtype:
-    # TODO: Trim layer
-    if table:
-        return Target
-    return np.dtype([
+def get_target_dtype(target) -> np.dtype:
+    layer_count = sum((1 for layer in target.layer if layer.type is not None))
+
+    dtype = [
         ("minN", np.float64),
         ("ele", Target_ele, constants.MAXELEMENTS),
-        ("layer", Target_layer, constants.MAXLAYERS),
+        ("layer", Target_layer, layer_count),
         ("nlayers", np.int64),
         ("ntarget", np.int64),
         ("natoms", np.int64),
@@ -349,13 +349,15 @@ def get_target_dtype(table: bool) -> np.dtype:
         ("recmaxd", np.float64),
         ("plane", Plane),
         ("efin", np.float64, constants.NRECDIST),
-        ("recpar", Point2, constants.MAXLAYERS),
+        ("recpar", Point2, layer_count),
         ("angave", np.float64),
         # ("surface", Surface),
-        # TODO: replace dummy cross with a separate Target_cross or remvoe completely
+        # TODO: replace dummy cross with a separate Target_cross or remove completely
         ("cross", np.float64, (1, 1)),
         ("table", bool)
-    ])
+    ]
+
+    return np.dtype(dtype)
 
 
 Line = np.dtype([

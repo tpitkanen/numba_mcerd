@@ -247,21 +247,22 @@ def convert_target(target: o.Target) -> od.Target:
     def convert(values):
         values["ele"] = np.array([convert_target_ele(ele) for ele in values["ele"]])
         values["layer"] = np.array(
-            [convert_target_layer(layer) if layer.type is not None else np.zeros(1, dtype=od.Target_layer)[0]
-             for layer in values["layer"]])
+            [convert_target_layer(layer) for layer in values["layer"] if layer.type is not None])
 
         values["recdist"] = np.array([convert_point2(rec) for rec in values["recdist"]])
         values["plane"] = convert_plane(values["plane"])
         values["efin"] = _convert_array(values["efin"])
-        values["recpar"] = np.array([convert_point2(rec) for rec in values["recpar"]])
+
+        valid_recpars = values["recpar"][:len(values["layer"])]
+        values["recpar"] = np.array([convert_point2(rec) for rec in valid_recpars])
         values["surface"] = None  # TODO: Implement
         if values["table"]:
             values["cross"] = np.array(values["cross"], dtype=np.float64)
         else:
-            # Dummy value to prevent errors in function calls
+            # Dummy cross to prevent errors in JIT
             values["cross"] = np.zeros((1, 1), dtype=np.float64)
 
-    target_dtype = od.get_target_dtype(target.table)
+    target_dtype = od.get_target_dtype(target)
     return _base_convert(target, target_dtype, convert)
 
 
