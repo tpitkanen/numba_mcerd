@@ -332,6 +332,32 @@ Target = np.dtype([
 ])
 
 
+def get_target_dtype(table: bool) -> np.dtype:
+    # TODO: Trim layer
+    if table:
+        return Target
+    return np.dtype([
+        ("minN", np.float64),
+        ("ele", Target_ele, constants.MAXELEMENTS),
+        ("layer", Target_layer, constants.MAXLAYERS),
+        ("nlayers", np.int64),
+        ("ntarget", np.int64),
+        ("natoms", np.int64),
+        ("recdist", Point2, constants.NRECDIST),
+        ("nrecdist", np.int64),
+        ("effrecd", np.float64),
+        ("recmaxd", np.float64),
+        ("plane", Plane),
+        ("efin", np.float64, constants.NRECDIST),
+        ("recpar", Point2, constants.MAXLAYERS),
+        ("angave", np.float64),
+        # ("surface", Surface),
+        # TODO: replace dummy cross with a separate Target_cross or remvoe completely
+        ("cross", np.float64, (1, 1)),
+        ("table", bool)
+    ])
+
+
 Line = np.dtype([
     ("a", np.float64),
     ("b", np.float64),

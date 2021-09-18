@@ -255,9 +255,14 @@ def convert_target(target: o.Target) -> od.Target:
         values["efin"] = _convert_array(values["efin"])
         values["recpar"] = np.array([convert_point2(rec) for rec in values["recpar"]])
         values["surface"] = None  # TODO: Implement
-        values["cross"] = np.array(values["cross"], dtype=np.float64)
+        if values["table"]:
+            values["cross"] = np.array(values["cross"], dtype=np.float64)
+        else:
+            # Dummy value to prevent errors in function calls
+            values["cross"] = np.zeros((1, 1), dtype=np.float64)
 
-    return _base_convert(target, od.Target, convert)
+    target_dtype = od.get_target_dtype(target.table)
+    return _base_convert(target, target_dtype, convert)
 
 
 def convert_line(line: o.Line) -> od.Line:
