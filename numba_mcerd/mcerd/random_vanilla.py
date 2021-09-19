@@ -75,24 +75,11 @@ def rnd(low: float, high: float, period: enums.RndPeriod = enums.RndPeriod.CLOSE
     if length < 0.0:
         raise RndError("Length negative or zero")
 
-    return length * random_generator.random() + low
-    # TODO: Implement these unlikely cases:
-    # if period == enums.RndPeriod.CLOSED:
-    #     raise NotImplementedError
-    # elif period == enums.RndPeriod.OPEN:
-    #     raise NotImplementedError
-    # elif period == enums.RndPeriod.LEFT:
-    #     raise NotImplementedError
-    # elif period == enums.RndPeriod.RIGHT:
-    #     raise NotImplementedError
-    # elif period == enums.RndPeriod.SEED:
-    #     raise NotImplementedError
-    # else:
-    #     raise exceptions.IonSimulationError
-    #
-    # assert low <= value <= high
+    value = length * random_generator.random() + low
+    if value <= low or value >= high:  # Unlikely to occur even once
+        print(f"RNG value={value} may exceed bounds of low={low}, high={high}, period={period}")
 
-    # return value
+    return value
 
 
 def gaussian() -> float:

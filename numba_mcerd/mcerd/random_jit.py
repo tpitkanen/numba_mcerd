@@ -37,11 +37,11 @@ def rnd(low: float, high: float, period=None) -> float:
     if length < 0.0:
         raise RndError("Length negative or zero")
 
-    return length * np.random.random() + low
-    # TODO: Implement period
+    value = length * np.random.random() + low
+    if value <= low or value >= high:  # Unlikely to occur even once
+        print(f"RNG value={float(value)} may exceed bounds of low={float(low)}, high={float(high)}, period={period}")
 
-    # TODO: Slightly simpler option, but doesn't check that length > 0:
-    # return np.random.uniform(low, high)  # [low, high)
+    return value
 
 
 @nb.njit(cache=True)
