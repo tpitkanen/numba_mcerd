@@ -7,6 +7,7 @@ the RNG source in config.py.
 import numba as nb
 import numpy as np
 
+from numba_mcerd import logging_jit
 from numba_mcerd.mcerd import enums
 
 
@@ -39,7 +40,8 @@ def rnd(low: float, high: float, period=None) -> float:
 
     value = length * np.random.random() + low
     if value <= low or value >= high:  # Unlikely to occur even once
-        print(f"RNG value={float(value)} may exceed bounds of low={float(low)}, high={float(high)}, period={period}")
+        # print(f"RNG value={float(value)} may exceed bounds of low={float(low)}, high={float(high)}, period={period}")
+        logging_jit.warning(f"RNG may exceed bounds")
 
     return value
 

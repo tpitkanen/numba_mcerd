@@ -1,10 +1,10 @@
-import logging
 import math
 from typing import List, Tuple
 
 import numba as nb
 import numpy as np
 
+from numba_mcerd import logging_jit
 from numba_mcerd.mcerd import random_jit, cross_section_jit, enums
 import numba_mcerd.mcerd.objects_dtype as od
 import numba_mcerd.mcerd.objects_jit as oj
@@ -268,8 +268,8 @@ def inter_sto(stop: oj.Target_sto, vel: float, mode: enums.IonMode) -> float:
     assert stop.n_sto > 0
 
     if vel >= stop.vel[stop.n_sto - 1]:
-        # TODO
-        # logging.warning(f"Ion velocity '{vel}' exceeds the maximum velocity of stopping power table")
+        # logging_jit.warning(f"Ion velocity={float(vel)} exceeds the maximum velocity of stopping power table")
+        logging_jit.warning(f"Ion velocity exceeds the maximum velocity of stopping power table")
         if mode == enums.IonMode.STOPPING.value:
             return stop.sto[stop.n_sto - 1]
         return stop.stragg[stop.n_sto - 1]
@@ -361,15 +361,15 @@ def mc_scattering(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Target,
     sin_theta = math.sin(theta)
 
     if ion.A > targetA and theta > math.asin(1.0 / n):
-        # TODO: Better message
-        # logging.warning("Scattering with M1>M2 and scattering angle exceeds asin(M2/M1). Physics fails.")
+        # logging_jit.warning(f"Scattering with M1={float(ion.A)} > M2={float(targetA)} and scattering angle exceeds asin(M2/M1). Physics fails.")
+        logging_jit.warning(f"Scattering with M1>M2 and scattering angle exceeds asin(M2/M1). Physics fails.")
         pass
 
     # This might actually be -0.5*(PI-angle)
     theta_recoil = 0.5 * (c.C_PI - angle)
     if theta_recoil > 0.5 * c.C_PI:
-        # TODO: Values
-        # logging.warning("Unphysically scattered backwards.")
+        # logging_jit.warning(f"Unphysically scattered backwards with theta_recoil={float(theta_recoil)}")
+        logging_jit.warning(f"Unphysically scattered backwards")
         pass
     cos_theta_recoil = math.cos(theta_recoil)  # cos(-x) = cos(x) so this won't be affected anyway
     # sin_theta_recoil = math.sin(theta_recoil)  # Unused
@@ -415,18 +415,20 @@ def get_angle(scat: oj.Scattering, ion: oj.Ion) -> float:
     j = int(((math.log(y) - scat.logymin) * scat.logydiv) + 1)
 
     if i > c.EPSNUM - 2:
-        # logging.warning("Energy exceeds the maximum of the scattering table energy")
+        # logging_jit.warning(f"Energy i={int(i)} exceeds the maximum of the scattering table energy ({c.EPSNUM - 2})")
+        logging_jit.warning(f"Energy exceeds the maximum of the scattering table energy")
         return 0.0
     if i < 1:
-        # logging.warning("Energy is below the minimum of the scattering table energy")
+        # logging_jit.warning(f"Energy i={int(i)} is below the minimum of the scattering table energy (1)")
+        logging_jit.warning(f"Energy is below the minimum of the scattering table energy")
         return 0.0
     if j < 1:
-        # logging.warning("Empact parameter is below the minimum of the scattering table value")
-        # formatted number print
+        # logging_jit.warning(f"Impact parameter j={int(j)} is below the minimum of the scattering table value (1)")
+        logging_jit.warning(f"Impact parameter is below the minimum of the scattering table value")
         return c.C_PI  # TODO in original: PI or zero?
     if j > c.YNUM - 2:
-        # logging.warning("Impact parameter exceeds the maximum of the scattering table value")
-        # formatted number print
+        # logging_jit.warning(f"Impact parameter j={int(j)} exceeds the maximum of the scattering table value ({c.YNUM - 2})")
+        logging_jit.warning(f"Impact parameter exceeds the maximum of the scattering table value")
         return 0.0
 
     ylow = scat.angle[0, j]

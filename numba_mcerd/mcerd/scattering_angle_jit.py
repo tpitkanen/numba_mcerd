@@ -1,10 +1,10 @@
-# import logging
 import math
 from typing import Tuple
 
 import numba as nb
 from numba.experimental import jitclass
 
+from numba_mcerd import logging_jit
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects_jit as oj
 
@@ -138,8 +138,8 @@ def simpson(a: float, b: float, pot: oj.Potential, stmp: Opt) -> float:
         old_s = s
         old_st = st
 
-    # if i > MAXSTEP:
-    #     logging.warning("Maximum number of integration points reached")
+    if i > MAXSTEP:
+        logging_jit.warning("Maximum number of integration points reached")
 
     return s
 
@@ -161,7 +161,8 @@ def mindist(pot: oj.Potential, opt: Opt) -> float:
         try:
             x2 = x1 - DEPS / (Psi(x1 + DEPS, pot, opt) / Psi(x1, pot, opt) - 1)
         except:  # Numba doesn't support specific types (e.g. ZeroDivisionError)
-            # logging.warning(f"Division by zero, {x1=} {x2=}")
+            # logging_jit.error(f"Division by zero, x1={float(x1)} x2={float(x2)}")
+            logging_jit.error(f"Division by zero in mindist")
             break
         diffold = diff
         diff = abs(x2 - x1)

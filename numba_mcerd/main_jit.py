@@ -4,7 +4,7 @@ import logging
 import numba as nb
 import numpy as np
 
-from numba_mcerd import config, timer, patch_numba
+from numba_mcerd import config, timer, patch_numba, logging_jit
 from numba_mcerd.mcerd import (
     cross_section_jit,
     elsto,
@@ -226,7 +226,7 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
     outer_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
     inner_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
 
-    # logging.info("Starting simulation")
+    # logging_jit.info("Starting simulation")
 
     # presim_timer = timer.SplitTimer.init_and_start()
     # TODO: Move this to a separate jit-compiled function to eliminate
@@ -296,8 +296,9 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
                             found = True
                             cur_ion.scatindex = j
                     if not found:
-                        # logging.warning(
-                        #     f"Recoil cascade not possible, since recoiling ion Z={cur_ion.Z} and A={cur_ion.A / c.C_U} u are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
+                        # logging_jit.warning(
+                        #     f"Recoil cascade not possible, since recoiling ion Z={float(cur_ion.Z)} and A={float(cur_ion.A / c.C_U)} u are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
+                        logging_jit.warning(f"Recoil cascade not possible, since recoiling ion Z and A are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
                         raise NotImplementedError
                         # cur_ion = ion_stack.prev_ion()
                     else:
@@ -305,7 +306,7 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
                         cur_ion.ion_i = ion_i
                         cur_ion.trackid = trackid
 
-                    # logging.debug(...)
+                    # logging_jit.debug(...)
 
             # debug: loop over layers, print cur_ion.tlayer and set prev_layer_debug
 
@@ -318,7 +319,7 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
             while ion_simu_jit.ion_finished(g, cur_ion, target):
                 inner_loop_count += 1
 
-                # logging.debug(...)
+                # logging_jit.debug(...)
 
                 if g.output_trackpoints:
                     raise NotImplementedError
@@ -340,7 +341,7 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
         outer_loop_counts[g.cion] = outer_loop_count
         inner_loop_counts[g.cion] = inner_loop_count
 
-        # logging.debug(...)
+        # logging_jit.debug(...)
 
         g.finstat[PRIMARY, cur_ion.status] += 1
         # finish_ion_jit.finish_ion(g, cur_ion)  # Print info if FIN_STOP or FIN_TRANS

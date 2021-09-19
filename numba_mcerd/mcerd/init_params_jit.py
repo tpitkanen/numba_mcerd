@@ -1,10 +1,11 @@
-import logging
 from typing import List
 
 import numba as nb
 import numpy as np
 
 import numba_mcerd.mcerd.objects_jit as oj
+# import numba_mcerd.mcerd.constants as c
+# from numba_mcerd import logging_jit
 
 
 # Called once in preprocessing
@@ -86,7 +87,8 @@ def init_recoiling_angle(target: oj.Target) -> None:
     lensum = 0.0
     for i in range(k):
         for j in range(2):
-            # logging.info(f"{layer[i]:3} {depth[i][j] / c.C_NM:10.3} {angle[i][j] / c.C_DEG:10.3}")
+            # Formatting: f"{layer[i]:3} {depth[i][j] / c.C_NM:10.3} {angle[i][j] / c.C_DEG:10.3}"
+            # logging_jit.info(f"{int(layer[i])} {float(depth[i][j] / c.C_NM)} {float(angle[i][j] / c.C_DEG)}")
             pass
 
         n = layer[i]
@@ -99,7 +101,8 @@ def init_recoiling_angle(target: oj.Target) -> None:
 
     target.angave = angave / lensum
 
-    # logging.info(f"angave {target.angave / c.C_DEG:10.7}")
+    # Formatting: f"angave={target.angave / c.C_DEG:10.7}"
+    # logging_jit.info(f"angave={target.angave / c.C_DEG}")
 
 
 # Called once in preprocessing
