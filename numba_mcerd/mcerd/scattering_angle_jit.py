@@ -2,7 +2,7 @@ import math
 from typing import Tuple
 
 import numba as nb
-from numba.experimental import jitclass
+import numpy as np
 
 from numba_mcerd import logging_jit
 import numba_mcerd.mcerd.constants as c
@@ -15,36 +15,28 @@ DEPS = 1e-7
 DISTEPS = 1e-6
 
 
-@jitclass({
-    "x0": nb.float64,
-    "i_y2": nb.float64,
-    "i_ey2": nb.float64,
-    "tmp2": nb.float64,
-    "e": nb.float64,
-    "y": nb.float64
-})
-class Opt:
-    def __init__(self):
-        self.x0 = 0.0
-        self.i_y2 = 0.0
-        self.i_ey2 = 0.0
-        self.tmp2 = 0.0
-        self.e = 0.0
-        self.y = 0.0
+Opt = np.dtype([
+    ("x0", np.float64),
+    ("i_y2", np.float64),
+    ("i_ey2", np.float64),
+    ("tmp2", np.float64),
+    ("e", np.float64),
+    ("y", np.float64),
+])
 
 
 @nb.njit(cache=True)
 def scattering_angle(pot: oj.Potential, ion_opt_e, ion_opt_y) -> float:
     """Get scattering angle for ion's specific optimization state (ion.opt)"""
-    opt = Opt()
+    opt = np.zeros(1, dtype=Opt)[0]
 
-    opt.e = ion_opt_e
-    opt.y = ion_opt_y
-    opt.i_y2 = 1.0 / opt.y**2
-    opt.i_ey2 = 1.0 / (opt.e * opt.y**2)
+    opt["e"] = ion_opt_e
+    opt["y"] = ion_opt_y
+    opt["i_y2"] = 1.0 / opt["y"]**2
+    opt["i_ey2"] = 1.0 / (opt["e"] * opt["y"]**2)
 
-    opt.x0 = mindist(pot, opt)
-    opt.tmp2 = opt.x0**2 / (opt.y**2 * opt.e)
+    opt["x0"] = mindist(pot, opt)
+    opt["tmp2"] = opt["x0"]**2 / (opt["y"]**2 * opt["e"])
 
     theta = c.C_PI - 4.0 * simpson(0.0 + DEPS, 1.0 - DEPS, pot, opt)
 
@@ -81,17 +73,17 @@ def Ut(pot: oj.Potential, x: float) -> float:
 def Angint(u: float, pot: oj.Potential, opt: Opt) -> float:
     u2 = u**2
 
-    tmp0 = opt.x0 / (1.0 - u2)
+    tmp0 = opt["x0"] / (1.0 - u2)
 
-    tmp1 = Ut(pot, opt.x0) / opt.x0 - Ut(pot, tmp0) / tmp0
+    tmp1 = Ut(pot, opt["x0"]) / opt["x0"] - Ut(pot, tmp0) / tmp0
 
     # tmp1 in pieces, to demonstrate strange performance issues
-    # tmp1 = Ut(pot, opt.x0) / opt.x0
+    # tmp1 = Ut(pot, opt["x0"]) / opt["x0"]
     # ut_out = Ut(pot, tmp0)
     # ut_out /= tmp0  # Commenting out this part causes performance issues
     # tmp1 -= ut_out
 
-    tmp2 = opt.tmp2 / u2
+    tmp2 = opt["tmp2"] / u2
     tmp3 = 2.0 - u2 + tmp2 * tmp1
 
     # Needed if fastmath=True, though the flag doesn't improve performance
@@ -146,7 +138,7 @@ def simpson(a: float, b: float, pot: oj.Potential, stmp: Opt) -> float:
 
 @nb.njit(cache=True)
 def mindist(pot: oj.Potential, opt: Opt) -> float:
-    x1 = (1 + math.sqrt(1 + 4 * opt.y**2 * opt.e**2)) / (2 * opt.e)
+    x1 = (1 + math.sqrt(1 + 4 * opt["y"]**2 * opt["e"]**2)) / (2 * opt["e"])
 
     while Psi(x1, pot, opt) < 0.0:
         x1 *= 2
@@ -174,5 +166,5 @@ def mindist(pot: oj.Potential, opt: Opt) -> float:
 
 @nb.njit(cache=True)
 def Psi(x: float, pot: oj.Potential, opt: Opt) -> float:
-    value = x**2 * opt.i_y2 - x * Ut(pot, x) * opt.i_ey2 - 1.0
+    value = x**2 * opt["i_y2"] - x * Ut(pot, x) * opt["i_ey2"] - 1.0
     return value
