@@ -161,8 +161,8 @@ def mindist(pot: oj.Potential, opt: Opt) -> float:
         try:
             x2 = x1 - DEPS / (Psi(x1 + DEPS, pot, opt) / Psi(x1, pot, opt) - 1)
         except:  # Numba doesn't support specific types (e.g. ZeroDivisionError)
-            # logging_jit.error(f"Division by zero, x1={float(x1)} x2={float(x2)}")
-            logging_jit.error(f"Division by zero in mindist")
+            # logging_jit.warning(f"Division by zero, x1={float(x1)} x2={float(x2)}")
+            logging_jit.warning(f"Division by zero in mindist")
             break
         diffold = diff
         diff = abs(x2 - x1)
