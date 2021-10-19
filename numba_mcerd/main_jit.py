@@ -219,7 +219,7 @@ def run_simulation(g, master, ions, target, scat, snext, detector,
     raise NotImplementedError
 
 
-@nb.njit(cache=True)
+@nb.njit()  # TODO: Add back cache once this works
 def simulation_loop(g, master, ions, target, scat, snext, detector,
                     trackid, ion_i, new_track):
     # TODO: initialize at least trackid, ion_i and new_track here
@@ -264,9 +264,15 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
                 if g.simstage == enums.SimStage.PRE:
                     pre_simulation_jit.finish_presimulation(g, detector, cur_ion)
                     cur_ion = ions[PRIMARY]
+                    if g.presimu[g.cpresimu - 1]["angle"] >= 0.4:
+                        # FIXME: shouldn't happen
+                        logging_jit.error(f"presimu angle too big at g.cpresimu={g.cpresimu}, i={i}")
                 else:
-                    # TODO: ZeroDivisionError sometimes in JIT
-                    erd_detector_jit.move_to_erd_detector(g, cur_ion, target, detector)
+                    # FIXME: ZeroDivisionError sometimes in JIT
+                    try:
+                        erd_detector_jit.move_to_erd_detector(g, cur_ion, target, detector)
+                    except:
+                        logging_jit.error(f"ZeroDivisionError at i={i}")
 
             # TODO: Separate loop to pre and main, move this in-between
             if g.simstage == enums.SimStage.PRE and g.cion == g.npresimu - 1:
