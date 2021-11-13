@@ -98,7 +98,8 @@ class Jibal:
 
     def get_isotope_by_neutron_number(self, Z, N) -> Optional[JibalIsotope]:
         """Get isotope with specific Z and N (proton number and neutron number)"""
-        if (element := self.get_element(Z)) is None:
+        element = self.get_element(Z)
+        if element is None:
             return None
         return element.get_isotope_by_neutron_number(N)
 
@@ -110,7 +111,8 @@ class Jibal:
     def create_isotope(self, name: str, N: int, Z: int, A: int, mass: float) -> None:
         """Create and add isotope to its parent element. The parent element is
         created first if it doesn't exist yet."""
-        if (element := self.get_element(Z)) is None:
+        element = self.get_element(Z)
+        if element is None:
             element = JibalElement(name=name, Z=Z)
             self.add_element(element)
         isotope_name = str(A) + name  # e.g. 4He
@@ -145,7 +147,8 @@ class Jibal:
             A = int(A)
             N = A - Z
             abundance = float(abundance)
-            if (isotope := self.get_isotope_by_neutron_number(Z, N)) is None:
+            isotope = self.get_isotope_by_neutron_number(Z, N)
+            if isotope is None:
                 raise JibalError(f"Tried to add abundance for missing isotope: '{Z=}, {N=}, {A=}'")
             isotope.abundance = abundance
 
