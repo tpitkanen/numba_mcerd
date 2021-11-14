@@ -232,7 +232,7 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
     # TODO: Move this to a separate jit-compiled function to eliminate
     #       context-switching overhead
     for i in range(g.nsimu):
-        if i % 100 == 0:
+        if i % 1000 == 0:
             print(i)
 
         g.cion = i  # TODO: Replace/remove for MT
