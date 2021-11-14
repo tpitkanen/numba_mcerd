@@ -2,63 +2,81 @@ import logging
 from pathlib import Path
 
 import numba as nb
+import numpy as np
 
 import numba_mcerd.mcerd.constants as c
-import numba_mcerd.mcerd.objects_jit as od
+import numba_mcerd.mcerd.objects_jit as oj
+import numba_mcerd.mcerd.objects_dtype as od
 import numba_mcerd.mcerd.symbols as s
-from numba_mcerd.mcerd import erd_detector, enums
+from numba_mcerd.mcerd import erd_detector_jit, enums
+
+
+def create_erd_buffer(g: oj.Global):
+    # TODO: Figure out a good way to determine length
+    length = int((g.npresimu + g.nsimu) * 1.2)
+    dt = od.get_erd_buffer_dtype(length)
+
+    return np.zeros(1, dtype=dt)[0]
 
 
 # TODO: I/O not supported in Numba
-# @nb.njit(cache=True)
-def _output_tof(g: od.Global, master: od.Master, cur_ion: od.Ion, target: od.Target,
-                detector: od.Detector) -> None:
+@nb.njit(cache=True)
+def _output_tof(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Target,
+                detector: oj.Detector, erd_buf: od.Erd_buffer) -> None:
     # https://stackoverflow.com/questions/3167494/how-often-does-python-flush-to-a-file
 
     # TODO: return early instead (removes one indentation level)
     if cur_ion.type == enums.IonType.SECONDARY and (
             cur_ion.tlayer == target.nlayers or
-            erd_detector.is_in_energy_detector(g, cur_ion, target, detector, True) or
+            erd_detector_jit.is_in_energy_detector(g, cur_ion, target, detector, True) or
             cur_ion.status == enums.IonStatus.FIN_OUT_DET and g.output_misses):
         n = cur_ion.tlayer - target.ntarget  # Foil number  # TODO: Rename
-        line_parts = []
+        # line_parts = []
 
         # Actually output if: a secondary particle (not the primary beam) is either:
         # 1. In the last layer
         # 2. In the energy detector or beyond (if we are outputting trackpoints and energy detector layer is given)
         # 3. The particle missed (exited detector, hit an aperture), but output misses is on.
-        line_parts.append(
-            f'{"S" if cur_ion.scale else "R"} {"V" if cur_ion.virtual else "R"} {"R" if g.simtype == enums.SimType.ERD else "S"}')
+
+        # TODO: Write directly to the buffer
+        p0 = "S" if cur_ion.scale else "R"
+        p1 = "V" if cur_ion.virtual else "R"
+        p2 = "R" if g.simtype == enums.SimType.ERD else "S"
+
         if g.output_trackpoints:
-            line_parts.append(f"{cur_ion.trackid:12d}")
+            # line_parts.append(f"{cur_ion.trackid:12d}")
+            # line_parts.append(cur_ion.trackid)
+            pass
         if g.advanced_output:
-            line_parts.append(str(cur_ion.status.value))
-            line_parts.append(str(n))
+            # line_parts.append(str(cur_ion.status.value))
+            # line_parts.append(str(n))
+            pass
         z = cur_ion.hist.tar_recoil.p.z
 
         if g.rough:
             raise NotImplementedError
 
-        line_parts.append(f"{cur_ion.E / c.C_MEV:8.4f}")
+        p3 = cur_ion.E / c.C_MEV
 
-        line_parts.append(f"{int(cur_ion.hist.Z + 0.5):3d}")
-        line_parts.append(f"{cur_ion.hist.A / c.C_U:6.2f}")
+        p4 = int(cur_ion.hist.Z + 0.5)
+        p5 = cur_ion.hist.A / c.C_U
 
-        line_parts.append(f"{z / c.C_NM:10.4f}")
-        line_parts.append(f"{cur_ion.w:14.7e}")
+        p6 = z / c.C_NM
+        p7 = cur_ion.w
 
         if g.advanced_output:
-            line_parts.append(f"{cur_ion.hist.ion_E / c.C_KEV:8.4f}")
-            line_parts.append(f"{cur_ion.hist.ion_recoil.theta / c.C_DEG:7.3f}")
-            line_parts.append(f"{cur_ion.hist.w:10.4e}")
-            line_parts.append(f"{cur_ion.dt[0] / c.C_NS:7.3f}")
-            line_parts.append(f"{cur_ion.dt[1] / c.C_NS:7.3f}")
+            # line_parts.append(f"{cur_ion.hist.ion_E / c.C_KEV:8.4f}")
+            # line_parts.append(f"{cur_ion.hist.ion_recoil.theta / c.C_DEG:7.3f}")
+            # line_parts.append(f"{cur_ion.hist.w:10.4e}")
+            # line_parts.append(f"{cur_ion.dt[0] / c.C_NS:7.3f}")
+            # line_parts.append(f"{cur_ion.dt[1] / c.C_NS:7.3f}")
+            pass
         else:
-            line_parts.append(f"{(cur_ion.dt[1] - cur_ion.dt[0]) / c.C_NS:10.3f}")  # ToF
+            p8 = (cur_ion.dt[1] - cur_ion.dt[0]) / c.C_NS  # ToF
 
         if not g.advanced_output:
-            line_parts.append(f"{cur_ion.hit[0].x / c.C_MM:7.2f}")
-            line_parts.append(f"{cur_ion.hit[0].y / c.C_MM:7.2f}")
+            p9 = cur_ion.hit[0].x / c.C_MM
+            p10 = cur_ion.hit[0].y / c.C_MM
         else:
             # x, y coordinates of hits
             for j in (0,  # First aperture
@@ -66,46 +84,63 @@ def _output_tof(g: od.Global, master: od.Master, cur_ion: od.Ion, target: od.Tar
                       detector.tdet[1] - target.ntarget,  # T2
                       detector.edet[0] - target.ntarget,  # Energy detector
                       n):
-                line_parts.append(f"{cur_ion.hit[j].x / c.C_MM:6.2f}")
-                line_parts.append(f"{cur_ion.hit[j].y / c.C_MM:6.2f}")
+                # line_parts.append(f"{cur_ion.hit[j].x / c.C_MM:6.2f}")
+                # line_parts.append(f"{cur_ion.hit[j].y / c.C_MM:6.2f}")
+                pass
 
         if g.advanced_output:  # Energy losses in layers
-            for i in range(target.nlayers - target.ntarget - 1):
-                line_parts.append(f"{(cur_ion.Ed[i] - cur_ion.Ed[i + 1]) / c.C_KEV:7.4f}")
-                if (cur_ion.Ed[i] - cur_ion.Ed[i + 1]) / c.C_MEV < 0.0 and i:
-                    logging.warning(f"Ion (trackid={cur_ion.trackid}, ion_i={cur_ion.ion_i}) gains energy between layers i={i} and i+1={i+1}")
-            if cur_ion.tlayer == target.nlayers:
-                line_parts.append(f"{(cur_ion.Ed[target.nlayers - target.ntarget - 1] - cur_ion.E) / c.C_MEV:7.4f}")
-            else:
-                line_parts.append(f"{0.0:7.4f}")
+            # for i in range(target.nlayers - target.ntarget - 1):
+            #     line_parts.append(f"{(cur_ion.Ed[i] - cur_ion.Ed[i + 1]) / c.C_KEV:7.4f}")
+            #     if (cur_ion.Ed[i] - cur_ion.Ed[i + 1]) / c.C_MEV < 0.0 and i:
+            #         logging.warning(f"Ion (trackid={cur_ion.trackid}, ion_i={cur_ion.ion_i}) gains energy between layers i={i} and i+1={i+1}")
+            # if cur_ion.tlayer == target.nlayers:
+            #     line_parts.append(f"{(cur_ion.Ed[target.nlayers - target.ntarget - 1] - cur_ion.E) / c.C_MEV:7.4f}")
+            # else:
+            #     line_parts.append(f"{0.0:7.4f}")
+            pass
 
         # Original code generates a trailing space if g.advanced_output is False
 
         # TODO: Problematic for multi-threading, and possibly slow
-        with Path(master.fperd).open("a") as f:
-            f.write(" ".join(line_parts) + "\n")
+        # with Path(master.fperd).open("a") as f:
+        #     f.write(" ".join(line_parts) + "\n")
+
+        next_i = erd_buf["next"]
+        # erd_buf[next_i] = " ".join(line_parts) + "\n"
+        erd_buf["buf"][next_i][0] = p0
+        erd_buf["buf"][next_i][1] = p1
+        erd_buf["buf"][next_i][2] = p2
+        erd_buf["buf"][next_i][3] = p3
+        erd_buf["buf"][next_i][4] = p4
+        erd_buf["buf"][next_i][5] = p5
+        erd_buf["buf"][next_i][6] = p6
+        erd_buf["buf"][next_i][7] = p7
+        erd_buf["buf"][next_i][8] = p8
+        erd_buf["buf"][next_i][9] = p9
+        erd_buf["buf"][next_i][10] = p10
+        erd_buf["next"] += 1
 
 
 # TODO: I/O not supported in Numba
-# @nb.njit(cache=True)
-def _output_gas(g: od.Global, master: od.Master, cur_ion: od.Ion, target: od.Target,
-                detector: od.Detector) -> None:
+@nb.njit(cache=True)
+def _output_gas(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Target,
+                detector: oj.Detector, erd_buf: od.Erd_buffer) -> None:
     raise NotImplementedError
 
 
-# nb.njit(Cache=True)
-def output_erd(g: od.Global, master: od.Master, cur_ion: od.Ion, target: od.Target,
-               detector: od.Detector) -> None:
+@nb.njit(cache=True)
+def output_erd(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Target,
+               detector: oj.Detector, erd_buf: od.Erd_buffer) -> None:
     """Output ERD information to master.fperd"""
     if detector.type == enums.DetectorType.TOF:
-        _output_tof(g, master, cur_ion, target, detector)
+        _output_tof(g, master, cur_ion, target, detector, erd_buf)
         return
     elif detector.type == enums.DetectorType.GAS:
-        _output_gas(g, master, cur_ion, target, detector)
+        _output_gas(g, master, cur_ion, target, detector, erd_buf)
     # Other types are ignored, namely DET_FOIL
 
 
-def output_data(g: od.Global) -> None:
+def output_data(g: oj.Global) -> None:
     """Output how many ions have been calculated"""
     if g.simstage == enums.SimStage.PRE:
         nion = g.cion
@@ -119,5 +154,5 @@ def output_data(g: od.Global) -> None:
 
 
 def output_trackpoint(
-        g: od.Global, cur_ion: od.Ion, target: od.Target, detector: od.Detector, label: str) -> None:
+        g: oj.Global, cur_ion: oj.Ion, target: oj.Target, detector: oj.Detector, label: str) -> None:
     raise NotImplementedError

@@ -14,9 +14,16 @@ class ErdDetectorError(Exception):
     """Error in ERD detector"""
 
 
+@nb.njit(cache=True)
 def is_in_energy_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, detector: oj.Detector,
                           beyond_detector_ok: bool) -> bool:
-    raise NotImplementedError
+    if detector.edet[0] <= target.ntarget:
+        return False  # Probably not set or otherwise invalid
+    if ion.tlayer == detector.edet[0]:
+        return True  # In the first layer of energy detector
+    if ion.tlayer >= detector.edet[0] and beyond_detector_ok:
+        return True  # Beyond detector
+    return False
 
 
 @nb.njit(cache=True)

@@ -178,6 +178,9 @@ def main(args):
     snext = ocd.convert_snext(copy.deepcopy(snext_o))
     detector = ocd.convert_detector(copy.deepcopy(detector_o))
 
+    # TODO: Format and output this to a file at the end
+    erd_buf = output_jit.create_erd_buffer(g)
+
     dtype_conversion_timer.stop()
     print(f"dtype_conversion_timer: {dtype_conversion_timer}")
 
@@ -194,10 +197,14 @@ def main(args):
     # jitclass_conversion_timer.stop()
     # print(f"jitclass_conversion_timer: {jitclass_conversion_timer}")
 
+    main_sim_timer = timer.SplitTimer.init_and_start()
     simulation_loop(g, master, ions, target, scat, snext, detector,
-                    trackid, ion_i, new_track)
+                    trackid, ion_i, new_track, erd_buf)
+    main_sim_timer.stop()
+    print(f"main_sim_timer: {main_sim_timer}")
 
     print(g.finstat)  # TODO: Remove later
+    finalize_jit.finalize(g, master)
 
 
 # TODO: (not njit)
@@ -221,7 +228,7 @@ def run_simulation(g, master, ions, target, scat, snext, detector,
 
 @nb.njit(cache=True)
 def simulation_loop(g, master, ions, target, scat, snext, detector,
-                    trackid, ion_i, new_track):
+                    trackid, ion_i, new_track, erd_buf):
     # TODO: initialize at least trackid, ion_i and new_track here
     outer_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
     inner_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
@@ -328,7 +335,7 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
                 # energy detector or if it's a scaling ion
 
                 if cur_ion.type <= SECONDARY:
-                    # output_jit.output_erd(g, master, cur_ion, target, detector)
+                    output_jit.output_erd(g, master, cur_ion, target, detector, erd_buf)
                     pass
                 if cur_ion.type == PRIMARY:
                     primary_finished = True
