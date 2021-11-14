@@ -24,8 +24,7 @@ from numba_mcerd.mcerd import (
     pre_simulation_jit,
     print_data_jit,
     random_jit,
-    read_input,
-    debug
+    read_input
 )
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
@@ -265,18 +264,8 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
                 if g.simstage == enums.SimStage.PRE:
                     pre_simulation_jit.finish_presimulation(g, detector, cur_ion)
                     cur_ion = ions[PRIMARY]
-                    if g.presimu[g.cpresimu - 1]["angle"] >= 0.4:
-                        # FIXME: shouldn't happen
-                        logging_jit.error(f"presimu angle too big at g.cpresimu={g.cpresimu}, i={i}")
-                        # with nb.objmode():
-                        #     debug.out("simulation_loop", g=g, master=master, ions=ions, target=target, scat=scat, snext=snext,
-                        #               detector=detector, trackid=trackid, ion_i=ion_i, new_track=new_track)
                 else:
-                    # FIXME: ZeroDivisionError sometimes in JIT
-                    try:
-                        erd_detector_jit.move_to_erd_detector(g, cur_ion, target, detector)
-                    except:
-                        logging_jit.error(f"ZeroDivisionError at i={i}")
+                    erd_detector_jit.move_to_erd_detector(g, cur_ion, target, detector)
 
             # TODO: Separate loop to pre and main, move this in-between
             if g.simstage == enums.SimStage.PRE and g.cion == g.npresimu - 1:
