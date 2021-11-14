@@ -24,7 +24,8 @@ from numba_mcerd.mcerd import (
     pre_simulation_jit,
     print_data_jit,
     random_jit,
-    read_input
+    read_input,
+    debug
 )
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
@@ -219,7 +220,7 @@ def run_simulation(g, master, ions, target, scat, snext, detector,
     raise NotImplementedError
 
 
-@nb.njit()  # TODO: Add back cache once this works
+@nb.njit(cache=True)
 def simulation_loop(g, master, ions, target, scat, snext, detector,
                     trackid, ion_i, new_track):
     # TODO: initialize at least trackid, ion_i and new_track here
@@ -267,6 +268,9 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
                     if g.presimu[g.cpresimu - 1]["angle"] >= 0.4:
                         # FIXME: shouldn't happen
                         logging_jit.error(f"presimu angle too big at g.cpresimu={g.cpresimu}, i={i}")
+                        # with nb.objmode():
+                        #     debug.out("simulation_loop", g=g, master=master, ions=ions, target=target, scat=scat, snext=snext,
+                        #               detector=detector, trackid=trackid, ion_i=ion_i, new_track=new_track)
                 else:
                     # FIXME: ZeroDivisionError sometimes in JIT
                     try:

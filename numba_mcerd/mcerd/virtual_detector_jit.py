@@ -61,19 +61,19 @@ def hit_virtual_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, det: oj.D
 
     # m1 = m2 = dE1 = dw = 0.0
 
-    v_real_foil = np.zeros(1, dtype=od.Vector)[0]
+    v_real_foil = oj.Vector()
 
     if det.vfoil.type == enums.FoilType.CIRC:
         r = det.foil[0]["size_"][0] * math.sqrt(random_jit.rnd(0.0, 1.0, enums.RndPeriod.CLOSED))
         fii = random_jit.rnd(0.0, 2.0 * c.C_PI, enums.RndPeriod.CLOSED)
-        v_real_foil["p"]["x"] = r * math.cos(fii)
-        v_real_foil["p"]["y"] = r * math.sin(fii)
+        v_real_foil.p.x = r * math.cos(fii)
+        v_real_foil.p.y = r * math.sin(fii)
     elif det.vfoil.type == enums.FoilType.RECT:
         dx = det.foil[0]["size_"][0]
-        v_real_foil["p"]["x"] = random_jit.rnd(-dx, dx, enums.RndPeriod.CLOSED)
+        v_real_foil.p.x = random_jit.rnd(-dx, dx, enums.RndPeriod.CLOSED)
         dy = det.foil[0]["size_"][1]
-        v_real_foil["p"]["y"] = random_jit.rnd(-dy, dy, enums.RndPeriod.CLOSED)
-    v_real_foil["p"]["z"] = 0.0
+        v_real_foil.p.y = random_jit.rnd(-dy, dy, enums.RndPeriod.CLOSED)
+    v_real_foil.p.z = 0.0
     theta = det.angle
     fii = 0.0
 
@@ -85,37 +85,37 @@ def hit_virtual_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, det: oj.D
     # given in the coordinates relative to the recoil point. Directions
     # are still in the laboratory coordinates.
 
-    v_virt_lab = np.zeros(1, dtype=od.Vector)[0]
+    v_virt_lab = oj.Vector()
 
     # Copying and subtraction combined (compared to original)
-    v_virt_lab["p"]["x"] = p_virt_lab["x"] - v_rec_lab.p.x
-    v_virt_lab["p"]["y"] = p_virt_lab["y"] - v_rec_lab.p.y
-    v_virt_lab["p"]["z"] = p_virt_lab["z"] - v_rec_lab.p.z
+    v_virt_lab.p.x = p_virt_lab.x - v_rec_lab.p.x
+    v_virt_lab.p.y = p_virt_lab.y - v_rec_lab.p.y
+    v_virt_lab.p.z = p_virt_lab.z - v_rec_lab.p.z
 
-    r = math.sqrt(v_virt_lab["p"]["x"]**2 + v_virt_lab["p"]["y"]**2 + v_virt_lab["p"]["z"]**2)
-    v_virt_lab["theta"] = math.acos(v_virt_lab["p"]["z"] / r)
-    v_virt_lab["fii"] = math.atan2(v_virt_lab["p"]["y"], v_virt_lab["p"]["x"])
+    r = math.sqrt(v_virt_lab.p.x**2 + v_virt_lab.p.y**2 + v_virt_lab.p.z**2)
+    v_virt_lab.theta = math.acos(v_virt_lab.p.z / r)
+    v_virt_lab.fii = math.atan2(v_virt_lab.p.y, v_virt_lab.p.x)
 
-    v_real_lab = np.zeros(1, dtype=od.Vector)[0]
-    v_real_lab["p"] = misc_jit.coord_transform(
-        det.vfoil.center, theta, fii, v_real_foil["p"], enums.CoordTransformDirection.FORW)
+    v_real_lab = oj.Vector()
+    v_real_lab.p = misc_jit.coord_transform(
+        det.vfoil.center, theta, fii, v_real_foil.p, enums.CoordTransformDirection.FORW)
 
-    v_real_lab["p"]["x"] -= v_rec_lab.p.x
-    v_real_lab["p"]["y"] -= v_rec_lab.p.y
-    v_real_lab["p"]["z"] -= v_rec_lab.p.z
+    v_real_lab.p.x -= v_rec_lab.p.x
+    v_real_lab.p.y -= v_rec_lab.p.y
+    v_real_lab.p.z -= v_rec_lab.p.z
 
-    r = math.sqrt(v_real_lab["p"]["x"]**2 + v_real_lab["p"]["y"]**2 + v_real_lab["p"]["z"]**2)
+    r = math.sqrt(v_real_lab.p.x**2 + v_real_lab.p.y**2 + v_real_lab.p.z**2)
 
-    v_real_lab["theta"] = math.acos(v_real_lab["p"]["z"] / r)
-    v_real_lab["fii"] = math.atan2(v_real_lab["p"]["y"], v_real_lab["p"]["x"])
+    v_real_lab.theta = math.acos(v_real_lab.p.z / r)
+    v_real_lab.fii = math.atan2(v_real_lab.p.y, v_real_lab.p.x)
 
-    v_diff_lab = np.zeros(1, dtype=od.Vector)[0]
-    v_diff_lab["theta"], v_diff_lab["fii"] = rotate_jit.rotate(
-        v_virt_lab["theta"], c.C_PI + v_virt_lab["fii"], v_real_lab["theta"], v_real_lab["fii"])
+    v_diff_lab = oj.Vector()
+    v_diff_lab.theta, v_diff_lab.fii = rotate_jit.rotate(
+        v_virt_lab.theta, c.C_PI + v_virt_lab.fii, v_real_lab.theta, v_real_lab.fii)
 
-    v_recreal_pri = np.zeros(1, dtype=od.Vector)[0]
-    v_recreal_pri["theta"], v_recreal_pri["fii"] = rotate_jit.rotate(
-        v_recvirt_pri.theta, v_recvirt_pri.fii, v_diff_lab["theta"], v_diff_lab["fii"])
+    v_recreal_pri = oj.Vector()
+    v_recreal_pri.theta, v_recreal_pri.fii = rotate_jit.rotate(
+        v_recvirt_pri.theta, v_recvirt_pri.fii, v_diff_lab.theta, v_diff_lab.fii)
 
     if g.simtype == enums.SimType.RBS:
         raise NotImplementedError
@@ -125,7 +125,7 @@ def hit_virtual_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, det: oj.D
 
     dE1 = 0.0
     if g.simtype == enums.SimType.ERD:
-        dE1 = (math.cos(v_recreal_pri["theta"]) / math.cos(v_recvirt_pri.theta)) **2 - 1.0
+        dE1 = (math.cos(v_recreal_pri.theta) / math.cos(v_recvirt_pri.theta)) **2 - 1.0
     elif g.simtype == enums.SimType.RBS:
         raise NotImplementedError
 
@@ -139,32 +139,32 @@ def hit_virtual_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, det: oj.D
     p_rec_tar = misc_jit.coord_transform(
         v_rec_lab.p, g.beamangle, c.C_PI, v_rec_tar.p, enums.CoordTransformDirection.FORW)
 
-    v_virt_tar = np.zeros(1, dtype=od.Vector)[0]
-    v_virt_tar["p"]["x"] = p_out_tar.x - p_rec_tar.x
-    v_virt_tar["p"]["y"] = p_out_tar.y - p_rec_tar.y
-    v_virt_tar["p"]["z"] = p_out_tar.z - p_rec_tar.z
+    v_virt_tar = oj.Vector()
+    v_virt_tar.p.x = p_out_tar.x - p_rec_tar.x
+    v_virt_tar.p.y = p_out_tar.y - p_rec_tar.y
+    v_virt_tar.p.z = p_out_tar.z - p_rec_tar.z
 
-    r = math.sqrt(v_virt_tar["p"]["x"]**2 + v_virt_tar["p"]["y"]**2 + v_virt_tar["p"]["z"]**2)
+    r = math.sqrt(v_virt_tar.p.x**2 + v_virt_tar.p.y**2 + v_virt_tar.p.z**2)
 
-    v_virt_tar["theta"] = math.acos(v_virt_tar["p"]["z"] / r)
-    v_virt_tar["fii"] = math.atan2(v_virt_tar["p"]["y"], v_virt_tar["p"]["x"])
+    v_virt_tar.theta = math.acos(v_virt_tar.p.z / r)
+    v_virt_tar.fii = math.atan2(v_virt_tar.p.y, v_virt_tar.p.x)
 
     # Here v_virt_tar direction is in laboratory coordinates. We now calculate
     # the directions in target coordinates for both virtual and real.
 
-    v_real_tar = np.zeros(1, dtype=od.Vector)[0]
-    v_real_tar["theta"], v_real_tar["fii"] = rotate_jit.rotate(
-        v_virt_tar["theta"], v_virt_tar["fii"], v_diff_lab["theta"], v_diff_lab["fii"])
+    v_real_tar = oj.Vector()
+    v_real_tar.theta, v_real_tar.fii = rotate_jit.rotate(
+        v_virt_tar.theta, v_virt_tar.fii, v_diff_lab.theta, v_diff_lab.fii)
 
-    v_virt_tar["theta"], v_virt_tar["fii"] = rotate_jit.rotate(
-        g.beamangle, 0.0, v_virt_tar["theta"], v_virt_tar["fii"])
+    v_virt_tar.theta, v_virt_tar.fii = rotate_jit.rotate(
+        g.beamangle, 0.0, v_virt_tar.theta, v_virt_tar.fii)
 
-    v_real_tar["theta"], v_real_tar["fii"] = rotate_jit.rotate(
-        g.beamangle, 0.0, v_real_tar["theta"], v_real_tar["fii"])
+    v_real_tar.theta, v_real_tar.fii = rotate_jit.rotate(
+        g.beamangle, 0.0, v_real_tar.theta, v_real_tar.fii)
 
     eloss = ion.hist.recoil_E - ion.E
 
-    dE2 = get_eloss_corr(ion, target, dE1, v_virt_tar["theta"], v_real_tar["theta"])
+    dE2 = get_eloss_corr(ion, target, dE1, v_virt_tar.theta, v_real_tar.theta)
 
     dE1 *= ion.hist.recoil_E
     dE2 *= -eloss
@@ -174,7 +174,7 @@ def hit_virtual_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, det: oj.D
 
     dw = 0.0
     if g.simtype == enums.SimType.ERD:
-        dw = (math.cos(v_recvirt_pri.theta) / math.cos(v_recreal_pri["theta"]))**3
+        dw = (math.cos(v_recvirt_pri.theta) / math.cos(v_recreal_pri.theta))**3
     elif g.simtype == enums.SimType.RBS:
         raise NotImplementedError
 
@@ -197,14 +197,17 @@ def hit_virtual_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, det: oj.D
         # fprintf(stderr, "Unphysical RBS-scattering in virtual detector\n")
 
     if ion.status == enums.IonStatus.NOT_FINISHED:
-        v_real_lab["p"]["x"] += v_rec_lab.p.x
-        v_real_lab["p"]["y"] += v_rec_lab.p.y
-        v_real_lab["p"]["z"] += v_rec_lab.p.z
+        v_real_lab.p.x += v_rec_lab.p.x
+        v_real_lab.p.y += v_rec_lab.p.y
+        v_real_lab.p.z += v_rec_lab.p.z
 
-        dist = erd_detector_jit.get_distance(p_out_tar, v_real_lab["p"])
+        dist = erd_detector_jit.get_distance(p_out_tar, v_real_lab.p)
         ion.time += dist / math.sqrt(2.0 * ion.E / ion.A)
 
-        ion.lab.p = v_real_lab["p"]
+        # ion.lab.p = v_real_lab.p
+        ion.lab.p.x = v_real_lab.p.x
+        ion.lab.p.y = v_real_lab.p.y
+        ion.lab.p.z = v_real_lab.p.z
         ion.lab.theta = det.angle
         ion.lab.fii = 0.0
 
@@ -212,7 +215,7 @@ def hit_virtual_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, det: oj.D
         ion.p.y = 0.0
         ion.p.z = 0.0
 
-        ion.theta, ion.fii = rotate_jit.rotate(det.angle, c.C_PI, v_real_lab["theta"], v_real_lab["fii"])
+        ion.theta, ion.fii = rotate_jit.rotate(det.angle, c.C_PI, v_real_lab.theta, v_real_lab.fii)
 
         ion.opt.cos_theta = math.cos(ion.theta)
         ion.opt.sin_theta = math.sin(ion.theta)
@@ -252,19 +255,18 @@ def get_eloss(E: float, ion: oj.Ion, target: oj.Target, cos_theta: float) -> flo
     nlayer = ion.hist.layer
     layer = target.layer[nlayer]
 
-    rec = np.zeros(1, dtype=od.Vector)[0]  # TODO: This could be just a Point
-    rec["p"]["z"] = ion.hist.tar_recoil.p.z
+    recz = ion.hist.tar_recoil.p.z
 
     Eorig = E
 
     while cont:
         d = 20.0 * c.C_NM
-        nextz = rec["p"]["z"] + d * cos_theta
+        nextz = recz + d * cos_theta
         v = math.sqrt(2.0 * E / ion.A)
         next_layer = False
         if nextz < layer.dlow:
             nextz = layer.dlow + 0.1 * c.C_ANGSTROM * cos_theta
-            d = (nextz - rec["p"]["z"]) / cos_theta
+            d = (nextz - recz) / cos_theta
             next_layer = True
 
         sto = ion_simu_jit.inter_sto(layer.sto[ion.scatindex], v, enums.IonMode.STOPPING)
@@ -286,7 +288,7 @@ def get_eloss(E: float, ion: oj.Ion, target: oj.Target, cos_theta: float) -> flo
             else:
                 layer = target.layer[nlayer]
 
-        rec["p"]["z"] = nextz
+        recz = nextz
 
     if surf:
         return Eorig - E

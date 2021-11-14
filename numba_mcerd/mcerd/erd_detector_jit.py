@@ -48,16 +48,19 @@ def move_to_erd_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, detector:
     pout = misc_jit.coord_transform(
         ion.lab.p, ion.lab.theta, ion.lab.fii, ion.p, enums.CoordTransformDirection.FORW)
 
-    direction = np.zeros(1, dtype=od.Vector)[0]
+    direction = oj.Vector()
     out_theta, out_fii = rotate_jit.rotate(ion.lab.theta, ion.lab.fii, ion.theta, ion.fii)
-    direction["theta"] = out_theta
-    direction["fii"] = out_fii
+    direction.theta = out_theta
+    direction.fii = out_fii
 
     ion_line = get_line_params(direction, pout)
-    cross = np.zeros(1, dtype=od.Point)[0]
+    cross = oj.Point()
     is_cross = get_line_plane_cross(ion_line, foil.plane, cross)
     if is_cross:
-        ion.lab.p = cross
+        # ion.lab.p = cross
+        ion.lab.p.x = cross.x
+        ion.lab.p.y = cross.y
+        ion.lab.p.z = cross.z
         ion.p.x = 0.0
         ion.p.y = 0.0
         ion.p.z = 0.0
@@ -65,7 +68,10 @@ def move_to_erd_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, detector:
         fii = c.C_PI
         fcross = misc_jit.coord_transform(
             foil.center, theta, fii, cross, enums.CoordTransformDirection.BACK)
-        ion.hit[n] = fcross
+        # ion.hit[n] = fcross
+        ion.hit[n].x = fcross.x
+        ion.hit[n].y = fcross.y
+        ion.hit[n].z = fcross.z
     # TODO: is_on_right_side and is_in_foil are needlessly repeated
     if is_cross and is_on_right_side(pout, direction, cross) and is_in_foil(fcross, foil):
         dist = get_distance(pout, cross)
@@ -105,28 +111,28 @@ def get_line_params(d: oj.Vector, p: oj.Point) -> oj.Line:
     """Calculate line parameters for a line pointing to the direction d
     and going through point p
     """
-    k = np.zeros(1, dtype=od.Line)[0]
+    k = oj.Line()
 
-    z = math.cos(d["theta"])
-    y = math.sin(d["theta"]) * math.sin(d["fii"])
-    x = math.sin(d["theta"]) * math.cos(d["fii"])
+    z = math.cos(d.theta)
+    y = math.sin(d.theta) * math.sin(d.fii)
+    x = math.sin(d.theta) * math.cos(d.fii)
 
     if z == 0.0:
         if x == 0.0:
-            k["type"] = enums.LineType.Y_AXIS
-            k["a"] = p["x"]
-            k["b"] = p["z"]
+            k.type = enums.LineType.Y_AXIS
+            k.a = p.x
+            k.b = p.z
         else:
-            k["type"] = enums.LineType.XY_PLANE
-            k["a"] = y / x
-            k["b"] = p["y"] - k["a"] * p["x"]
-            k["c"] = p["z"]
+            k.type = enums.LineType.XY_PLANE
+            k.a = y / x
+            k.b = p.y - k.a * p.x
+            k.c = p.z
     else:
-        k["type"] = enums.LineType.GENERAL
-        k["a"] = x / z
-        k["b"] = p["x"] - k["a"] * p["z"]
-        k["c"] = y / z
-        k["d"] = p["y"] - k["c"] * p["z"]
+        k.type = enums.LineType.GENERAL
+        k.a = x / z
+        k.b = p.x - k.a * p.z
+        k.c = y / z
+        k.d = p.y - k.c * p.z
 
     return k
 
@@ -139,47 +145,47 @@ def get_line_plane_cross(line: oj.Line, plane: oj.Plane, cross: oj.Point) -> boo
     k = cross
     is_cross = False
 
-    if p["type"] == enums.PlaneType.GENERAL_PLANE:
-        if q["type"] == enums.LineType.GENERAL:
-            if (q["a"] - p.b - p["a"] * q["c"]) != 0.0:
+    if p.type == enums.PlaneType.GENERAL_PLANE:
+        if q.type == enums.LineType.GENERAL:
+            if (q.a - p.b - p.a * q.c) != 0.0:
                 is_cross = True
-                k["z"] = (p["a"] * q["b"] + p["b"] * q["d"] + p["c"]) / (1.0 - p["a"] * q["a"] - p["b"] * q["c"])
-                k["x"] = q["a"] * k["z"] + q["b"]
-                k["y"] = q["c"] * k["z"] + q["d"]
+                k.z = (p.a * q.b + p.b * q.d + p.c) / (1.0 - p.a * q.a - p.b * q.c)
+                k.x = q.a * k.z + q.b
+                k.y = q.c * k.z + q.d
             else:
                 is_cross = False
-        elif q["type"] == enums.LineType.XY_PLANE:
+        elif q.type == enums.LineType.XY_PLANE:
             is_cross = True
-            k["x"] = -q["b"] / q["a"] - (-p["a"] * q["b"] - q["a"] * (-p["c"] - p["b"] * q["c"])) / (q["a"] * (p["a"] - q["a"]))
-            k["y"] = -(-p["a"] * q["b"] - q["a"] * (-p["c"] - p["b"] * q["c"])) / (p["a"] - q["a"])
-            k["z"] = q["c"]
-        elif q["type"] == enums.LineType.Y_AXIS:
-            k["x"] = q["a"]
-            k["y"] = p["a"] * q["a"] + p["b"] * q["b"] + p["c"]
-            k["z"] = q["b"]
+            k.x = -q.b / q.a - (-p.a * q.b - q.a * (-p.c - p.b * q.c)) / (q.a * (p.a - q.a))
+            k.y = -(-p.a * q.b - q.a * (-p.c - p.b * q.c)) / (p.a - q.a)
+            k.z = q.c
+        elif q.type == enums.LineType.Y_AXIS:
+            k.x = q.a
+            k.y = p.a * q.a + p.b * q.b + p.c
+            k.z = q.b
             is_cross = True
-    elif p["type"] == enums.PlaneType.Z_PLANE:
-        if q["type"] == enums.LineType.GENERAL:
+    elif p.type == enums.PlaneType.Z_PLANE:
+        if q.type == enums.LineType.GENERAL:
             is_cross = True
-            k["x"] = q["c"] * p["a"] + q["d"]
-            k["y"] = q["a"] * p["a"] + q["b"]
-            k["z"] = p["a"]
-        elif q["type"] == enums.LineType.XY_PLANE:
+            k.x = q.c * p.a + q.d
+            k.y = q.a * p.a + q.b
+            k.z = p.a
+        elif q.type == enums.LineType.XY_PLANE:
             is_cross = False
-        elif q["type"] == enums.LineType.Y_AXIS:
+        elif q.type == enums.LineType.Y_AXIS:
             is_cross = False
-    elif p["type"] == enums.PlaneType.X_PLANE:
-        if q["type"] == enums.LineType.GENERAL:
+    elif p.type == enums.PlaneType.X_PLANE:
+        if q.type == enums.LineType.GENERAL:
             is_cross = True
-            k["x"] = p["a"]
-            k["z"] = (p["a"] - q["d"]) / (q["c"] + 1.0e-20)
-            k["y"] = k["z"] * q["a"] + q["b"]
-        elif q["type"] == enums.LineType.XY_PLANE:
+            k.x = p.a
+            k.z = (p.a - q.d) / (q.c + 1.0e-20)
+            k.y = k.z * q.a + q.b
+        elif q.type == enums.LineType.XY_PLANE:
             is_cross = True
-            k["x"] = p["a"]
-            k["y"] = p["a"] * q["a"] + q["b"]
-            k["z"] = q["c"]
-        elif q["type"] == enums.LineType.Y_AXIS:
+            k.x = p.a
+            k.y = p.a * q.a + q.b
+            k.z = q.c
+        elif q.type == enums.LineType.Y_AXIS:
             is_cross = False
 
     return is_cross
@@ -188,20 +194,20 @@ def get_line_plane_cross(line: oj.Line, plane: oj.Plane, cross: oj.Point) -> boo
 @nb.njit(cache=True)
 def get_distance(p1: oj.Point, p2: oj.Point) -> float:
     return math.sqrt(
-        (p1["x"] - p2["x"])**2
-        + (p1["y"] - p2["y"])**2
-        + (p1["z"] - p2["z"])**2)
+        (p1.x - p2.x)**2
+        + (p1.y - p2.y)**2
+        + (p1.z - p2.z)**2)
 
 
 @nb.njit(cache=True)
 def is_on_right_side(p1: oj.Point, d: oj.Vector, p2: oj.Point) -> int:
-    dp = np.zeros(1, dtype=od.Point)[0]
+    dp = oj.Point()
 
     r1 = get_distance(p1, p2)
 
-    dp["x"] = p1.x + r1 * math.sin(d["theta"]) * math.cos(d["fii"])
-    dp["y"] = p1.y + r1 * math.sin(d["theta"]) * math.sin(d["fii"])
-    dp["z"] = p1.z + r1 * math.cos(d["theta"])
+    dp.x = p1.x + r1 * math.sin(d.theta) * math.cos(d.fii)
+    dp.y = p1.y + r1 * math.sin(d.theta) * math.sin(d.fii)
+    dp.z = p1.z + r1 * math.cos(d.theta)
 
     r2 = get_distance(dp, p2)
 
@@ -213,10 +219,10 @@ def is_in_foil(p: oj.Point, foil: oj.Det_foil) -> bool:
     """(Point p is assumed to be on the plane of circle c)"""
     if foil.type == enums.FoilType.CIRC:
         if foil.virtual:
-            return math.sqrt((p["x"] / foil.size_[0]) ** 2 + (p["y"] / foil.size_[1]) ** 2) <= 1.0
-        return math.sqrt(p["x"] ** 2 + p["y"] ** 2) <= foil.size_[0]
+            return math.sqrt((p.x / foil.size_[0]) ** 2 + (p.y / foil.size_[1]) ** 2) <= 1.0
+        return math.sqrt(p.x ** 2 + p.y ** 2) <= foil.size_[0]
     if foil.type == enums.FoilType.RECT:
-        return abs(p["x"]) <= foil.size_[0] and abs(p["y"]) <= foil.size_[1]
+        return abs(p.x) <= foil.size_[0] and abs(p.y) <= foil.size_[1]
     return False
 
 
