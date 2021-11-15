@@ -4,7 +4,7 @@ import logging
 import numba as nb
 import numpy as np
 
-from numba_mcerd import config, timer, patch_numba, logging_jit
+from numba_mcerd import config, timer, patch_numba, logging_jit, list_conversion
 from numba_mcerd.mcerd import (
     cross_section_jit,
     elsto,
@@ -203,8 +203,13 @@ def main(args):
     main_sim_timer.stop()
     print(f"main_sim_timer: {main_sim_timer}")
 
-    print(g.finstat)  # TODO: Remove later
+    print_timer = timer.SplitTimer.init_and_start()
+    list_conversion.buffer_to_file(erd_buf, master["fperd"])
+    print_timer.stop()
+    print(f"print_timer: {print_timer}")
+
     finalize_jit.finalize(g, master)
+    print(g.finstat)  # TODO: Remove later
 
 
 # TODO: (not njit)

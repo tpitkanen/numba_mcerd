@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 
 import numba as nb
 import numpy as np
@@ -7,62 +6,80 @@ import numpy as np
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects_jit as oj
 import numba_mcerd.mcerd.objects_dtype as od
-import numba_mcerd.mcerd.symbols as s
+import numba_mcerd.list_conversion as lc
+from numba_mcerd import logging_jit
 from numba_mcerd.mcerd import erd_detector_jit, enums
 
 
-def create_erd_buffer(g: oj.Global):
+def create_erd_buffer(g: oj.Global) -> od.Buffer:
+    """Create a buffer for ERD output based on `g` settings"""
+    t = lc.TypeInt
+    if g.advanced_output and g.output_trackpoints:
+        raise NotImplementedError
+    elif g.advanced_output:
+        raise NotImplementedError
+    elif g.output_trackpoints:
+        raise NotImplementedError
+    else:
+        width = 11
+        types = np.array(
+            [t.STR, t.STR, t.STR, t.FLOAT, t.INT, t.FLOAT, t.FLOAT, t.FLOAT, t.FLOAT, t.FLOAT, t.FLOAT])
+        formats = np.array(["", "", "", "8.4f", "3d", "6.2f", "10.4f", "14.7e", "10.3f", "7.2f", "7.2f"], dtype="U5")
+
     # TODO: Figure out a good way to determine length
-    length = int((g.npresimu + g.nsimu) * 1.2)
-    dt = od.get_erd_buffer_dtype(length)
+    length = int((g.npresimu + g.nsimu) * 0.2)
 
-    return np.zeros(1, dtype=dt)[0]
+    dt = od.get_buffer_dtype(length, width)
+    erd_buf = np.zeros(1, dtype=dt)[0]
+    erd_buf["types"] = types
+    erd_buf["formats"] = formats
+
+    return erd_buf
 
 
-@nb.jit(forceobj=True)
-def _output_tof(g: od.Global, master: od.Master, cur_ion: od.Ion, target: od.Target,
-                detector: od.Detector) -> None:
+@nb.njit(cache=True)
+def _output_tof(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Target,
+                detector: oj.Detector, buf: od.Buffer) -> None:
     # https://stackoverflow.com/questions/3167494/how-often-does-python-flush-to-a-file
 
+    buf["col_i"] = 0
     n = cur_ion.tlayer - target.ntarget  # Foil number  # TODO: Rename
-    line_parts = []
 
-    # Actually output if: a secondary particle (not the primary beam) is either:
-    # 1. In the last layer
-    # 2. In the energy detector or beyond (if we are outputting trackpoints and energy detector layer is given)
-    # 3. The particle missed (exited detector, hit an aperture), but output misses is on.
-    line_parts.append(
-        f'{"S" if cur_ion.scale else "R"} {"V" if cur_ion.virtual else "R"} {"R" if g.simtype == enums.SimType.ERD else "S"}')
+    # TODO: These could be combined into one np.float64 (3*1 bytes)
+    lc.set_buf(buf, ord("S") if cur_ion.scale else ord("R"))
+    lc.set_buf(buf, ord("V") if cur_ion.virtual else ord("R"))
+    lc.set_buf(buf, ord("R") if g.simtype == enums.SimType.ERD else ord("S"))
+
     if g.output_trackpoints:
-        line_parts.append(format(cur_ion.trackid, "12d"))
+        lc.set_buf(buf, cur_ion.trackid)  # 12d
     if g.advanced_output:
-        line_parts.append(str(cur_ion.status.value))
-        line_parts.append(str(n))
+        lc.set_buf(buf, cur_ion.status)
+        lc.set_buf(buf, n)
     z = cur_ion.hist.tar_recoil.p.z
 
     if g.rough:
         raise NotImplementedError
 
-    line_parts.append(format(cur_ion.E / c.C_MEV, "8.4f"))
+    lc.set_buf(buf, cur_ion.E / c.C_MEV)  # 8.4f
 
-    line_parts.append(format(int(cur_ion.hist.Z + 0.5), "3d"))
-    line_parts.append(format(cur_ion.hist.A / c.C_U, "6.2f"))
+    lc.set_buf(buf, int(cur_ion.hist.Z + 0.5))  # 3d
+    lc.set_buf(buf, cur_ion.hist.A / c.C_U)  # 6.2f
 
-    line_parts.append(format(z / c.C_NM, "10.4f"))
-    line_parts.append(format(cur_ion.w, "14.7e"))
+    lc.set_buf(buf, z / c.C_NM)  # 10.4f
+    lc.set_buf(buf, cur_ion.w)  # 14.7e
 
     if g.advanced_output:
-        line_parts.append(format(cur_ion.hist.ion_E / c.C_KEV, "8.4f"))
-        line_parts.append(format(cur_ion.hist.ion_recoil.theta / c.C_DEG, "7.3f"))
-        line_parts.append(format(cur_ion.hist.w, "10.4e"))
-        line_parts.append(format(cur_ion.dt[0] / c.C_NS, "7.3f"))
-        line_parts.append(format(cur_ion.dt[1] / c.C_NS, "7.3f"))
+        lc.set_buf(buf, cur_ion.hist.ion_E / c.C_KEV)  # 8.4f
+        lc.set_buf(buf, cur_ion.hist.ion_recoil.theta / c.C_DEG)  # 7.3f
+        lc.set_buf(buf, cur_ion.hist.w)  # 10.4e
+        lc.set_buf(buf, cur_ion.dt[0] / c.C_NS)  # 7.3f
+        lc.set_buf(buf, cur_ion.dt[1] / c.C_NS)  # 7.3f
     else:
-        line_parts.append(format((cur_ion.dt[1] - cur_ion.dt[0]) / c.C_NS, "10.3f"))  # ToF
+        lc.set_buf(buf, (cur_ion.dt[1] - cur_ion.dt[0]) / c.C_NS)  # 10.3f  # ToF
 
     if not g.advanced_output:
-        line_parts.append(format(cur_ion.hit[0].x / c.C_MM, "7.2f"))
-        line_parts.append(format(cur_ion.hit[0].y / c.C_MM, "7.2f"))
+        lc.set_buf(buf, cur_ion.hit[0].x / c.C_MM)  # 7.2f
+        lc.set_buf(buf, cur_ion.hit[0].y / c.C_MM)  # 7.2f
     else:
         # x, y coordinates of hits
         for j in (0,  # First aperture
@@ -70,27 +87,23 @@ def _output_tof(g: od.Global, master: od.Master, cur_ion: od.Ion, target: od.Tar
                   detector.tdet[1] - target.ntarget,  # T2
                   detector.edet[0] - target.ntarget,  # Energy detector
                   n):
-            line_parts.append(format(cur_ion.hit[j].x / c.C_MM, "6.2f"))
-            line_parts.append(format(cur_ion.hit[j].y / c.C_MM, "6.2f"))
+            lc.set_buf(buf, cur_ion.hit[j].x / c.C_MM)  # 6.2f
+            lc.set_buf(buf, cur_ion.hit[j].y / c.C_MM)  # 6.2f
 
     if g.advanced_output:  # Energy losses in layers
         for i in range(target.nlayers - target.ntarget - 1):
-            line_parts.append(format((cur_ion.Ed[i] - cur_ion.Ed[i + 1]) / c.C_KEV, "7.4f"))
+            lc.set_buf(buf, (cur_ion.Ed[i] - cur_ion.Ed[i + 1]) / c.C_KEV)  # 7.4f
             if (cur_ion.Ed[i] - cur_ion.Ed[i + 1]) / c.C_MEV < 0.0 and i:
-                logging.warning(f"Ion (trackid={cur_ion.trackid}, ion_i={cur_ion.ion_i}) gains energy between layers i={i} and i+1={i+1}")
+                # logging.warning(f"Ion (trackid={cur_ion.trackid}, ion_i={cur_ion.ion_i}) gains energy between layers i={i} and i+1={i+1}")
+                logging_jit.warning("Ion gains energy between layers")
         if cur_ion.tlayer == target.nlayers:
-            line_parts.append(format((cur_ion.Ed[target.nlayers - target.ntarget - 1] - cur_ion.E) / c.C_MEV, "7.4f"))
+            lc.set_buf(buf, (cur_ion.Ed[target.nlayers - target.ntarget - 1] - cur_ion.E) / c.C_MEV)  # 7.4f
         else:
-            line_parts.append(format(0.0, "7.4f"))
+            lc.set_buf(buf, 0.0)  # 7.4f
+
+    buf["row_i"] += 1
 
     # Original code generates a trailing space if g.advanced_output is False
-
-    # TODO: Problematic for multi-threading, and possibly slow
-    # with Path(master.fperd).open("a") as f:
-    #     f.write(" ".join(line_parts) + "\n")
-    f = open(master.fperd, "a")
-    f.write(" ".join(line_parts) + "\n")
-    f.close()
 
 
 # TODO: I/O not supported in Numba
@@ -102,15 +115,18 @@ def _output_gas(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Tar
 
 @nb.njit(cache=True)
 def output_erd(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Target,
-               detector: oj.Detector, erd_buf: od.Erd_buffer) -> None:
+               detector: oj.Detector, erd_buf: od.Buffer) -> None:
     """Output ERD information to master.fperd"""
     if detector.type == enums.DetectorType.TOF:
+        # Actually output if: a secondary particle (not the primary beam) is either:
+        # 1. In the last layer
+        # 2. In the energy detector or beyond (if we are outputting trackpoints and energy detector layer is given)
+        # 3. The particle missed (exited detector, hit an aperture), but output misses is on.
         if cur_ion.type == enums.IonType.SECONDARY and (
                 cur_ion.tlayer == target.nlayers or
                 erd_detector_jit.is_in_energy_detector(g, cur_ion, target, detector, True) or
                 cur_ion.status == enums.IonStatus.FIN_OUT_DET and g.output_misses):
-            with nb.objmode():
-                _output_tof(g, master, cur_ion, target, detector)
+            _output_tof(g, master, cur_ion, target, detector, erd_buf)
         return
     elif detector.type == enums.DetectorType.GAS:
         _output_gas(g, master, cur_ion, target, detector)
