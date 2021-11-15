@@ -403,9 +403,10 @@ Detector = np.dtype([
 
 
 # TODO: g.advanced_output and g.output_trackpoints change the row shape
-Erd_buffer_row = np.dtype("U1, U1, U1, f, i, f, f, f, f, f, f")
+# Erd_buffer_row = np.dtype("U1, U1, U1, f, i, f, f, f, f, f, f")
 # String version, though Numba doesn't support f-string spec yet, and this is memory-hungry too:
 # Erd_buffer_row = np.dtype("U1, U1, U1, U8, U3, U6, U10, U14, U10, U6, U6")
+Erd_buffer_row = np.dtype("U78")
 
 # Use get_erd_buffer_dtype in code, this is just for use as a type annotation
 Erd_buffer = np.dtype([
