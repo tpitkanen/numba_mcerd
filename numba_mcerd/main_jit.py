@@ -178,8 +178,8 @@ def main(args):
     snext = ocd.convert_snext(copy.deepcopy(snext_o))
     detector = ocd.convert_detector(copy.deepcopy(detector_o))
 
-    # TODO: Format and output this to a file at the end
     erd_buf = output_jit.create_erd_buffer(g)
+    range_buf = finish_ion_jit.create_range_buffer(g)
 
     dtype_conversion_timer.stop()
     print(f"dtype_conversion_timer: {dtype_conversion_timer}")
@@ -199,12 +199,13 @@ def main(args):
 
     main_sim_timer = timer.SplitTimer.init_and_start()
     simulation_loop(g, master, ions, target, scat, snext, detector,
-                    trackid, ion_i, new_track, erd_buf)
+                    trackid, ion_i, new_track, erd_buf, range_buf)
     main_sim_timer.stop()
     print(f"main_sim_timer: {main_sim_timer}")
 
     print_timer = timer.SplitTimer.init_and_start()
     list_conversion.buffer_to_file(erd_buf, master["fperd"])
+    list_conversion.buffer_to_file(range_buf, master["fprange"])
     print_timer.stop()
     print(f"print_timer: {print_timer}")
 
@@ -233,7 +234,7 @@ def run_simulation(g, master, ions, target, scat, snext, detector,
 
 @nb.njit(cache=True)
 def simulation_loop(g, master, ions, target, scat, snext, detector,
-                    trackid, ion_i, new_track, erd_buf):
+                    trackid, ion_i, new_track, erd_buf, range_buf):
     # TODO: initialize at least trackid, ion_i and new_track here
     outer_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
     inner_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
@@ -355,13 +356,9 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
         # logging_jit.debug(...)
 
         g.finstat[PRIMARY, cur_ion.status] += 1
-        # finish_ion_jit.finish_ion(g, cur_ion)  # Print info if FIN_STOP or FIN_TRANS
+        finish_ion_jit.finish_ion(g, cur_ion, range_buf)  # Output info if FIN_STOP or FIN_TRANS
 
-    # finalize_jit.finalize(g, master)  # Print statistics
-
-    # noinspection PyUnboundLocalVariable
-    # main_sim_timer.stop()
-    # print(f"main_sim_timer: {main_sim_timer}")
+    # finalize_jit.finalize(g, master)  # Output statistics
 
 
 if __name__ == '__main__':
