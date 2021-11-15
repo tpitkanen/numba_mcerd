@@ -83,6 +83,26 @@ def finish_presimulation(g: oj.Global, detector: oj.Detector, recoil: oj.Ion) ->
     g.cpresimu += 1
 
 
+# TODO: @nb.jit(forceobj=True) ?
+def _output_to_files(g: oj.Global, master: oj.Master, target: oj.Target, detector: oj.Detector):
+    """Output analyze_presimulation information to files.
+
+    Call this inside a `with numba.objmode():` block.
+    """
+    # TODO: implement .out too
+    pre_lines = []
+    for i in range(target.ntarget):
+        x_temp = target.recpar[i].x * c.C_NM / c.C_DEG
+        y_temp = target.recpar[i].y / c.C_DEG
+        # out_lines.append(f"{i:3d} {x_temp:10.5f} {y_temp:10.5f}\n")
+        pre_lines.append(f"{x_temp:14.5e} {y_temp:14.5e}\n")
+
+    pre_file = f"{g.basename}.pre"
+    f = open(pre_file, "w")   # mode="w" overwrites
+    f.writelines(pre_lines)
+    f.close()
+
+
 # TODO: I/O not supported in Numba
 @nb.njit(cache=True)
 def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
@@ -166,6 +186,9 @@ def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
     # with pre_file.open("w") as f:  # mode="w" overwrites
     #     f.writelines(pre_lines)
 
+    with nb.objmode():
+        _output_to_files(g, master, target, detector)
+
     print("Presimulation finished")
 
     # del g.presimu  # Doesn't work with Numpy types
@@ -178,7 +201,7 @@ def fit_linear(x: List[float], y: List[float], n: int) -> Tuple[float, float]:
     to P.R. Bevington's Data Reduction and Error Analysis for the
     Physical Sciences.
 
-    Here we use constantly weight 1.0 since were have same statistics
+    Here we use constantly weight 1.0 since we have the same statistics
     for every point.
     """
     if n < 3:
