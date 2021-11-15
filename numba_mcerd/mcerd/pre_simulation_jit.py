@@ -83,20 +83,45 @@ def finish_presimulation(g: oj.Global, detector: oj.Detector, recoil: oj.Ion) ->
     g.cpresimu += 1
 
 
-# TODO: @nb.jit(forceobj=True) ?
-def _output_to_files(g: oj.Global, master: oj.Master, target: oj.Target, detector: oj.Detector):
+# TODO: This causes main loop to be uncacheable. Check performance impact for large ion counts
+def _output_to_files(g: oj.Global, master: oj.Master, target: oj.Target, detector: oj.Detector,
+                     depth: np.ndarray, angle: np.ndarray, nlayer: np.ndarray, ab_history: np.ndarray) -> None:
     """Output analyze_presimulation information to files.
 
     Call this inside a `with numba.objmode():` block.
     """
-    # TODO: implement .out too
+    out_lines = []
+
+    a, b = ab_history[0]
+    ab_i = 1
+
+    for i in range(target.ntarget):
+        for j in range(nlayer[i]):
+            # C code uses format code 'i' instead of 'd', but Python doesn't
+            # support 'i' for int anymore so 'd' is used instead
+            out_lines.append(f"{i:3d} {depth[i, j] / c.C_NM:10.4f} {angle[i, j] / c.C_DEG:10.4f}\n")
+
+        out_lines.append("\n")
+        out_lines.append(
+            f"{i:3d} {a * c.C_NM / c.C_DEG:10.5f} {b / c.C_DEG:10.5f} + 1.1 * {detector.thetamax / c.C_DEG:6.3f} * {max(1.0, max(detector.vsize[0], detector.vsize[1])):6.2f}\n")
+        if nlayer[i] > 2:
+            a, b = ab_history[ab_i]
+            ab_i += 1
+
+    out_lines.append("\n")
+
     pre_lines = []
     for i in range(target.ntarget):
         x_temp = target.recpar[i].x * c.C_NM / c.C_DEG
         y_temp = target.recpar[i].y / c.C_DEG
-        # out_lines.append(f"{i:3d} {x_temp:10.5f} {y_temp:10.5f}\n")
+        out_lines.append(f"{i:3d} {x_temp:10.5f} {y_temp:10.5f}\n")
         pre_lines.append(f"{x_temp:14.5e} {y_temp:14.5e}\n")
 
+    f = open(master.fpout, "a")
+    f.writelines(out_lines)
+    f.close()
+
+    # TODO: Move pre_file path to master
     pre_file = f"{g.basename}.pre"
     f = open(pre_file, "w")   # mode="w" overwrites
     f.writelines(pre_lines)
@@ -112,9 +137,9 @@ def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
     recoils (typically 99%). The result is given as a linear fit
     for half-angle vs. depth for each target layer.
     """
-    depth = [[0.0] * NPRESIMU for _ in range(c.MAXLAYERS)]
-    angle = [[0.0] * NPRESIMU for _ in range(c.MAXLAYERS)]
-    nlayer = [0] * c.MAXLAYERS
+    depth = np.zeros((c.MAXLAYERS, NPRESIMU), dtype=np.float64)
+    angle = np.zeros((c.MAXLAYERS, NPRESIMU), dtype=np.float64)
+    nlayer = np.zeros(c.MAXLAYERS, dtype=np.int64)
 
     nlevel = int(10.0 / c.PRESIMU_LEVEL)
     nlevel = max(nlevel, int(g.cpresimu / (NPRESIMU + 1)))
@@ -135,27 +160,24 @@ def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
         if n > int(nlevel / 2):
             sort_presimu_by_angle(g.presimu, npre, npre + n)
             i = int(n * c.PRESIMU_LEVEL)
-            depth[layer][nlayer[layer]] = sumdepth / n
-            angle[layer][nlayer[layer]] = g.presimu[npre + i].angle
+            depth[layer, nlayer[layer]] = sumdepth / n
+            angle[layer, nlayer[layer]] = g.presimu[npre + i].angle
             nlayer[layer] += 1
 
         npre += n
 
-    # TODO: Output to Master_data (see objects_dtype)
-    # out_lines = []
     a = b = 0.0
-    for i in range(target.ntarget):
-        for j in range(nlayer[i]):
-            pass
-            # C code uses format code 'i' instead of 'd', but Python doesn't
-            # support 'i' for int anymore so 'd' is used instead
-            # out_lines.append(f"{i:3d} {depth[i][j] / c.C_NM:10.4f} {angle[i][j] / c.C_DEG:10.4f}\n")
 
-        # out_lines.append("\n")
-        # out_lines.append(
-        #     f"{i:3d} {a * c.C_NM / c.C_DEG:10.5f} {b / c.C_DEG:10.5f} + 1.1 * {detector.thetamax / c.C_DEG:6.3f} * {max(1.0, max(detector.vsize[0], detector.vsize[1])):6.2f}\n")
+    ab_history = np.zeros((target.ntarget + 1, 2), dtype=np.float64)
+    ab_history[0] = a, b
+    ab_i = 1
+
+    for i in range(target.ntarget):
         if nlayer[i] > 2:
             a, b = fit_linear(depth[i], angle[i], nlayer[i])
+            ab_history[ab_i] = a, b
+            ab_i += 1
+
             target.recpar[i].x = a
             target.recpar[i].y = b + 1.1 * detector.thetamax \
                                  * max(1.0, max(detector.vsize[0], detector.vsize[1]))
@@ -169,25 +191,8 @@ def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
                     5.0 * c.C_DEG + 1.1 * detector.thetamax \
                     * max(1.0, max(detector.vsize[0], detector.vsize[1]))
 
-    # out_lines.append("\n")
-
-    # pre_lines = []
-    # for i in range(target.ntarget):
-    #     x_temp = target.recpar[i].x * c.C_NM / c.C_DEG
-    #     y_temp = target.recpar[i].y / c.C_DEG
-    #     out_lines.append(f"{i:3d} {x_temp:10.5f} {y_temp:10.5f}\n")
-    #     pre_lines.append(f"{x_temp:14.5e} {y_temp:14.5e}\n")
-
-    # with Path(master.fpout).open("a") as f:
-    #     f.writelines(out_lines)
-
-    # # TODO: Move pre_file to master
-    # pre_file = Path(f"{g.basename}.pre")
-    # with pre_file.open("w") as f:  # mode="w" overwrites
-    #     f.writelines(pre_lines)
-
     with nb.objmode():
-        _output_to_files(g, master, target, detector)
+        _output_to_files(g, master, target, detector, depth, angle, nlayer, ab_history)
 
     print("Presimulation finished")
 
