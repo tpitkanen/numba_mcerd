@@ -238,8 +238,6 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
     # logging_jit.info("Starting simulation")
 
     # presim_timer = timer.SplitTimer.init_and_start()
-    # TODO: Move this to a separate jit-compiled function to eliminate
-    #       context-switching overhead
     for i in range(g.nsimu):
         if i % 1000 == 0:
             print(i)
