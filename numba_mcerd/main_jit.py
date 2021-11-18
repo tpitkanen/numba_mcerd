@@ -1,4 +1,3 @@
-import copy
 import logging
 
 import numba as nb
@@ -28,7 +27,6 @@ from numba_mcerd.mcerd import (
 )
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
-import numba_mcerd.mcerd.objects_convert_jit as ocj
 import numba_mcerd.mcerd.objects_convert_dtype as ocd
 
 
@@ -133,6 +131,8 @@ def main(args):
             init_simu_jit.scattering_table(g_o, ions_o[i], target_o, scat_o[i][j], pot, j)
             cross_section_jit.calc_cross_sections(g_o, scat_o[i][j], pot)
 
+    del pot
+
     table_timer.stop()
     print(f"table_timer: {table_timer}")
 
@@ -167,35 +167,31 @@ def main(args):
     # dtype conversions
     dtype_conversion_timer = timer.SplitTimer.init_and_start()
 
-    # TODO: Add an intermediary function that converts originals to dtype
-    #       before calling simulation_loop and handles timers,
-    #       remove _o from original names
-    g = ocd.convert_global(copy.deepcopy(g_o))
-    master = ocd.convert_master(copy.deepcopy(g_o))
-    ions = np.array([ocd.convert_ion(copy.deepcopy(ion)) for ion in ions_o])
-    target = ocd.convert_target(copy.deepcopy(target_o))
-    scat = ocd.convert_scattering_nested(copy.deepcopy(scat_o))
-    snext = ocd.convert_snext(copy.deepcopy(snext_o))
-    detector = ocd.convert_detector(copy.deepcopy(detector_o))
+    del primary_ion_o
+    del secondary_ion_o
+    del previous_trackpoint_ion_o
+
+    master = ocd.convert_master(g_o)
+    g = ocd.convert_global(g_o)
+    del g_o
+    ions = np.array([ocd.convert_ion(ion) for ion in ions_o])
+    for ion in ions_o:
+        del ion
+    del ions_o
+    target = ocd.convert_target(target_o)
+    del target_o
+    scat = ocd.convert_scattering_nested(scat_o)
+    del scat_o
+    snext = ocd.convert_snext(snext_o)
+    del snext_o
+    detector = ocd.convert_detector(detector_o)
+    del detector_o
 
     erd_buf = output_jit.create_erd_buffer(g)
     range_buf = finish_ion_jit.create_range_buffer(g)
 
     dtype_conversion_timer.stop()
     print(f"dtype_conversion_timer: {dtype_conversion_timer}")
-
-    # Jitclass conversions
-    # jitclass_conversion_timer = timer.SplitTimer.init_and_start()
-    #
-    # g = ocj.convert_global(g_o)
-    # ions_moving = [ocj.convert_ion(ion_o) for ion in ions_moving]
-    # target = ocj.convert_target(target_o)
-    # scat = ocj.convert_scattering_nested(scat_o)
-    # snext = ocj.convert_snext(snext_o)
-    # detector = ocj.convert_detector(detector_o)
-    #
-    # jitclass_conversion_timer.stop()
-    # print(f"jitclass_conversion_timer: {jitclass_conversion_timer}")
 
     main_sim_timer = timer.SplitTimer.init_and_start()
     simulation_loop(g, master, ions, target, scat, snext, detector,
