@@ -193,11 +193,22 @@ def main(args):
     dtype_conversion_timer.stop()
     print(f"dtype_conversion_timer: {dtype_conversion_timer}")
 
-    main_sim_timer = timer.SplitTimer.init_and_start()
-    simulation_loop(g, master, ions, target, scat, snext, detector,
-                    trackid, ion_i, new_track, erd_buf, range_buf)
-    main_sim_timer.stop()
-    print(f"main_sim_timer: {main_sim_timer}")
+    presimu_timer = timer.SplitTimer.init_and_start()
+    trackid, ion_i, new_track = simulation_loop(
+        g, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
+    presimu_timer.stop()
+    print(f"presimu_timer: {presimu_timer}")
+
+    analysis_timer = timer.SplitTimer.init_and_start()
+    pre_simulation_jit.analyze_presimulation(g, master, target, detector)
+    init_params_jit.init_recoiling_angle(target)
+    analysis_timer.stop()
+    print(f"analysis_timer: {analysis_timer}")
+
+    main_simu_timer = timer.SplitTimer.init_and_start()
+    simulation_loop(g, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
+    main_simu_timer.stop()
+    print(f"main_sim_timer: {main_simu_timer}")
 
     print_timer = timer.SplitTimer.init_and_start()
     list_conversion.buffer_to_file(erd_buf, master["fperd"])
@@ -231,14 +242,19 @@ def run_simulation(g, master, ions, target, scat, snext, detector,
 @nb.njit(cache=True)
 def simulation_loop(g, master, ions, target, scat, snext, detector,
                     trackid, ion_i, new_track, erd_buf, range_buf):
-    # TODO: initialize at least trackid, ion_i and new_track here
     outer_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
     inner_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
 
     # logging_jit.info("Starting simulation")
 
-    # presim_timer = timer.SplitTimer.init_and_start()
-    for i in range(g.nsimu):
+    if g.simstage == enums.SimStage.PRE:
+        start = 0
+        stop = g.npresimu
+    else:
+        start = g.npresimu
+        stop = g.nsimu
+
+    for i in range(start, stop):
         if i % 1000 == 0:
             print(i)
 
@@ -342,9 +358,7 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
         g.finstat[PRIMARY, cur_ion.status] += 1
         finish_ion_jit.finish_ion(g, cur_ion, range_buf)  # Output info if FIN_STOP or FIN_TRANS
 
-        if g.simstage == enums.SimStage.PRE and g.cion == g.npresimu - 1:
-            pre_simulation_jit.analyze_presimulation(g, master, target, detector)
-            init_params_jit.init_recoiling_angle(target)
+    return trackid, ion_i, new_track
 
     # finalize_jit.finalize(g, master)  # Output statistics
 
