@@ -215,16 +215,6 @@ def main(args):
                 else:
                     erd_detector.move_to_erd_detector(g, cur_ion, target, detector)
 
-            # TODO: Separate loop to pre and main, move this in-between
-            if g.simstage == enums.SimStage.PRE and g.cion == g.npresimu - 1:
-                pre_simulation.analyze_presimulation(g, target, detector)
-                init_params.init_recoiling_angle(target)
-
-                presim_timer.stop()
-                print(f"presim_timer: {presim_timer}")
-
-                main_sim_timer = timer.SplitTimer.init_and_start()
-
             if (nscat == enums.ScatteringType.MC_SCATTERING
                     and cur_ion.status == enums.IonStatus.NOT_FINISHED
                     and not g.nomc):
@@ -290,6 +280,16 @@ def main(args):
 
         g.finstat[PRIMARY][cur_ion.status.value] += 1
         finish_ion.finish_ion(g, cur_ion)  # Print info if FIN_STOP or FIN_TRANS
+
+        # TODO: Separate loop to pre and main, move this in-between
+        if g.simstage == enums.SimStage.PRE and g.cion == g.npresimu - 1:
+            pre_simulation.analyze_presimulation(g, target, detector)
+            init_params.init_recoiling_angle(target)
+
+            presim_timer.stop()
+            print(f"presim_timer: {presim_timer}")
+
+            main_sim_timer = timer.SplitTimer.init_and_start()
 
     finalize.finalize(g)  # Print statistics
 
