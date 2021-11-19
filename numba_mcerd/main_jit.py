@@ -255,7 +255,7 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
         stop = g.nsimu
 
     for i in range(start, stop):
-        if i % 1000 == 0:
+        if i % 10000 == 0:
             print(i)
 
         g.cion = i  # TODO: Replace/remove for MT
