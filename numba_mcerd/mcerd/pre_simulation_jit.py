@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Tuple, List
 
 import numba as nb
@@ -14,55 +13,6 @@ NPRESIMU = 500
 
 class FitError(Exception):
     """Error while fitting to a curve"""
-
-
-@nb.njit(cache=True)
-def swap_presimus(presimu: np.ndarray, i: int, j: int) -> None:
-    temp = presimu[i]["depth"], presimu[i]["angle"], presimu[i]["layer"]
-
-    presimu[i]["depth"] = presimu[j]["depth"]
-    presimu[i]["angle"] = presimu[j]["angle"]
-    presimu[i]["layer"] = presimu[j]["layer"]
-
-    presimu[j]["depth"], presimu[j]["angle"], presimu[j]["layer"] = temp
-
-
-@nb.njit(cache=True)
-def sort_presimu_by_depth(
-        presimu: np.ndarray, start: int = None, stop: int = None) -> None:
-    """Sort presimu by depth (ascending) in place.
-
-    Uses insertion sort.
-    """
-    if start is None:
-        start = 0
-    if stop is None:
-        stop = presimu.shape[0]
-
-    for i in range(start + 1, stop):
-        j = i
-        while j > start and presimu[j - 1]["depth"] > presimu[j]["depth"]:
-            swap_presimus(presimu, j, j - 1)
-            j -= 1
-
-
-@nb.njit(cache=True)
-def sort_presimu_by_angle(
-        presimu: np.ndarray, start: int = None, stop: int = None) -> None:
-    """Sort presimu by angle (descending) in place.
-
-    Uses insertion sort.
-    """
-    if start is None:
-        start = 0
-    if stop is None:
-        stop = presimu.shape[0]
-
-    for i in range(start + 1, stop):
-        j = i
-        while j > start and presimu[j - 1]["angle"] < presimu[j]["angle"]:
-            swap_presimus(presimu, j, j - 1)
-            j -= 1
 
 
 @nb.njit(cache=True)
@@ -83,13 +33,9 @@ def finish_presimulation(g: oj.Global, detector: oj.Detector, recoil: oj.Ion) ->
     g.cpresimu += 1
 
 
-# TODO: This causes main loop to be uncacheable. Check performance impact for large ion counts
 def _output_to_files(g: oj.Global, master: oj.Master, target: oj.Target, detector: oj.Detector,
                      depth: np.ndarray, angle: np.ndarray, nlayer: np.ndarray, ab_history: np.ndarray) -> None:
-    """Output analyze_presimulation information to files.
-
-    Call this inside a `with numba.objmode():` block.
-    """
+    """Output analyze_presimulation information to files."""
     out_lines = []
 
     a, b = ab_history[0]
@@ -128,8 +74,6 @@ def _output_to_files(g: oj.Global, master: oj.Master, target: oj.Target, detecto
     f.close()
 
 
-# TODO: I/O not supported in Numba
-@nb.njit(cache=True)
 def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
                           detector: oj.Detector) -> None:
     """We determine here the solid angle as function of recoiling depth
@@ -145,7 +89,7 @@ def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
     nlevel = max(nlevel, int(g.cpresimu / (NPRESIMU + 1)))
 
     # Doesn't resize like in Vanilla
-    sort_presimu_by_depth(g.presimu, start=0, stop=g.cpresimu)
+    g.presimu[:g.cpresimu].sort(kind="stable", order="depth")
 
     npre = 0
     while npre < g.cpresimu - int(nlevel / 2.0):
@@ -158,7 +102,13 @@ def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
             n += 1
 
         if n > int(nlevel / 2):
-            sort_presimu_by_angle(g.presimu, npre, npre + n)
+            # TODO: Is there a more efficient way to sort by angle?
+            #  Normally NumPy always uses other rows to break ties,
+            #  which may be problematic if angle is zero.
+            sliced = g.presimu[npre:npre + n]
+            indexes = sliced["angle"].argsort(kind="stable")
+            indexes = np.flip(indexes)
+            g.presimu[npre:npre + n] = g.presimu[npre + indexes]
             i = int(n * c.PRESIMU_LEVEL)
             depth[layer, nlayer[layer]] = sumdepth / n
             angle[layer, nlayer[layer]] = g.presimu[npre + i].angle
@@ -191,12 +141,12 @@ def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
                     5.0 * c.C_DEG + 1.1 * detector.thetamax \
                     * max(1.0, max(detector.vsize[0], detector.vsize[1]))
 
-    with nb.objmode():
-        _output_to_files(g, master, target, detector, depth, angle, nlayer, ab_history)
+    _output_to_files(g, master, target, detector, depth, angle, nlayer, ab_history)
 
     print("Presimulation finished")
-
-    # del g.presimu  # Doesn't work with Numpy types
+    # Doesn't work with Numpy types, and would probably require another compilation round for
+    # simulation_loop:
+    # del g.presimu
     g.simstage = enums.SimStage.REAL
 
 
