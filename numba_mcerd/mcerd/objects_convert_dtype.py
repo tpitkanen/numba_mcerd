@@ -105,11 +105,12 @@ def convert_master(g: o.Global) -> od.Master:
 
 # TODO: Return Jibal if needed
 def convert_global(g: o.Global) -> od.Global:
+    """Warning: presimu is overwritten"""
     def convert(values):
         values["simtype"] = values["simtype"].value
         values["bspot"] = convert_point2(values["bspot"])
         values["simstage"] = values["simstage"].value
-        values["presimu"] = np.array([convert_presimu(presimu) for presimu in values["presimu"]])
+        values["presimu"] = np.zeros(len(values["presimu"]), dtype=od.Presimu)
         values["master"] = None  # Implemented in a separate function
         values["recwidth"] = values["recwidth"].value
         values["finstat"] = np.array(values["finstat"], dtype=np.int64)
