@@ -16,7 +16,7 @@ class FitError(Exception):
 
 
 @nb.njit(cache=True)
-def finish_presimulation(g: oj.Global, detector: oj.Detector, recoil: oj.Ion) -> None:
+def finish_presimulation(g: oj.Global, presimus: np.ndarray, detector: oj.Detector, recoil: oj.Ion) -> None:
     """In the presimulation stage we save the recoil angle relative to the
     detector when the recoil comes out of the target. Also the recoil
     depth and layer are saved for later use.
@@ -27,9 +27,9 @@ def finish_presimulation(g: oj.Global, detector: oj.Detector, recoil: oj.Ion) ->
     # Recoil direction in the detector coordinate system
     theta, fii = rotate_jit.rotate(detector.angle, c.C_PI, theta_lab, fii_lab)
 
-    g.presimu[g.cpresimu].depth = recoil.hist.tar_recoil.p.z
-    g.presimu[g.cpresimu].angle = theta
-    g.presimu[g.cpresimu].layer = recoil.hist.layer
+    presimus[g.cpresimu].depth = recoil.hist.tar_recoil.p.z
+    presimus[g.cpresimu].angle = theta
+    presimus[g.cpresimu].layer = recoil.hist.layer
     g.cpresimu += 1
 
 
@@ -74,7 +74,8 @@ def _output_to_files(g: oj.Global, master: oj.Master, target: oj.Target, detecto
     f.close()
 
 
-def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
+# TODO: finish presimus migration
+def analyze_presimulation(g: oj.Global, presimus: np.ndarray, master: oj.Master, target: oj.Target,
                           detector: oj.Detector) -> None:
     """We determine here the solid angle as function of recoiling depth
     and layer, which contains all but PRESIMU_LEVEL portion of the
@@ -89,29 +90,29 @@ def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
     nlevel = max(nlevel, int(g.cpresimu / (NPRESIMU + 1)))
 
     # Doesn't resize like in Vanilla
-    g.presimu[:g.cpresimu].sort(kind="stable", order="depth")
+    presimus[:g.cpresimu].sort(kind="stable", order="depth")
 
     npre = 0
     while npre < g.cpresimu - int(nlevel / 2.0):
-        layer = g.presimu[npre].layer
+        layer = presimus[npre].layer
         n = 0
         sumdepth = 0.0
 
-        while n < nlevel and n + npre < g.cpresimu and g.presimu[npre + n].layer == layer:
-            sumdepth += g.presimu[npre + n].depth
+        while n < nlevel and n + npre < g.cpresimu and presimus[npre + n].layer == layer:
+            sumdepth += presimus[npre + n].depth
             n += 1
 
         if n > int(nlevel / 2):
             # TODO: Is there a more efficient way to sort by angle?
             #  Normally NumPy always uses other rows to break ties,
             #  which may be problematic if angle is zero.
-            sliced = g.presimu[npre:npre + n]
+            sliced = presimus[npre:npre + n]
             indexes = sliced["angle"].argsort(kind="stable")
             indexes = np.flip(indexes)
-            g.presimu[npre:npre + n] = g.presimu[npre + indexes]
+            presimus[npre:npre + n] = presimus[npre + indexes]
             i = int(n * c.PRESIMU_LEVEL)
             depth[layer, nlayer[layer]] = sumdepth / n
-            angle[layer, nlayer[layer]] = g.presimu[npre + i].angle
+            angle[layer, nlayer[layer]] = presimus[npre + i].angle
             nlayer[layer] += 1
 
         npre += n
@@ -144,9 +145,6 @@ def analyze_presimulation(g: oj.Global, master: oj.Master, target: oj.Target,
     _output_to_files(g, master, target, detector, depth, angle, nlayer, ab_history)
 
     print("Presimulation finished")
-    # Doesn't work with Numpy types, and would probably require another compilation round for
-    # simulation_loop:
-    # del g.presimu
     g.simstage = enums.SimStage.REAL
 
 

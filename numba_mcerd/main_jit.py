@@ -171,6 +171,7 @@ def main(args):
     del secondary_ion_o
     del previous_trackpoint_ion_o
 
+    presimus = ocd.convert_presimus(g_o)
     master = ocd.convert_master(g_o)
     g = ocd.convert_global(g_o)
     del g_o
@@ -195,18 +196,20 @@ def main(args):
 
     presimu_timer = timer.SplitTimer.init_and_start()
     trackid, ion_i, new_track = simulation_loop(
-        g, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
+        g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
     presimu_timer.stop()
     print(f"presimu_timer: {presimu_timer}")
 
     analysis_timer = timer.SplitTimer.init_and_start()
-    pre_simulation_jit.analyze_presimulation(g, master, target, detector)
+    pre_simulation_jit.analyze_presimulation(g, presimus, master, target, detector)
     init_params_jit.init_recoiling_angle(target)
     analysis_timer.stop()
     print(f"analysis_timer: {analysis_timer}")
 
     main_simu_timer = timer.SplitTimer.init_and_start()
-    simulation_loop(g, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
+    # TODO: Don't pass presimus to main simulation.
+    #       Numba doesn't like it if presimus is replaced with None.
+    simulation_loop(g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
     main_simu_timer.stop()
     print(f"main_sim_timer: {main_simu_timer}")
 
@@ -240,7 +243,7 @@ def run_simulation(g, master, ions, target, scat, snext, detector,
 
 
 @nb.njit(cache=True)
-def simulation_loop(g, master, ions, target, scat, snext, detector,
+def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
                     trackid, ion_i, new_track, erd_buf, range_buf):
     outer_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
     inner_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
@@ -285,7 +288,7 @@ def simulation_loop(g, master, ions, target, scat, snext, detector,
 
             if cur_ion.status == enums.IonStatus.FIN_RECOIL or cur_ion.status == enums.IonStatus.FIN_OUT_DET:
                 if g.simstage == enums.SimStage.PRE:
-                    pre_simulation_jit.finish_presimulation(g, detector, cur_ion)
+                    pre_simulation_jit.finish_presimulation(g, presimus, detector, cur_ion)
                     cur_ion = ions[PRIMARY]
                 else:
                     erd_detector_jit.move_to_erd_detector(g, cur_ion, target, detector)

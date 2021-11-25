@@ -88,6 +88,10 @@ def convert_presimu(presimu: o.Presimu) -> od.Presimu:
     return _base_convert(presimu, od.Presimu, convert)
 
 
+def convert_presimus(g: o.Global) -> np.ndarray:  # Array of presimus
+    return np.zeros(len(g.presimu), dtype=od.Presimu).view(np.recarray)
+
+
 def convert_master(g: o.Global) -> od.Master:
     def convert(values):
         values["args"] = None  # TODO: Implement if needed
@@ -105,20 +109,18 @@ def convert_master(g: o.Global) -> od.Master:
 
 # TODO: Return Jibal if needed
 def convert_global(g: o.Global) -> od.Global:
-    """Warning: presimu is overwritten"""
     def convert(values):
         values["simtype"] = values["simtype"].value
         values["bspot"] = convert_point2(values["bspot"])
         values["simstage"] = values["simstage"].value
-        values["presimu"] = np.zeros(len(values["presimu"]), dtype=od.Presimu)
+        values["presimu"] = None  # Implemented in a separate function
         values["master"] = None  # Implemented in a separate function
         values["recwidth"] = values["recwidth"].value
         values["finstat"] = np.array(values["finstat"], dtype=np.int64)
         values["beamprof"] = values["beamprof"].value
         values["jibal"] = None  # TODO: Implement
 
-    global_dtype = od.get_global_dtype(len(g.presimu))
-    return _base_convert(g, global_dtype, convert)
+    return _base_convert(g, od.Global, convert)
 
 
 def convert_ion_opt(ion_opt: o.Ion_opt) -> od.Ion_opt:
@@ -192,7 +194,7 @@ def convert_scattering(scat: o.Scattering) -> od.Scattering:
 
 
 # TODO: correct type hints
-def convert_scattering_nested(scat: Any) -> Any:
+def convert_scattering_nested(scat: Any) -> np.ndarray:
     # type(np.array(scat)[i][j]) == o.Scattering
     scat_new = np.array(
         [[convert_scattering(scat) for scat in inner_list]
@@ -312,7 +314,6 @@ def main():
 
     g = o.Global(simtype=enums.SimType.ERD, simstage=enums.SimStage.ANY,
                  recwidth=enums.RecWidth.WIDE, beamprof=enums.BeamProf.NONE)
-    g.presimu = [o.Presimu() for _ in range(50)]
     conv_g = convert_global(g)
     print(g)
     print(conv_g)

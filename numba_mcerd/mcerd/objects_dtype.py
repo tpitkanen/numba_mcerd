@@ -61,12 +61,7 @@ def get_master_dtype(g):
         # argc
     ])
 
-# TODO: Create a Master_data dtype for unformatted Master data (numbers and enums instead of text)
-#       - avoids I/O during simulation (unsupported by Numba & slow)
-#       - output data at the end of the simulation (or pass the dtype to a compatible program)
-#       - maybe create a separate dtype for each file type (at least .erd and .out)
 
-# Use get_global_dtype in code, this is just for use as a type annotation
 Global = np.dtype([
     ("mpi", bool),
     ("E0", np.float64),
@@ -86,9 +81,9 @@ Global = np.dtype([
     ("nscale", np.int64),
     ("nrecave", np.int64),
     ("cpresimu", np.int64),
-    ("presimu", Presimu, 10000),  # Real size is known only during runtime
+    # ("presimu", Presimu, 10000),  # Real size is known only during runtime
     ("predata", np.int64),
-    # ( "master", Master),
+    # ("master", Master),
     ("frecmin", np.float64),
     ("costhetamax", np.float64),
     ("costhetamin", np.float64),
@@ -108,51 +103,6 @@ Global = np.dtype([
     # ( "jibal", Jibal),
     ("nomc", bool)
 ])
-
-
-def get_global_dtype(presimu_size: int) -> Global:
-    """Return a Global dtype with a presimu of specific size"""
-    return np.dtype([
-        ("mpi", bool),
-        ("E0", np.float64),
-        ("nions", np.int64),
-        ("ncascades", np.int64),
-        ("nsimu", np.int64),
-        ("emin", np.float64),
-        ("ionemax", np.float64),
-        ("minangle", np.float64),
-        ("seed", np.int64),
-        ("cion", np.int64),
-        ("simtype", np.int64),  # enums.SimType
-        ("beamangle", np.float64),
-        ("bspot", Point2),
-        ("simstage", np.int64),  # enums.SimStage
-        ("npresimu", np.int64),
-        ("nscale", np.int64),
-        ("nrecave", np.int64),
-        ("cpresimu", np.int64),
-        ("presimu", Presimu, presimu_size),  # Variable size
-        ("predata", np.int64),
-        # ( "master", Master),
-        ("frecmin", np.float64),
-        ("costhetamax", np.float64),
-        ("costhetamin", np.float64),
-        ("recwidth", np.int64),  # enums.RecWidth
-        ("virtualdet", bool),
-        ("basename", str, 100),  # TODO: size?
-        ("finstat", np.int64, (enums.IonType.SECONDARY + 1, len(enums.IonStatus))),
-        ("beamdiv", np.float64),
-        ("beamprof", np.int64),  # enums.BeamProf
-        ("rough", bool),
-        ("nmclarge", np.int64),
-        ("nmc", np.int64),
-        ("output_trackpoints", bool),
-        ("output_misses", bool),
-        ("cascades", bool),
-        ("advanced_output", bool),
-        # ( "jibal", Jibal),
-        ("nomc", bool)
-    ])
 
 
 Ion_opt = np.dtype([
