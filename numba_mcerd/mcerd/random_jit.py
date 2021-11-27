@@ -23,14 +23,14 @@ class RndError(Exception):
 # TODO: Unit tests
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def seed_rnd(seed: int) -> None:
     """Seed the random number generator. This must be called once,
     before generating any numbers."""
     np.random.seed(seed)
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def rnd(low: float, high: float, period=None) -> float:
     """Generate a random number from low to high."""
     length = high - low
@@ -46,7 +46,7 @@ def rnd(low: float, high: float, period=None) -> float:
     return value
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def gaussian() -> float:
     return np.random.normal()
 

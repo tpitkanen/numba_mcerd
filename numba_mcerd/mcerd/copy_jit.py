@@ -13,7 +13,7 @@ numpy.copy() would be easier, but it doesn't work with custom dtypes in JIT.
 """
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def copy_point(point_a: oj.Point, point_b: oj.Point) -> None:
     """Copy values to point_a from point_b"""
     point_a.x = point_b.x
@@ -21,7 +21,7 @@ def copy_point(point_a: oj.Point, point_b: oj.Point) -> None:
     point_a.z = point_b.z
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def copy_vector(vector_a: oj.Vector, vector_b: oj.Vector) -> None:
     """Copy values to vector_a from vector_b"""
     copy_point(vector_a.p, vector_b.p)

@@ -49,7 +49,7 @@ def buffer_to_file(buf: od.Buffer, file) -> None:
         f.writelines(lines)
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def set_buf(buf: od.Buffer, value: float) -> None:
     """Set a value to buffer.
 

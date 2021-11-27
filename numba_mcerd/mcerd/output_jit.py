@@ -37,7 +37,7 @@ def create_erd_buffer(g: oj.Global) -> od.Buffer:
     return erd_buf
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def _output_tof(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Target,
                 detector: oj.Detector, buf: od.Buffer) -> None:
     # https://stackoverflow.com/questions/3167494/how-often-does-python-flush-to-a-file
@@ -107,13 +107,13 @@ def _output_tof(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Tar
 
 
 # TODO: I/O not supported in Numba
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def _output_gas(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Target,
                 detector: oj.Detector) -> None:
     raise NotImplementedError
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def output_erd(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Target,
                detector: oj.Detector, erd_buf: od.Buffer) -> None:
     """Output ERD information to master.fperd"""

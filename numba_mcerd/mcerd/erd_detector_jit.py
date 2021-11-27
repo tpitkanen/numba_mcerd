@@ -14,7 +14,7 @@ class ErdDetectorError(Exception):
     """Error in ERD detector"""
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def is_in_energy_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, detector: oj.Detector,
                           beyond_detector_ok: bool) -> bool:
     if detector.edet[0] <= target.ntarget:
@@ -26,7 +26,7 @@ def is_in_energy_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, detector
     return False
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def move_to_erd_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, detector: oj.Detector) -> None:
     """Recoil moves from the target to a detector foil or from one
     detector foil to the next
@@ -113,7 +113,7 @@ def move_to_erd_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, detector:
                 ion.status = enums.IonStatus.FIN_MISS_DET
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def get_line_params(d: oj.Vector, p: oj.Point) -> oj.Line:
     """Calculate line parameters for a line pointing to the direction d
     and going through point p
@@ -144,7 +144,7 @@ def get_line_params(d: oj.Vector, p: oj.Point) -> oj.Line:
     return k
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def get_line_plane_cross(line: oj.Line, plane: oj.Plane, cross: oj.Point) -> bool:
     # Cross is modified
     p = plane
@@ -198,7 +198,7 @@ def get_line_plane_cross(line: oj.Line, plane: oj.Plane, cross: oj.Point) -> boo
     return is_cross
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def get_distance(p1: oj.Point, p2: oj.Point) -> float:
     return math.sqrt(
         (p1.x - p2.x)**2
@@ -206,7 +206,7 @@ def get_distance(p1: oj.Point, p2: oj.Point) -> float:
         + (p1.z - p2.z)**2)
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def is_on_right_side(p1: oj.Point, d: oj.Vector, p2: oj.Point) -> int:
     dp = oj.Point()
 
@@ -221,7 +221,7 @@ def is_on_right_side(p1: oj.Point, d: oj.Vector, p2: oj.Point) -> int:
     return r2 < r1
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def is_in_foil(p: oj.Point, foil: oj.Det_foil) -> bool:
     """(Point p is assumed to be on the plane of circle c)"""
     if foil.type == enums.FoilType.CIRC:

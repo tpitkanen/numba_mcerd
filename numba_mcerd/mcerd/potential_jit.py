@@ -39,7 +39,7 @@ def make_screening_table() -> oj.Potential:
 
 
 # TODO: Unused -> remove
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def make_screening_table_cached() -> Tuple[int, int, np.ndarray, np.ndarray]:
     """Create and return the pieces needed for a Potential object"""
     xmax = get_max_x()
@@ -76,7 +76,7 @@ def make_screening_table_dtype() -> oj.Potential:
     return pot
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def populate_pot(pot: oj.Potential, xstep: float) -> None:
     x = 0
     for i in range(pot["n"]):
@@ -85,7 +85,7 @@ def populate_pot(pot: oj.Potential, xstep: float) -> None:
         x += xstep
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def get_max_x() -> float:
     x = 1.0
     while U(x) > POTMIN and x < XMAX:
@@ -98,7 +98,7 @@ def get_max_x() -> float:
     return x
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def get_npoints(xmax: float) -> int:
     maxdiff = 0.0
     x = 0.0
@@ -136,7 +136,7 @@ def get_npoints(xmax: float) -> int:
     return round(npoints)
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def U(x: float) -> float:
     """Universal screening potential function"""
     return (0.18175 * math.exp(-3.1998 * x)

@@ -14,7 +14,7 @@ class ErdScatteringError(Exception):
     """Error in ERD scattering"""
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def erd_scattering(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Target,
                    detector: oj.Detector) -> bool:
     # TODO: What does this function actually check?
@@ -97,7 +97,7 @@ def erd_scattering(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Target,
         raise ErdScatteringError(f"Unknown simulation type")
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def get_isotope(I: oj.Isotopes) -> float:
     assert 0.9999 < I.c_sum < 1.0001
     r = random_jit.rnd(0.0, I.c_sum, enums.RndPeriod.OPEN)
@@ -121,7 +121,7 @@ def get_isotope(I: oj.Isotopes) -> float:
 
 
 # TODO: Remove unused arguments
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def save_ion_history(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, detector: oj.Detector,
                      sc_lab: oj.Vector, sc_ion: oj.Vector, Z: float, A: float) -> None:
     copy_jit.copy_point(recoil.hist.tar_recoil.p, recoil.p)
@@ -154,7 +154,7 @@ def save_ion_history(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, detector: oj.Det
     recoil.hist.A = A  # Mass of the target particle
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def get_recoiling_dir(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Target,
                       detector: oj.Detector) -> oj.Vector:
     """Calculate recoiling angle in the laboratory coordinates or in the
@@ -202,7 +202,7 @@ def get_recoiling_dir(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Targ
 
 
 # TODO: type for cross
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def cross_section(z1: float, m1: float, z2: float, m2: float, E: float, theta: float,
                   cross, table: bool, ctype: enums.SimType) -> float:
     if ctype == enums.SimType.ERD:
@@ -219,7 +219,7 @@ def cross_section(z1: float, m1: float, z2: float, m2: float, E: float, theta: f
     return value / c.C_BARN
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def Serd(z1: float, m1: float, z2: float, m2: float, t: float, E: float) -> float:
     value = ((z1 * z2 * c.C_E**2 / (8.0 * c.C_PI * c.C_EPSILON0 * E))**2
              * (1.0 + m1 / m2)**2

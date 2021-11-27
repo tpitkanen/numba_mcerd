@@ -9,26 +9,26 @@ Doesn't support setting a minimum level (global values are problematic in Numba)
 # TODO: Can't cast float64 or int64 to str in Numba -> can't use f-strings,
 #       even if manually wrapped in float() or int().
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def critical(message: str):
     print(f"Critical: {message}")
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def error(message: str):
     print(f"Error: {message}")
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def warning(message: str):
     print(f"Warning: {message}")
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def info(message: str):
     print(f"Info: {message}")
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def debug(message: str):
     print(f"Debug: {message}")

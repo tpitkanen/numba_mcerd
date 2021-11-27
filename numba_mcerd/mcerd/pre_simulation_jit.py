@@ -15,7 +15,7 @@ class FitError(Exception):
     """Error while fitting to a curve"""
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def finish_presimulation(g: oj.Global, presimus: np.ndarray, detector: oj.Detector, recoil: oj.Ion) -> None:
     """In the presimulation stage we save the recoil angle relative to the
     detector when the recoil comes out of the target. Also the recoil
@@ -148,7 +148,7 @@ def analyze_presimulation(g: oj.Global, presimus: np.ndarray, master: oj.Master,
     g.simstage = enums.SimStage.REAL
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def fit_linear(x: List[float], y: List[float], n: int) -> Tuple[float, float]:
     """This is a weighted least-squares fit of a straight line according
     to P.R. Bevington's Data Reduction and Error Analysis for the

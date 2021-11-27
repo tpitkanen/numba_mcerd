@@ -242,7 +242,7 @@ def run_simulation(g, master, ions, target, scat, snext, detector,
     raise NotImplementedError
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
                     trackid, ion_i, new_track, erd_buf, range_buf):
     outer_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)

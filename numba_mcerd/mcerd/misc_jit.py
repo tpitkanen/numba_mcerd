@@ -11,7 +11,7 @@ import numba_mcerd.mcerd.symbols as s
 from numba_mcerd.mcerd import rotate_jit, enums, copy_jit
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def coord_transform(porig: oj.Point, theta: float, fii: float, pin: oj.Point,
                     flag: enums.CoordTransformDirection) -> oj.Point:
     # TODO: Replace copy-paste description with own words

@@ -89,7 +89,7 @@ def calc_cross(angle: float, e: float, scat: o.Scattering, pot: oj.Potential) ->
     return ynew
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def get_cross(ion: oj.Ion, scat: oj.Scattering) -> float:
     """Interpolate the cross section (maximum impact parameter for current ion energy)"""
     e = math.log(ion.E * scat.E2eps)

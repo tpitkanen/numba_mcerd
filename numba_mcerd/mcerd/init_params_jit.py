@@ -14,7 +14,7 @@ def init_params(g: oj.Global, target: oj.Target, argv: List[str]) -> None:
 
 
 # Called once in preprocessing and once for last pre-simulation ion
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def init_recoiling_angle(target: oj.Target) -> None:
     """Calculate target.angave (average recoiling half-angle)"""
     angle = np.zeros(shape=(50, 2), dtype=np.float64)

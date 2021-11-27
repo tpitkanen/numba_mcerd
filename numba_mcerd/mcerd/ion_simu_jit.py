@@ -15,7 +15,7 @@ class IonSimulationError(Exception):
     """Error in ion simulation"""
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def create_ion(g: oj.Global, ion: oj.Ion, target: oj.Target) -> None:
     """Calculate parameters for ion (primary or secondary)
 
@@ -78,7 +78,7 @@ def create_ion(g: oj.Global, ion: oj.Ion, target: oj.Target) -> None:
     #     debug.print_ion_position(g, ion, "L", enums.SimStage.ANY)
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def move_target(target: oj.Target) -> None:
     raise NotImplementedError
 
@@ -86,7 +86,7 @@ def move_target(target: oj.Target) -> None:
 # TODO: scat: List[List[oj.Scattering]] causes an error:
 # TypeError: Parameters to generic types must be types. Got dtype(...)
 # TODO: Use numpy.typing for scat array
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def next_scattering(g: oj.Global, ion: oj.Ion, target: oj.Target,
                     scat: np.ndarray, snext: oj.SNext) -> None:
     """Calculate impact parameter (ion.opt.y) and distance to the next
@@ -119,7 +119,7 @@ def next_scattering(g: oj.Global, ion: oj.Ion, target: oj.Target,
     snext.d = -math.log(random_jit.rnd(0.0, 1.0, enums.RndPeriod.RIGHT)) / cross
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def move_ion(g: oj.Global, ion: oj.Ion, target: oj.Target, snext: oj.SNext) -> int:  # enums.ScatteringType
     # TODO: Replace copy-paste documentation
     """Move ion to the next point, which is the closest of following
@@ -247,7 +247,7 @@ def move_ion(g: oj.Global, ion: oj.Ion, target: oj.Target, snext: oj.SNext) -> i
 
 
 # TODO: int instead of enum?
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def inter_sto(stop: oj.Target_sto, vel: float, mode: enums.IonMode) -> float:
     """Interpolate the electronic stopping power or straggling value.
 
@@ -290,7 +290,7 @@ def inter_sto(stop: oj.Target_sto, vel: float, mode: enums.IonMode) -> float:
     return sto
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def ion_finished(g: oj.Global, ion: oj.Ion, target: oj.Target) -> int:  # enums.IonStatus:
     """Check finish conditions for ion and decide whether to finish it"""
     if ion.E < g.emin:
@@ -327,7 +327,7 @@ def ion_finished(g: oj.Global, ion: oj.Ion, target: oj.Target) -> int:  # enums.
 
 # detector would be used in:
 # if g.cascades and E_recoil > 2.0 * g.emin
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def mc_scattering(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Target,
                   detector: oj.Detector, scat: np.ndarray, snext: oj.SNext) -> bool:
     """Normal elastic scattering from a potential during the slowing down process"""
@@ -401,7 +401,7 @@ def mc_scattering(g: oj.Global, ion: oj.Ion, recoil: oj.Ion, target: oj.Target,
     return recoils
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def get_angle(scat: oj.Scattering, ion: oj.Ion) -> float:
     """Interpolate the cosine of the scattering angle according to the
      ion energy and impact parameter."""
@@ -446,7 +446,7 @@ def get_angle(scat: oj.Scattering, ion: oj.Ion) -> float:
     return angle
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def ion_rotate(p: oj.Ion, cos_theta: float, fii: float) -> None:
     # TODO: Change this to use the general rotate function. Differences:
     #       - cos_theta is an argument instead of cos, angles are in p
@@ -492,7 +492,7 @@ def ion_rotate(p: oj.Ion, cos_theta: float, fii: float) -> None:
         p.fii += 2.0 * c.C_PI
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def recdist_crossing(g: oj.Global, ion: oj.Ion, target: oj.Target, dist: float) -> Tuple[bool, float]:
     # TODO: Document what dreclayer is. Probably distance to next recoil layer
     """Check if ion is about to cross a layer in the recoil material distribution.
@@ -526,7 +526,7 @@ def recdist_crossing(g: oj.Global, ion: oj.Ion, target: oj.Target, dist: float) 
     return scross, d
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def recdist_nonzero(g: oj.Global, ion: oj.Ion, target: oj.Target, drec: float) -> bool:
     """Check if the recoil material distribution is nonzero at the point
     of the next recoil event.
@@ -549,7 +549,7 @@ def recdist_nonzero(g: oj.Global, ion: oj.Ion, target: oj.Target, drec: float) -
     return False
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def get_reclayer(g: oj.Global, target: oj.Target, z: float) -> int:
     n = target.nrecdist
 

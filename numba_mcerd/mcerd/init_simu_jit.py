@@ -53,7 +53,7 @@ def scattering_table(g: o.Global, ion: o.Ion, target: o.Target, scat: o.Scatteri
 #   exp_e = math.exp(emin + (i-1) * estep)
 #   exp_y = math.exp(ymin + (j-1) * ystep)
 # scat_matrix[i][0] and scat_matrix[0][j] need to be done separately
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def main_math(scat_matrix, pot, emin, estep, ymin, ystep):
     exp_e = exp_y = 0.0
 

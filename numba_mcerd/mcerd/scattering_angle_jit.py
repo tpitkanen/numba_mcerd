@@ -25,7 +25,7 @@ Opt = np.dtype([
 ])
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def scattering_angle(pot: oj.Potential, ion_opt_e, ion_opt_y) -> float:
     """Get scattering angle for ion's specific optimization state (ion.opt)"""
     opt = np.zeros(1, dtype=Opt)[0]
@@ -48,7 +48,7 @@ def scattering_angle(pot: oj.Potential, ion_opt_e, ion_opt_y) -> float:
     return theta
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def Ut(pot: oj.Potential, x: float) -> float:
     if x < 0:
         return pot.u[0].y
@@ -69,7 +69,7 @@ def Ut(pot: oj.Potential, x: float) -> float:
 
 
 # TODO: Check that this still produces the same results as before
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def Angint(u: float, pot: oj.Potential, opt: Opt) -> float:
     u2 = u**2
 
@@ -95,7 +95,7 @@ def Angint(u: float, pot: oj.Potential, opt: Opt) -> float:
     return value
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def trapezoid(a: float, b: float, value: float, nextn: int, pot: oj.Potential,
               n: int, opt: Opt) -> Tuple[float, int]:
     if n == 1:
@@ -114,7 +114,7 @@ def trapezoid(a: float, b: float, value: float, nextn: int, pot: oj.Potential,
     return value, nextn
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def simpson(a: float, b: float, pot: oj.Potential, stmp: Opt) -> float:
     old_s = old_st = -1e30
     st = 0.0  # Also value in trapezoid
@@ -136,7 +136,7 @@ def simpson(a: float, b: float, pot: oj.Potential, stmp: Opt) -> float:
     return s
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def mindist(pot: oj.Potential, opt: Opt) -> float:
     x1 = (1 + math.sqrt(1 + 4 * opt["y"]**2 * opt["e"]**2)) / (2 * opt["e"])
 
@@ -164,7 +164,7 @@ def mindist(pot: oj.Potential, opt: Opt) -> float:
     return x2
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def Psi(x: float, pot: oj.Potential, opt: Opt) -> float:
     value = x**2 * opt["i_y2"] - x * Ut(pot, x) * opt["i_ey2"] - 1.0
     return value

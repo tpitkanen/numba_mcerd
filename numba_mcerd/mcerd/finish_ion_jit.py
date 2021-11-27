@@ -27,7 +27,7 @@ def create_range_buffer(g: oj.Global) -> od.Buffer:
     return range_buf
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def finish_ion(g: oj.Global, ion: oj.Ion, range_buf: od.Buffer) -> None:
     """Output information about stopped or transmitted ions to g.master.fprange"""
     if ion.status == enums.IonStatus.FIN_STOP:

@@ -8,7 +8,7 @@ import numpy as np
 PI = 3.14159265358979323846
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def rotate(theta2, fii2, theta1, fii1) -> Tuple[float, float]:
     # From original:
     """Definition of the angles: theta2,fii2 is the angle of the

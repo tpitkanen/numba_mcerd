@@ -9,7 +9,7 @@ import numba_mcerd.mcerd.objects_jit as oj
 from numba_mcerd.mcerd import ion_simu_jit, enums, misc_jit, rotate_jit, erd_detector_jit, random_jit
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def hit_virtual_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, det: oj.Detector,
                          p_virt_lab: oj.Point, p_out_tar: oj.Point) -> None:
     """Calculate a random projection point from virtual detector to
@@ -221,7 +221,7 @@ def hit_virtual_detector(g: oj.Global, ion: oj.Ion, target: oj.Target, det: oj.D
         ion.opt.sin_theta = math.sin(ion.theta)
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def get_eloss_corr(ion: oj.Ion, target: oj.Target, dE1: float, theta1: float, theta2: float) -> float:
     """Calculate the effective (according to the direct trajectory) energy loss
     Ed1 to the virtual detector point using initial recoil energy E, and the
@@ -246,7 +246,7 @@ def get_eloss_corr(ion: oj.Ion, target: oj.Target, dE1: float, theta1: float, th
     return Ed2
 
 
-@nb.njit(cache=True)
+@nb.njit(cache=True, nogil=True)
 def get_eloss(E: float, ion: oj.Ion, target: oj.Target, cos_theta: float) -> float:
     """Calculate uncorrected energy loss"""
     cont = True
