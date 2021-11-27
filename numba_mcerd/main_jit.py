@@ -335,7 +335,6 @@ def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
 
                 if cur_ion.type <= SECONDARY:
                     output_jit.output_erd(g, master, cur_ion, target, detector, erd_buf)
-                    pass
                 if cur_ion.type == PRIMARY:
                     primary_finished = True
                     break
