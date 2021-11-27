@@ -245,9 +245,6 @@ def run_simulation(g, master, ions, target, scat, snext, detector,
 @nb.njit(cache=True, nogil=True)
 def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
                     trackid, ion_i, new_track, erd_buf, range_buf):
-    outer_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
-    inner_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
-
     # logging_jit.info("Starting simulation")
 
     if g.simstage == enums.SimStage.PRE:
@@ -263,9 +260,6 @@ def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
 
         g.cion = i  # TODO: Replace/remove for MT
 
-        outer_loop_count = 0
-        inner_loop_count = 0
-
         # output.output_data(g)  # Only prints status info
 
         cur_ion = ions[PRIMARY]
@@ -276,8 +270,6 @@ def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
 
         primary_finished = False
         while not primary_finished:
-            outer_loop_count += 1
-
             ion_simu_jit.next_scattering(g, cur_ion, target, scat, snext)
             nscat = ion_simu_jit.move_ion(g, cur_ion, target, snext)
 
@@ -332,8 +324,6 @@ def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
                 g.finstat[SECONDARY, cur_ion.status] += 1
 
             while ion_simu_jit.ion_finished(g, cur_ion, target):
-                inner_loop_count += 1
-
                 # logging_jit.debug(...)
 
                 if g.output_trackpoints:
@@ -352,9 +342,6 @@ def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
                 cur_ion = ions[PRIMARY]  # ion_stack.prev_ion()
                 if cur_ion.type != PRIMARY and g.output_trackpoints:
                     raise NotImplementedError
-
-        outer_loop_counts[g.cion] = outer_loop_count
-        inner_loop_counts[g.cion] = inner_loop_count
 
         # logging_jit.debug(...)
 
