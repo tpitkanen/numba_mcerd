@@ -27,7 +27,7 @@ def create_erd_buffer(g: oj.Global) -> od.Buffer:
         formats = np.array(["", "", "", "8.4f", "3d", "6.2f", "10.4f", "14.7e", "10.3f", "7.2f", "7.2f"], dtype="U5")
 
     # TODO: Figure out a good way to determine length
-    length = int((g.npresimu + g.nsimu) * 0.2)
+    length = int(g.nsimu * 0.2)
 
     dt = od.get_buffer_dtype(length, width)
     erd_buf = np.zeros(1, dtype=dt)[0]
