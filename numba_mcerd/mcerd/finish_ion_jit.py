@@ -16,8 +16,8 @@ def create_range_buffer(g: oj.Global) -> od.Buffer:
     t = lc.TypeInt
     width = 2
 
-    # TODO: Figure out a good way to determine length
-    length = int((g.npresimu + g.nsimu) * 1.1)
+    # Output occurs at most once per simulated ion
+    length = g.nsimu
 
     dt = od.get_buffer_dtype(length, width)
     range_buf = np.zeros(1, dtype=dt)[0]
@@ -37,7 +37,7 @@ def finish_ion(g: oj.Global, ion: oj.Ion, range_buf: od.Buffer) -> None:
         lc.set_buf(range_buf, ion.p.z / c.C_NM)  # 10.3f
 
         range_buf["row_i"] += 1
-    if ion.status == enums.IonStatus.FIN_TRANS:
+    elif ion.status == enums.IonStatus.FIN_TRANS:
         range_buf["col_i"] = 0
 
         lc.set_buf(range_buf, ord("T"))
