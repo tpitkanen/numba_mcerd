@@ -220,7 +220,7 @@ def main(args):
     print(f"print_timer: {print_timer}")
 
     finalize_jit.finalize(g, master)
-    print(g.finstat)  # TODO: Remove later
+    print(g.finstat)
 
 
 # TODO: (not njit)
@@ -362,8 +362,6 @@ def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
         finish_ion_jit.finish_ion(g, cur_ion, range_buf)  # Output info if FIN_STOP or FIN_TRANS
 
     return trackid, ion_i, new_track
-
-    # finalize_jit.finalize(g, master)  # Output statistics
 
 
 if __name__ == '__main__':

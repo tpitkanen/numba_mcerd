@@ -1,15 +1,14 @@
 from pathlib import Path
 
-import numba as nb
-
 import numba_mcerd.mcerd.objects_jit as oj
 from numba_mcerd.mcerd import enums
 
 
-# TODO: I/O not supported in Numba
-# @nb.njit(cache=True)
 def finalize(g: oj.Global, master: oj.Master) -> None:
-    """Output statistics of ion finishes to g.master.fpout"""
+    """Output statistics of ion finishes to g.master.fpout.
+
+    Not njit-decorated.
+    """
     dat_lines = ["Statistics of ion finishes: \n"]
 
     for i in range(enums.IonType.SECONDARY.value + 1):
