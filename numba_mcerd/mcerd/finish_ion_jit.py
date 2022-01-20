@@ -12,12 +12,22 @@ from numba_mcerd.mcerd import enums
 #  FIN_STOP is 10.3f, FIN_TRANS is 12.6f
 
 
-def create_range_buffer(g: oj.Global) -> od.Buffer:
+def create_range_buffer(g: oj.Global, additional_multiplier: float = 1.0) -> od.Buffer:
+    """Create a buffer for range output
+
+    Args:
+        g: global settings. `nsimu` affects the buffer size
+        additional_multiplier: additional multiplier for buffer size (for
+            use with multithreading).
+
+    Returns:
+        A buffer object
+    """
     t = lc.TypeInt
     width = 2
 
     # Output occurs at most once per simulated ion
-    length = g.nsimu
+    length = int(g.nsimu * additional_multiplier)
 
     dt = od.get_buffer_dtype(length, width)
     range_buf = np.zeros(1, dtype=dt)[0]

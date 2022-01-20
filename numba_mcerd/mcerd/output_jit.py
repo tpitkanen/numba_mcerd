@@ -11,8 +11,17 @@ from numba_mcerd import logging_jit
 from numba_mcerd.mcerd import erd_detector_jit, enums
 
 
-def create_erd_buffer(g: oj.Global) -> od.Buffer:
-    """Create a buffer for ERD output based on `g` settings"""
+def create_erd_buffer(g: oj.Global, additional_multiplier: float = 1.0) -> od.Buffer:
+    """Create a buffer for ERD output
+
+    Args:
+        g: global settings. `nsimu` affects the buffer size
+        additional_multiplier: additional multiplier for buffer size (for use
+            with multithreading).
+
+    Returns:
+        A buffer object
+    """
     t = lc.TypeInt
     if g.advanced_output and g.output_trackpoints:
         raise NotImplementedError
@@ -27,7 +36,7 @@ def create_erd_buffer(g: oj.Global) -> od.Buffer:
         formats = np.array(["", "", "", "8.4f", "3d", "6.2f", "10.4f", "14.7e", "10.3f", "7.2f", "7.2f"], dtype="U5")
 
     # TODO: Figure out a good way to determine length
-    length = int(g.nsimu * 0.2)
+    length = int(g.nsimu * 0.2 * additional_multiplier)
 
     dt = od.get_buffer_dtype(length, width)
     erd_buf = np.zeros(1, dtype=dt)[0]
