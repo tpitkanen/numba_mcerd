@@ -207,6 +207,9 @@ def main(args):
     erd_buf_arr = np.array([copy.deepcopy(erd_buf) for _ in range(thread_count)])
     range_buf_arr = np.array([copy.deepcopy(range_buf) for _ in range(thread_count)])
 
+    split_presimus = presimus[:int(presimus.shape[0] / thread_count)]  # round down
+    presimus_arr = np.array([copy.deepcopy(split_presimus) for _ in range(thread_count)])
+
     # Read-only objects wrapped in an array
     target_wrap = np.array([target])
     scat_wrap = np.array([scat])
@@ -217,16 +220,22 @@ def main(args):
 
     presimu_timer = timer.SplitTimer.init_and_start()
     trackid, ion_i, new_track = simulation_loop(
-        g, thread_offset, g_arr, presimus, master, ions_arr, target_wrap, scat_wrap, snext_arr, detector_wrap, trackid, ion_i, new_track, erd_buf_arr, range_buf_arr)
+        g, thread_offset, g_arr, presimus_arr, master, ions_arr, target_wrap, scat_wrap, snext_arr,
+        detector_wrap, trackid, ion_i, new_track, erd_buf_arr, range_buf_arr)
     presimu_timer.stop()
     print(f"presimu_timer: {presimu_timer}")
 
-    # analysis_timer = timer.SplitTimer.init_and_start()
-    # pre_simulation_jit.analyze_presimulation(g, presimus, master, target, detector)
-    # init_params_jit.init_recoiling_angle(target)
-    # analysis_timer.stop()
-    # print(f"analysis_timer: {analysis_timer}")
-    #
+    combine_presimus(g, g_arr, presimus, presimus_arr)
+    combine_g(g, g_arr)
+
+    analysis_timer = timer.SplitTimer.init_and_start()
+    pre_simulation_jit.analyze_presimulation(g, presimus, master, target, detector)
+    init_params_jit.init_recoiling_angle(target)
+    analysis_timer.stop()
+    print(f"analysis_timer: {analysis_timer}")
+
+    g_arr["simstage"] = enums.SimStage.REAL
+
     # main_simu_timer = timer.SplitTimer.init_and_start()
     # # TODO: Don't pass presimus to main simulation.
     # #       Numba doesn't like it if presimus is replaced with None.
@@ -263,19 +272,44 @@ def run_simulation(g, master, ions, target, scat, snext, detector,
     raise NotImplementedError
 
 
+def combine_presimus(g_main, g_arr, presimus, presimus_arr):
+    threads = g_arr.shape[0]
+
+    i = 0
+    for thread_index in range(threads):
+        g = g_arr[thread_index]
+        presimu = presimus_arr[thread_index]
+
+        presimus[i:i + g.cpresimu] = presimu[:g.cpresimu]
+        i += g.cpresimu
+
+
+def combine_g(g_main, g_arr):
+    g_main.cion = max(g_arr["cion"])
+
+    g_main.finstat[:] = 0
+    g_main.nmc = 0
+    g_main.cpresimu = 0
+
+    for g in g_arr:
+        g_main.finstat += g.finstat
+        g_main.nmc += g.nmc
+        g_main.cpresimu += g.cpresimu
+
+
 # TODO: presimus is probably not thread-safe
 # TODO: Replace g_full with g_arr?
 @nb.njit(cache=True, parallel=True, nogil=True)
-def simulation_loop(g_full, thread_offset, g_arr, presimus, master, ions_arr, target_wrap, scat_wrap, snext_arr, detector_wrap,
-                    trackid, ion_i, new_track, erd_buf_arr, range_buf_arr):
+def simulation_loop(g_main, thread_offset, g_arr, presimus_arr, master, ions_arr, target_wrap, scat_wrap, snext_arr,
+                    detector_wrap, trackid, ion_i, new_track, erd_buf_arr, range_buf_arr):
     # logging_jit.info("Starting simulation")
 
-    if g_full.simstage == enums.SimStage.PRE:
+    if g_main.simstage == enums.SimStage.PRE:
         start = 0
-        stop = g_full.npresimu
+        stop = g_main.npresimu
     else:
-        start = g_full.npresimu
-        stop = g_full.nsimu
+        start = g_main.npresimu
+        stop = g_main.nsimu
 
     for i in nb.prange(start, stop):
         # TODO: Only track one thread or figure out per-thread progress.
@@ -289,6 +323,7 @@ def simulation_loop(g_full, thread_offset, g_arr, presimus, master, ions_arr, ta
         snext = snext_arr[thread_index]
         erd_buf = erd_buf_arr[thread_index]
         range_buf = range_buf_arr[thread_index]
+        presimus = presimus_arr[thread_index]
 
         target = target_wrap[0]
         scat = scat_wrap[0]
