@@ -383,13 +383,10 @@ def simulation_loop(g_full, thread_offset, g_arr, presimus, master, ions_arr, ta
                 # if cur_ion.type != PRIMARY and g.output_trackpoints:
                 #     raise NotImplementedError
 
-        # Workaround for https://github.com/numba/numba/issues/5156
-        g.cion += 0
+        # logging_jit.debug(...)
 
-        # # logging_jit.debug(...)
-        #
-        # g.finstat[PRIMARY, cur_ion.status] += 1
-        # finish_ion_jit.finish_ion(g, cur_ion, range_buf)  # Output info if FIN_STOP or FIN_TRANS
+        g.finstat[PRIMARY, cur_ion.status] += 1
+        finish_ion_jit.finish_ion(g, cur_ion, range_buf)  # Output info if FIN_STOP or FIN_TRANS
 
     return trackid, ion_i, new_track
 
