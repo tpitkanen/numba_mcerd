@@ -362,27 +362,26 @@ def simulation_loop(g_full, thread_offset, g_arr, presimus, master, ions_arr, ta
             if cur_ion.type == SECONDARY and cur_ion.status != enums.IonStatus.NOT_FINISHED:
                 g.finstat[SECONDARY, cur_ion.status] += 1
 
-        #     while ion_simu_jit.ion_finished(g, cur_ion, target):
-        #         # logging_jit.debug(...)
-        #
-        #         if g.output_trackpoints:
-        #             raise NotImplementedError
-        #
-        #         cur_ion.trackid = trackid if not new_track else 0
-        #         # No new track is made if ion doesn't make it to the
-        #         # energy detector or if it's a scaling ion
-        #
-        #         if cur_ion.type <= SECONDARY:
-        #             output_jit.output_erd(g, master, cur_ion, target, detector, erd_buf)
-        #         if cur_ion.type == PRIMARY:
-        #             primary_finished = True
-        #             break
-        #         cur_ion = ions[PRIMARY]  # ion_stack.prev_ion()
-        #         if cur_ion.type != PRIMARY and g.output_trackpoints:
-        #             raise NotImplementedError
+            while ion_simu_jit.ion_finished(g, cur_ion, target):
+                # logging_jit.debug(...)
 
-            # TODO: Remove this once the loop can end on its own
-            primary_finished = True
+                # if g.output_trackpoints:
+                #     raise NotImplementedError
+
+                # cur_ion.trackid = trackid if not new_track else 0
+                # # No new track is made if ion doesn't make it to the
+                # # energy detector or if it's a scaling ion
+
+                if cur_ion.type <= SECONDARY:
+                    pass
+                    # FIXME: doesn't work in MT
+                    # output_jit.output_erd(g, master, cur_ion, target, detector, erd_buf)
+                if cur_ion.type == PRIMARY:
+                    primary_finished = True
+                    break
+                cur_ion = ions[PRIMARY]  # ion_stack.prev_ion()
+                # if cur_ion.type != PRIMARY and g.output_trackpoints:
+                #     raise NotImplementedError
 
         # Workaround for https://github.com/numba/numba/issues/5156
         g.cion += 0
