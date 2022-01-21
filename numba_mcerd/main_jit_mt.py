@@ -207,12 +207,17 @@ def main(args):
     erd_buf_arr = np.array([copy.deepcopy(erd_buf) for _ in range(thread_count)])
     range_buf_arr = np.array([copy.deepcopy(range_buf) for _ in range(thread_count)])
 
+    # Read-only objects wrapped in an array
+    target_wrap = np.array([target])
+    scat_wrap = np.array([scat])
+    detector_wrap = np.array([detector])
+
     dtype_conversion_timer.stop()
     print(f"dtype_conversion_timer: {dtype_conversion_timer}")
 
     presimu_timer = timer.SplitTimer.init_and_start()
     trackid, ion_i, new_track = simulation_loop(
-        g, thread_offset, g_arr, presimus, master, ions_arr, target, scat, snext_arr, detector, trackid, ion_i, new_track, erd_buf_arr, range_buf_arr)
+        g, thread_offset, g_arr, presimus, master, ions_arr, target_wrap, scat_wrap, snext_arr, detector_wrap, trackid, ion_i, new_track, erd_buf_arr, range_buf_arr)
     presimu_timer.stop()
     print(f"presimu_timer: {presimu_timer}")
 
@@ -260,7 +265,7 @@ def run_simulation(g, master, ions, target, scat, snext, detector,
 
 # TODO: Replace g_full with g_arr?
 @nb.njit(cache=True, parallel=True, nogil=True)
-def simulation_loop(g_full, thread_offset, g_arr, presimus, master, ions_arr, target, scat, snext_arr, detector,
+def simulation_loop(g_full, thread_offset, g_arr, presimus, master, ions_arr, target_wrap, scat_wrap, snext_arr, detector_wrap,
                     trackid, ion_i, new_track, erd_buf_arr, range_buf_arr):
     # logging_jit.info("Starting simulation")
 
@@ -272,6 +277,8 @@ def simulation_loop(g_full, thread_offset, g_arr, presimus, master, ions_arr, ta
         stop = g_full.nsimu
 
     for i in nb.prange(start, stop):
+        # TODO: Only track one thread or figure out per-thread progress.
+        #   The current prints are out of order
         if i % 10000 == 0:
             print(i)
 
@@ -282,33 +289,37 @@ def simulation_loop(g_full, thread_offset, g_arr, presimus, master, ions_arr, ta
         erd_buf = erd_buf_arr[thread_index]
         range_buf = range_buf_arr[thread_index]
 
+        target = target_wrap[0]
+        scat = scat_wrap[0]
+        detector = detector_wrap[0]
+
         g.cion = i
 
         # output.output_data(g)  # Only prints status info
 
         cur_ion = ions[PRIMARY]
 
-        # ion_simu_jit.create_ion(g, cur_ion, target)
-        # if g.rough:
-        #     ion_simu_jit.move_target(target)
-        #
-        # primary_finished = False
-        # while not primary_finished:
-        #     ion_simu_jit.next_scattering(g, cur_ion, target, scat, snext)
-        #     nscat = ion_simu_jit.move_ion(g, cur_ion, target, snext)
-        #
-        #     if nscat == enums.ScatteringType.ERD_SCATTERING:
-        #         if erd_scattering_jit.erd_scattering(
-        #                 g, ions[PRIMARY], ions[SECONDARY], target, detector):
-        #             cur_ion = ions[SECONDARY]
-        #
-        #     if cur_ion.status == enums.IonStatus.FIN_RECOIL or cur_ion.status == enums.IonStatus.FIN_OUT_DET:
-        #         if g.simstage == enums.SimStage.PRE:
-        #             pre_simulation_jit.finish_presimulation(g, presimus, detector, cur_ion)
-        #             cur_ion = ions[PRIMARY]
-        #         else:
-        #             erd_detector_jit.move_to_erd_detector(g, cur_ion, target, detector)
-        #
+        ion_simu_jit.create_ion(g, cur_ion, target)
+        if g.rough:
+            ion_simu_jit.move_target(target)
+
+        primary_finished = False
+        while not primary_finished:
+            ion_simu_jit.next_scattering(g, cur_ion, target, scat, snext)
+            nscat = ion_simu_jit.move_ion(g, cur_ion, target, snext)
+
+            if nscat == enums.ScatteringType.ERD_SCATTERING:
+                if erd_scattering_jit.erd_scattering(
+                        g, ions[PRIMARY], ions[SECONDARY], target, detector):
+                    cur_ion = ions[SECONDARY]
+
+            if cur_ion.status == enums.IonStatus.FIN_RECOIL or cur_ion.status == enums.IonStatus.FIN_OUT_DET:
+                if g.simstage == enums.SimStage.PRE:
+                    pre_simulation_jit.finish_presimulation(g, presimus, detector, cur_ion)
+                    cur_ion = ions[PRIMARY]
+                else:
+                    erd_detector_jit.move_to_erd_detector(g, cur_ion, target, detector)
+
         #     if (nscat == enums.ScatteringType.MC_SCATTERING
         #             and cur_ion.status == enums.IonStatus.NOT_FINISHED
         #             and not g.nomc):
@@ -365,7 +376,13 @@ def simulation_loop(g_full, thread_offset, g_arr, presimus, master, ions_arr, ta
         #         cur_ion = ions[PRIMARY]  # ion_stack.prev_ion()
         #         if cur_ion.type != PRIMARY and g.output_trackpoints:
         #             raise NotImplementedError
-        #
+
+            # TODO: Remove this once the loop can end on its own
+            primary_finished = True
+
+        # Workaround for https://github.com/numba/numba/issues/5156
+        g.cion += 0
+
         # # logging_jit.debug(...)
         #
         # g.finstat[PRIMARY, cur_ion.status] += 1
