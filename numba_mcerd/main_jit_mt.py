@@ -320,44 +320,48 @@ def simulation_loop(g_full, thread_offset, g_arr, presimus, master, ions_arr, ta
                 else:
                     erd_detector_jit.move_to_erd_detector(g, cur_ion, target, detector)
 
-        #     if (nscat == enums.ScatteringType.MC_SCATTERING
-        #             and cur_ion.status == enums.IonStatus.NOT_FINISHED
-        #             and not g.nomc):
-        #         if ion_simu_jit.mc_scattering(
-        #                 g, cur_ion, ions[SECONDARY], target, detector, scat, snext):  # ion_stack.next_ion()
-        #             # This block is never reached in ERD mode
-        #             cur_ion = ions[SECONDARY]  # ion_stack.next_ion()
-        #             found = False
-        #             for j in range(g.nions):
-        #                 if j == TARGET_ATOM and g.simtype == enums.SimType.RBS:
-        #                     continue
-        #                 if (round(ions[j].Z) == round(cur_ion.Z)
-        #                         and round(ions[j].A / c.C_U) == round(ions[j].A / c.C_U)):
-        #                     # FIXME: Comparing average mass by rounding is a bad idea.
-        #                     #        See the original code for more information.
-        #                     found = True
-        #                     cur_ion.scatindex = j
-        #             if not found:
-        #                 # logging_jit.warning(
-        #                 #     f"Recoil cascade not possible, since recoiling ion Z={float(cur_ion.Z)} and A={float(cur_ion.A / c.C_U)} u are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
-        #                 logging_jit.warning(f"Recoil cascade not possible, since recoiling ion Z and A are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
-        #                 raise NotImplementedError
-        #                 # cur_ion = ion_stack.prev_ion()
-        #             else:
-        #                 ion_i += 1
-        #                 cur_ion.ion_i = ion_i
-        #                 cur_ion.trackid = trackid
-        #
-        #             # logging_jit.debug(...)
-        #
-        #     # debug: loop over layers, print cur_ion.tlayer and set prev_layer_debug
-        #
+            if (nscat == enums.ScatteringType.MC_SCATTERING
+                    and cur_ion.status == enums.IonStatus.NOT_FINISHED
+                    and not g.nomc):
+                if ion_simu_jit.mc_scattering(
+                        g, cur_ion, ions[SECONDARY], target, detector, scat, snext):  # ion_stack.next_ion()
+                    # This block is never reached in ERD mode
+                    cur_ion = ions[SECONDARY]  # ion_stack.next_ion()
+                    found = False
+                    for j in range(g.nions):
+                        if j == TARGET_ATOM and g.simtype == enums.SimType.RBS:
+                            continue
+                        if (round(ions[j].Z) == round(cur_ion.Z)
+                                and round(ions[j].A / c.C_U) == round(ions[j].A / c.C_U)):
+                            # FIXME: Comparing average mass by rounding is a bad idea.
+                            #        See the original code for more information.
+                            found = True
+                            cur_ion.scatindex = j
+                    if not found:
+                        # logging_jit.warning(
+                        #     f"Recoil cascade not possible, since recoiling ion Z={float(cur_ion.Z)} and A={float(cur_ion.A / c.C_U)} u are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
+                        logging_jit.warning(f"Recoil cascade not possible, since recoiling ion Z and A are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
+                        # FIXME: parallel=True prevents raising exceptions. Break doesn't work either
+                        # raise NotImplementedError
+                        # cur_ion = ion_stack.prev_ion()
+                    # TODO: Maybe multi-thread ion_i and trackid. They aren't particularly useful
+                    #   because they are only used in formatted debug messages, which aren't
+                    #   currently (Numba 0.55.0) possible.
+                    # else:
+                    #     ion_i += 1
+                    #     cur_ion.ion_i = ion_i
+                    #     cur_ion.trackid = trackid
+
+                    # logging_jit.debug(...)
+
+            # debug: loop over layers, print cur_ion.tlayer and set prev_layer_debug
+
         #     if g.output_trackpoints:
         #         raise NotImplementedError
-        #
-        #     if cur_ion.type == SECONDARY and cur_ion.status != enums.IonStatus.NOT_FINISHED:
-        #         g.finstat[SECONDARY, cur_ion.status] += 1
-        #
+
+            if cur_ion.type == SECONDARY and cur_ion.status != enums.IonStatus.NOT_FINISHED:
+                g.finstat[SECONDARY, cur_ion.status] += 1
+
         #     while ion_simu_jit.ion_finished(g, cur_ion, target):
         #         # logging_jit.debug(...)
         #
