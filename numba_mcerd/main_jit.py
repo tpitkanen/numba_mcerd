@@ -334,7 +334,7 @@ def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
                 # energy detector or if it's a scaling ion
 
                 if cur_ion.type <= SECONDARY:
-                    output_jit.output_erd(g, master, cur_ion, target, detector, erd_buf)
+                    output_jit.output_erd(g, cur_ion, target, detector, erd_buf)
                 if cur_ion.type == PRIMARY:
                     primary_finished = True
                     break

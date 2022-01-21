@@ -47,7 +47,7 @@ def create_erd_buffer(g: oj.Global, additional_multiplier: float = 1.0) -> od.Bu
 
 
 @nb.njit(cache=True, nogil=True)
-def _output_tof(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Target,
+def _output_tof(g: oj.Global, cur_ion: oj.Ion, target: oj.Target,
                 detector: oj.Detector, buf: od.Buffer) -> None:
     buf["col_i"] = 0
     n = cur_ion.tlayer - target.ntarget  # Foil number  # TODO: Rename
@@ -115,13 +115,13 @@ def _output_tof(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Tar
 
 # TODO: I/O not supported in Numba
 @nb.njit(cache=True, nogil=True)
-def _output_gas(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Target,
+def _output_gas(g: oj.Global, cur_ion: oj.Ion, target: oj.Target,
                 detector: oj.Detector) -> None:
     raise NotImplementedError
 
 
 @nb.njit(cache=True, nogil=True)
-def output_erd(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Target,
+def output_erd(g: oj.Global, cur_ion: oj.Ion, target: oj.Target,
                detector: oj.Detector, erd_buf: od.Buffer) -> None:
     """Output ERD information to master.fperd"""
     if detector.type == enums.DetectorType.TOF:
@@ -133,10 +133,10 @@ def output_erd(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Targ
                 cur_ion.tlayer == target.nlayers or
                 erd_detector_jit.is_in_energy_detector(g, cur_ion, target, detector, True) or
                 cur_ion.status == enums.IonStatus.FIN_OUT_DET and g.output_misses):
-            _output_tof(g, master, cur_ion, target, detector, erd_buf)
+            _output_tof(g, cur_ion, target, detector, erd_buf)
         return
     elif detector.type == enums.DetectorType.GAS:
-        _output_gas(g, master, cur_ion, target, detector)
+        _output_gas(g, cur_ion, target, detector)
     # Other types are ignored, namely DET_FOIL
 
 

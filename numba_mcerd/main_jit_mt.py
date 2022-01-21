@@ -263,6 +263,7 @@ def run_simulation(g, master, ions, target, scat, snext, detector,
     raise NotImplementedError
 
 
+# TODO: presimus is probably not thread-safe
 # TODO: Replace g_full with g_arr?
 @nb.njit(cache=True, parallel=True, nogil=True)
 def simulation_loop(g_full, thread_offset, g_arr, presimus, master, ions_arr, target_wrap, scat_wrap, snext_arr, detector_wrap,
@@ -373,9 +374,7 @@ def simulation_loop(g_full, thread_offset, g_arr, presimus, master, ions_arr, ta
                 # # energy detector or if it's a scaling ion
 
                 if cur_ion.type <= SECONDARY:
-                    pass
-                    # FIXME: doesn't work in MT
-                    # output_jit.output_erd(g, master, cur_ion, target, detector, erd_buf)
+                    output_jit.output_erd(g, cur_ion, target, detector, erd_buf)
                 if cur_ion.type == PRIMARY:
                     primary_finished = True
                     break
