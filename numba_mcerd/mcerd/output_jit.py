@@ -49,8 +49,6 @@ def create_erd_buffer(g: oj.Global, additional_multiplier: float = 1.0) -> od.Bu
 @nb.njit(cache=True, nogil=True)
 def _output_tof(g: oj.Global, master: oj.Master, cur_ion: oj.Ion, target: oj.Target,
                 detector: oj.Detector, buf: od.Buffer) -> None:
-    # https://stackoverflow.com/questions/3167494/how-often-does-python-flush-to-a-file
-
     buf["col_i"] = 0
     n = cur_ion.tlayer - target.ntarget  # Foil number  # TODO: Rename
 
