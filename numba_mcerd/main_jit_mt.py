@@ -250,14 +250,20 @@ def main(args):
     main_simu_timer.stop()
     print(f"main_sim_timer: {main_simu_timer}")
 
-    # print_timer = timer.SplitTimer.init_and_start()
-    # list_conversion.buffer_to_file(erd_buf, master["fperd"])
-    # list_conversion.buffer_to_file(range_buf, master["fprange"])
-    # print_timer.stop()
-    # print(f"print_timer: {print_timer}")
-    #
-    # finalize_jit.finalize(g, master)
-    # print(g.finstat)
+    combine_g(g, g_arr)
+
+    print_timer = timer.SplitTimer.init_and_start()
+    for buf in erd_buf_arr:
+        list_conversion.buffer_to_file(buf, master["fperd"])
+    for buf in range_buf_arr:
+        list_conversion.buffer_to_file(buf, master["fprange"])
+    print_timer.stop()
+    print(f"print_timer: {print_timer}")
+
+    finalize_jit.finalize(g, master)
+    print(g.finstat)
+
+    # FIXME: g.finstat[1] has is all zero and g.finstat[0] changes between runs
 
 
 # TODO: (not njit)
