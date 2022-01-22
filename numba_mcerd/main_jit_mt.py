@@ -236,13 +236,20 @@ def main(args):
 
     g_arr["simstage"] = enums.SimStage.REAL
 
-    # main_simu_timer = timer.SplitTimer.init_and_start()
-    # # TODO: Don't pass presimus to main simulation.
-    # #       Numba doesn't like it if presimus is replaced with None.
-    # simulation_loop(g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
-    # main_simu_timer.stop()
-    # print(f"main_sim_timer: {main_simu_timer}")
-    #
+    # Re-wrap to copy changes
+    target_wrap = np.array([target])
+    # scat_wrap = np.array([scat])  # Doesn't change
+    # detector_wrap = np.array([detector])  # Doesn't change
+
+    main_simu_timer = timer.SplitTimer.init_and_start()
+    # TODO: Don't pass presimus to main simulation.
+    #       Numba doesn't like it if presimus is replaced with None.
+    simulation_loop(
+        g, thread_offset, g_arr, presimus_arr, master, ions_arr, target_wrap, scat_wrap, snext_arr,
+        detector_wrap, trackid, ion_i, new_track, erd_buf_arr, range_buf_arr)
+    main_simu_timer.stop()
+    print(f"main_sim_timer: {main_simu_timer}")
+
     # print_timer = timer.SplitTimer.init_and_start()
     # list_conversion.buffer_to_file(erd_buf, master["fperd"])
     # list_conversion.buffer_to_file(range_buf, master["fprange"])
