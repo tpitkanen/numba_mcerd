@@ -48,7 +48,7 @@ def init_params(g: o.Global, target: o.Target, argv: List[str]) -> None:
     g.nomc = False
 
 
-# Called once in preprocessing and once for last pre-simulation ion
+# Called once in preprocessing and after pre-simulation
 def init_recoiling_angle(target: o.Target) -> None:
     """Calculate target.angave (average recoiling half-angle)"""
     angle = np.zeros(shape=(50, 2), dtype=np.float64)

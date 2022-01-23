@@ -13,7 +13,7 @@ def init_params(g: oj.Global, target: oj.Target, argv: List[str]) -> None:
     raise NotImplementedError
 
 
-# Called once in preprocessing and once for last pre-simulation ion
+# Called once in preprocessing and after pre-simulation
 @nb.njit(cache=True, nogil=True)
 def init_recoiling_angle(target: oj.Target) -> None:
     """Calculate target.angave (average recoiling half-angle)"""
