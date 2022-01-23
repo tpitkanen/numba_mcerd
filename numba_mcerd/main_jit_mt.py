@@ -263,8 +263,6 @@ def main(args):
     finalize_jit.finalize(g, master)
     print(g.finstat)
 
-    # FIXME: g.finstat[1] has is all zero and g.finstat[0] changes between runs
-
 
 # TODO: (not njit)
 def run_simulation(g, master, ions, target, scat, snext, detector,
@@ -308,6 +306,17 @@ def combine_g(g_main, g_arr):
         g_main.finstat += g.finstat
         g_main.nmc += g.nmc
         g_main.cpresimu += g.cpresimu
+
+
+@nb.njit(cache=True, nogil=True)
+def update_finstat(g, index, cur_ion):
+    """Update g.finstat
+
+    Workaround for
+    g.finstat[SECONDARY, cur_ion.status} += 1
+    not working in Numba parallel mode.
+    """
+    g.finstat[index, cur_ion.status] += 1
 
 
 # TODO: presimus is probably not thread-safe
@@ -409,7 +418,7 @@ def simulation_loop(g_main, thread_offset, g_arr, presimus_arr, master, ions_arr
         #         raise NotImplementedError
 
             if cur_ion.type == SECONDARY and cur_ion.status != enums.IonStatus.NOT_FINISHED:
-                g.finstat[SECONDARY, cur_ion.status] += 1
+                update_finstat(g, SECONDARY, cur_ion)
 
             while ion_simu_jit.ion_finished(g, cur_ion, target):
                 # logging_jit.debug(...)
@@ -432,7 +441,7 @@ def simulation_loop(g_main, thread_offset, g_arr, presimus_arr, master, ions_arr
 
         # logging_jit.debug(...)
 
-        g.finstat[PRIMARY, cur_ion.status] += 1
+        update_finstat(g, PRIMARY, cur_ion)
         finish_ion_jit.finish_ion(g, cur_ion, range_buf)  # Output info if FIN_STOP or FIN_TRANS
 
     return trackid, ion_i, new_track
