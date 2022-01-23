@@ -1,4 +1,4 @@
-"""Utilities for getting information about Numba threading."""
+"""Utilities for Numba threading."""
 
 
 import numba as nb
@@ -69,6 +69,7 @@ def get_thread_ids(iterations_multiplier: int = 4) -> list:
 # Uncacheable
 @nb.njit(nogil=True)
 def get_thread_id() -> int:
+    """Get current thread ID"""
     return nb.np.ufunc.parallel._get_thread_id()
 
 
@@ -77,6 +78,11 @@ def get_thread_id() -> int:
 def get_thread_count() -> int:
     """Get number of threads usable by Numba"""
     return nb.get_num_threads()
+
+
+def set_thread_count(thread_count: int) -> None:
+    """Set number of threads used by Numba"""
+    nb.set_num_threads(thread_count)
 
 
 if __name__ == "__main__":

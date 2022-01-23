@@ -16,3 +16,7 @@ PICKLE_ROOT = rf"{DATA_ROOT}/pickled"
 LOAD_PICKLE = False
 
 # TODO: Add DUMP_PICKLE for more granularity
+
+# Choose how many threads to use in parallel mode.
+# Must be between 1 and NUMBA_NUM_THREADS. If set to None, Numba defaults are used.
+PARALLEL_THREAD_COUNT = None

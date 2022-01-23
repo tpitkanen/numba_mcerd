@@ -59,6 +59,9 @@ def main(args):
     setup_logging()
     patch_numba.patch_nested_array()
 
+    if config.PARALLEL_THREAD_COUNT is not None:
+        threading_info.set_thread_count(config.PARALLEL_THREAD_COUNT)
+
     # Variables
 
     logging.debug("Initializing variables")
