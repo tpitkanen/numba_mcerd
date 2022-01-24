@@ -199,8 +199,9 @@ def main(args):
     thread_count = 1
 
     # TODO: Store args in a dict?
+    # TODO: Is ThreadPoolExecutor better than ProcessPoolExecutor (because of nogil=True)?
     presimu_timer = timer.SplitTimer.init_and_start()
-    with concurrent.futures.ProcessPoolExecutor(max_workers=thread_count) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=thread_count) as executor:
         future = executor.submit(
             run_simulation,
             g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
@@ -224,7 +225,7 @@ def main(args):
     print(f"analysis_timer: {analysis_timer}")
 
     main_simu_timer = timer.SplitTimer.init_and_start()
-    with concurrent.futures.ProcessPoolExecutor(max_workers=thread_count) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=thread_count) as executor:
         future = executor.submit(
             run_simulation,
             g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
@@ -245,7 +246,6 @@ def main(args):
 
 
 def run_simulation(*args, **kwargs):
-    patch_numba.patch_nested_array()
     random_jit.seed_rnd(args[0].seed)
 
     try:
