@@ -316,14 +316,12 @@ def update_finstat(g, index, cur_ion):
     """Update g.finstat
 
     Workaround for
-    g.finstat[SECONDARY, cur_ion.status} += 1
+    g.finstat[SECONDARY, cur_ion.status] += 1
     not working in Numba parallel mode.
     """
     g.finstat[index, cur_ion.status] += 1
 
 
-# TODO: presimus is probably not thread-safe
-# TODO: Replace g_full with g_arr?
 @nb.njit(cache=True, parallel=True, nogil=True)
 def simulation_loop(g_main, thread_offset, g_arr, presimus_arr, master, ions_arr, target_wrap, scat_wrap, snext_arr,
                     detector_wrap, trackid, ion_i, new_track, erd_buf_arr, range_buf_arr):
