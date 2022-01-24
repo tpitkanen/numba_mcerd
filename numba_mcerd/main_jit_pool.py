@@ -1,3 +1,5 @@
+import concurrent.futures
+import copy
 import logging
 
 import numba as nb
@@ -194,11 +196,26 @@ def main(args):
     dtype_conversion_timer.stop()
     print(f"dtype_conversion_timer: {dtype_conversion_timer}")
 
+    thread_count = 1
+
+    # TODO: Store args in a dict?
     presimu_timer = timer.SplitTimer.init_and_start()
-    trackid, ion_i, new_track = simulation_loop(
-        g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
+    with concurrent.futures.ProcessPoolExecutor(max_workers=thread_count) as executor:
+        future = executor.submit(
+            run_simulation,
+            g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
+        args = future.result()
     presimu_timer.stop()
     print(f"presimu_timer: {presimu_timer}")
+
+    g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf = args
+
+    # FIXME: The returned objects seem to be stuck read-only here, but not in the simulation_loop.
+    #   Moving run_simulation and simulation_loop to a separate file may fix this.
+    #   Deepcopy is a workaround.
+    g = copy.deepcopy(g)
+    target = copy.deepcopy(target)
+    presimus = copy.deepcopy(presimus)
 
     analysis_timer = timer.SplitTimer.init_and_start()
     pre_simulation_jit.analyze_presimulation(g, presimus, master, target, detector)
@@ -207,11 +224,15 @@ def main(args):
     print(f"analysis_timer: {analysis_timer}")
 
     main_simu_timer = timer.SplitTimer.init_and_start()
-    # TODO: Don't pass presimus to main simulation.
-    #       Numba doesn't like it if presimus is replaced with None.
-    simulation_loop(g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
+    with concurrent.futures.ProcessPoolExecutor(max_workers=thread_count) as executor:
+        future = executor.submit(
+            run_simulation,
+            g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
+        args = future.result()
     main_simu_timer.stop()
     print(f"main_sim_timer: {main_simu_timer}")
+
+    g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf = args
 
     print_timer = timer.SplitTimer.init_and_start()
     list_conversion.buffer_to_file(erd_buf, master["fperd"])
@@ -223,23 +244,15 @@ def main(args):
     print(g.finstat)
 
 
-# TODO: (not njit)
-def run_simulation(g, master, ions, target, scat, snext, detector,
-                   trackid, ion_i, new_track):
-    # <Convert objects>
+def run_simulation(*args, **kwargs):
+    patch_numba.patch_nested_array()
+    random_jit.seed_rnd(args[0].seed)
 
-    # presim_timer = ...
-    # run_pre_simulation(...)
-    # presim_timer.split()
-    # analyze_presimulation(...)
-    # presim_timer.stop()
-
-    # main_sim_timer = ...
-    # run_main_simulation(...)
-    # main_sim_timer.split()
-    # finalize_jit.finalize(g, master)
-    # main_sim_timer.stop()
-    raise NotImplementedError
+    try:
+        simulation_loop(*args)
+    except Exception as e:
+        print(e)
+    return args
 
 
 @nb.njit(cache=True, nogil=True)
