@@ -317,7 +317,7 @@ class Ion:
         self.virtual = False  # Did we only hit the virtual detector area
         self.hit = [Point() for _ in range(constants.MAXLAYERS)]  # Hit points to the detector layers  # len MAXLAYERS
         self.Ed = np.zeros(constants.MAXLAYERS, dtype=np.float64)  # Ion energy in the detector layers  # len MAXLAYERS
-        self.dt = np.zeros(50, dtype=np.float64)  # Passing times in the detector layers  # len MAXLAYERS
+        self.dt = np.zeros(constants.MAXLAYERS, dtype=np.float64)  # Passing times in the detector layers  # len MAXLAYERS
         self.scale = False  # TRUE if we have a scaling ion
         self.effrecd = 0.0  # Parameter for scaling the effective thickness of recoil material
         self.trackid = 0  # originally int64_t

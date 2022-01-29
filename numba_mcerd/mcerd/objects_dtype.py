@@ -170,7 +170,7 @@ Ion = np.dtype([
     ("virtual", bool),
     ("hit", Point, constants.MAXLAYERS),
     ("Ed", np.float64, constants.MAXLAYERS),
-    ("dt", np.float64, 50),
+    ("dt", np.float64, constants.MAXLAYERS),
     ("scale", bool),
     ("effrecd", np.float64),
     ("trackid", np.int64),
