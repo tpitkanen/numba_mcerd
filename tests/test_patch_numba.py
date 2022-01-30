@@ -10,12 +10,12 @@ Point = np.dtype([
     ("x", np.float64),
     ("y", np.float64),
     ("z", np.float64)
-])
+], align=True)
 
 
 PointContainer = np.dtype([
     ("p", Point, 2)
-])
+], align=True)
 
 
 @nb.njit

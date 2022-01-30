@@ -12,20 +12,20 @@ Point = np.dtype([
     ("x", np.float64),
     ("y", np.float64),
     ("z", np.float64)
-])
+], align=True)
 
 
 Point2 = np.dtype([
     ("x", np.float64),
     ("y", np.float64)
-])
+], align=True)
 
 
 Presimu = np.dtype([
     ("depth", np.float64),
     ("angle", np.float64),
     ("layer", np.int64)
-])
+], align=True)
 
 
 # Jibal
@@ -43,7 +43,7 @@ Master = np.dtype([
     ("fptrack", str, 100)
     # Not needed:
     # ("argc", np.int64)
-])
+], align=True)
 
 
 def get_master_dtype(g):
@@ -59,7 +59,7 @@ def get_master_dtype(g):
         ("fptrack", str, len(str(g.master.fptrack)) if g.master.fptrack else 0)
         # Not needed:
         # argc
-    ])
+    ], align=True)
 
 
 Global = np.dtype([
@@ -102,7 +102,7 @@ Global = np.dtype([
     ("advanced_output", bool),
     # ( "jibal", Jibal),
     ("nomc", bool)
-])
+], align=True)
 
 
 Ion_opt = np.dtype([
@@ -111,7 +111,7 @@ Ion_opt = np.dtype([
     ("sin_theta", np.float64),
     ("e", np.float64),
     ("y", np.float64)
-])
+], align=True)
 
 
 Vector = np.dtype([
@@ -119,7 +119,7 @@ Vector = np.dtype([
     ("theta", np.float64),
     ("fii", np.float64),
     ("v", np.float64)
-])
+], align=True)
 
 
 Rec_hist = np.dtype([
@@ -136,7 +136,7 @@ Rec_hist = np.dtype([
     ("w", np.float64),
     ("Z", np.float64),
     ("A", np.float64)
-])
+], align=True)
 
 
 Isotopes = np.dtype([
@@ -145,7 +145,7 @@ Isotopes = np.dtype([
     ("c_sum", np.float64),
     ("n", np.int64),
     ("Am", np.float64)
-])
+], align=True)
 
 
 Ion = np.dtype([
@@ -177,7 +177,7 @@ Ion = np.dtype([
     ("scatindex", np.int64),
     ("ion_i", np.int64),
     ("E_nucl_loss_det", np.float64)
-])
+], align=True)
 
 
 Cross_section = np.dtype([
@@ -185,7 +185,7 @@ Cross_section = np.dtype([
     ("emax", np.float64),
     ("estep", np.float64),
     ("b", np.float64, constants.EPSIMP)  # TODO: Correct size?
-])
+], align=True)
 
 
 # Use get_potential_dtype in code, this is just for use as a type annotation
@@ -193,7 +193,7 @@ Potential = np.dtype([
     ("n", np.int64),
     ("d", np.int64),
     ("u", Point2, 30000)  # potential.py MAXPOINTS
-])
+], align=True)
 
 
 def get_potential_dtype(u_size: int) -> Potential:
@@ -201,7 +201,7 @@ def get_potential_dtype(u_size: int) -> Potential:
         ("n", np.int64),
         ("d", np.int64),
         ("u", Point2, u_size)  # Variable size
-    ])
+    ], align=True)
 
 
 Scattering = np.dtype([
@@ -214,20 +214,20 @@ Scattering = np.dtype([
     ("a", np.float64),
     ("E2eps", np.float64)
     # ("pot", Potential)  # Originally commented out
-])
+], align=True)
 
 
 SNext = np.dtype([
     ("d", np.float64),
     ("natom", np.int64),
     ("r", bool)
-])
+], align=True)
 
 
 Target_ele = np.dtype([
     ("Z", np.float64),
     ("A", np.float64)
-])
+], align=True)
 
 
 Target_sto = np.dtype([
@@ -236,7 +236,7 @@ Target_sto = np.dtype([
     ("stragg", np.float64, constants.MAXSTO),
     ("stodiv", np.float64),
     ("n_sto", np.int64)
-])
+], align=True)
 
 
 Target_layer = np.dtype([
@@ -250,7 +250,7 @@ Target_layer = np.dtype([
     ("type", np.int64),  # enums.TargetType
     ("gas", bool),
     ("stofile_prefix", str, constants.MAXSTOFILEPREFIXLEN)
-])
+], align=True)
 
 
 Plane = np.dtype([
@@ -258,7 +258,7 @@ Plane = np.dtype([
     ("b", np.float64),
     ("c", np.float64),
     ("type", np.int64)  # enums.PlaneType
-])
+], align=True)
 
 
 # Use get_target_dtype in code, this is just for use as a type annotation
@@ -280,7 +280,7 @@ Target = np.dtype([
     # ("surface", Surface),
     ("cross", np.float64, (constants.NSENE, constants.NSANGLE)),
     ("table", bool)
-])
+], align=True)
 
 
 def get_target_dtype(target) -> np.dtype:
@@ -307,7 +307,7 @@ def get_target_dtype(target) -> np.dtype:
         ("table", bool)
     ]
 
-    return np.dtype(dtype)
+    return np.dtype(dtype, align=True)
 
 
 Line = np.dtype([
@@ -316,7 +316,7 @@ Line = np.dtype([
     ("c", np.float64),
     ("d", np.float64),
     ("type", np.int64)  # enums.LineType
-])
+], align=True)
 
 
 # Unused
@@ -334,7 +334,7 @@ Det_foil = np.dtype([
     ("size_", np.float64, 2),
     ("plane", Plane),
     ("center", Point)
-])
+], align=True)
 
 
 Detector = np.dtype([
@@ -349,7 +349,7 @@ Detector = np.dtype([
     ("vthetamax", np.float64),
     ("foil", Det_foil, constants.MAXFOILS),
     ("vfoil", Det_foil)
-])
+], align=True)
 
 
 # TODO: specific type
@@ -365,7 +365,7 @@ def get_buffer_dtype(length: int, row_width: int) -> np.dtype:
         ("buf", np.float64, (length, row_width))
     ]
 
-    return np.dtype(dtype)
+    return np.dtype(dtype, align=True)
 
 
 def main():
