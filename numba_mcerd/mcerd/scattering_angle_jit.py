@@ -22,7 +22,7 @@ Opt = np.dtype([
     ("tmp2", np.float64),
     ("e", np.float64),
     ("y", np.float64),
-])
+], align=True)
 
 
 @nb.njit(cache=True, nogil=True)
