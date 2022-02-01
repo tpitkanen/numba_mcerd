@@ -2,6 +2,7 @@ import logging
 import math
 
 import numba as nb
+from numba import cuda
 
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
@@ -107,5 +108,26 @@ def get_cross(ion: oj.Ion, scat: oj.Scattering) -> float:
     if not 0 < b < 1e-15:
         # TODO: Print a warning
         raise NotImplementedError
+
+    return b
+
+
+# TODO: only pass ion.E?
+@cuda.jit(device=True)
+def get_cross_cuda(ion: oj.Ion, scat: oj.Scattering) -> float:
+    e = math.log(ion.E * scat.E2eps)
+
+    i = int((e - scat.cross.emin) / scat.cross.estep)
+
+    b = (scat.cross.b[i]
+         + (scat.cross.b[i + 1] - scat.cross.b[i])
+         * (e - (i * scat.cross.estep + scat.cross.emin))
+         / scat.cross.estep)
+
+    b *= scat.a
+    b = c.C_PI * b ** 2
+
+    # if not 0 < b < 1e-15:
+    #     raise NotImplementedError
 
     return b

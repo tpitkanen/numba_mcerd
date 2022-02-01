@@ -23,7 +23,7 @@ from numba_mcerd.mcerd import (
     pre_simulation_jit,
     print_data_jit,
     random_jit,
-    read_input
+    read_input, random_cuda
 )
 import numba_mcerd.mcerd.constants as c
 import numba_mcerd.mcerd.objects as o
@@ -191,14 +191,24 @@ def main(args):
     erd_buf = output_jit.create_erd_buffer(g)
     range_buf = finish_ion_jit.create_range_buffer(g)
 
+    # TODO: Kernel config should be in config
+    blocks_per_grid = 1
+    threads_per_block = 1
+    kernel_config = blocks_per_grid, threads_per_block
+
+    rng_states = random_cuda.seed_rnds(1, 100)
+
     dtype_conversion_timer.stop()
     print(f"dtype_conversion_timer: {dtype_conversion_timer}")
 
     presimu_timer = timer.SplitTimer.init_and_start()
     trackid, ion_i, new_track = simulation_loop(
-        g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
+        g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf,
+        kernel_config, rng_states)
     presimu_timer.stop()
     print(f"presimu_timer: {presimu_timer}")
+
+    return  # TODO: Remove once the main loop is done
 
     analysis_timer = timer.SplitTimer.init_and_start()
     pre_simulation_jit.analyze_presimulation(g, presimus, master, target, detector)
@@ -209,7 +219,9 @@ def main(args):
     main_simu_timer = timer.SplitTimer.init_and_start()
     # TODO: Don't pass presimus to main simulation.
     #       Numba doesn't like it if presimus is replaced with None.
-    simulation_loop(g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
+    simulation_loop(
+        g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf,
+        kernel_config, rng_states)
     main_simu_timer.stop()
     print(f"main_sim_timer: {main_simu_timer}")
 
@@ -242,36 +254,36 @@ def run_simulation(g, master, ions, target, scat, snext, detector,
     raise NotImplementedError
 
 
-@nb.njit(cache=True, nogil=True)
+# @nb.njit(cache=True, nogil=True)  # TODO: Add back later, if possible
 def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
-                    trackid, ion_i, new_track, erd_buf, range_buf):
-    pass
-    # # logging_jit.info("Starting simulation")
-    #
-    # if g.simstage == enums.SimStage.PRE:
-    #     start = 0
-    #     stop = g.npresimu
-    # else:
-    #     start = g.npresimu
-    #     stop = g.nsimu
-    #
-    # for i in range(start, stop):
-    #     if i % 10000 == 0:
-    #         print(i)
-    #
-    #     g.cion = i  # TODO: Replace/remove for MT
-    #
-    #     # output.output_data(g)  # Only prints status info
-    #
-    #     cur_ion = ions[PRIMARY]
-    #
-    #     ion_simu_jit.create_ion(g, cur_ion, target)
-    #     if g.rough:
-    #         ion_simu_jit.move_target(target)
-    #
-    #     primary_finished = False
-    #     while not primary_finished:
-    #         ion_simu_jit.next_scattering(g, cur_ion, target, scat, snext)
+                    trackid, ion_i, new_track, erd_buf, range_buf, kernel_config, rng_states):
+    # logging_jit.info("Starting simulation")
+
+    if g.simstage == enums.SimStage.PRE:
+        start = 0
+        stop = g.npresimu
+    else:
+        start = g.npresimu
+        stop = g.nsimu
+
+    # for i in range(start, stop):  # TODO: Add back later
+    for i in range(0, 5):
+        if i % 10000 == 0:
+            print(i)
+
+        g.cion = i  # TODO: Replace/remove for MT
+
+        # output.output_data(g)  # Only prints status info
+
+        cur_ion = ions[PRIMARY]
+
+        ion_simu_jit.create_ion(g, cur_ion, target)
+        if g.rough:
+            ion_simu_jit.move_target(target)
+
+        primary_finished = False
+        while not primary_finished:
+            ion_simu_jit.next_scattering_cuda[1, 1](g, cur_ion, target, scat, snext, rng_states)
     #         nscat = ion_simu_jit.move_ion(g, cur_ion, target, snext)
     #
     #         if nscat == enums.ScatteringType.ERD_SCATTERING:
@@ -342,13 +354,15 @@ def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
     #             cur_ion = ions[PRIMARY]  # ion_stack.prev_ion()
     #             if cur_ion.type != PRIMARY and g.output_trackpoints:
     #                 raise NotImplementedError
-    #
-    #     # logging_jit.debug(...)
-    #
-    #     g.finstat[PRIMARY, cur_ion.status] += 1
-    #     finish_ion_jit.finish_ion(g, cur_ion, range_buf)  # Output info if FIN_STOP or FIN_TRANS
-    #
-    # return trackid, ion_i, new_track
+
+            primary_finished = True  # TODO: Remove once the whole loop works
+
+        # logging_jit.debug(...)
+
+        g.finstat[PRIMARY, cur_ion.status] += 1
+        finish_ion_jit.finish_ion(g, cur_ion, range_buf)  # Output info if FIN_STOP or FIN_TRANS
+
+    return trackid, ion_i, new_track
 
 
 if __name__ == '__main__':

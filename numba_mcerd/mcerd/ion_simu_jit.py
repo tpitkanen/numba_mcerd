@@ -1,11 +1,12 @@
 import math
-from typing import List, Tuple
+from typing import Tuple, Any
 
 import numba as nb
 import numpy as np
+from numba import cuda, types
 
 from numba_mcerd import logging_jit
-from numba_mcerd.mcerd import random_jit, cross_section_jit, enums
+from numba_mcerd.mcerd import random_jit, cross_section_jit, enums, random_cuda
 import numba_mcerd.mcerd.objects_dtype as od
 import numba_mcerd.mcerd.objects_jit as oj
 import numba_mcerd.mcerd.constants as c
@@ -117,6 +118,43 @@ def next_scattering(g: oj.Global, ion: oj.Ion, target: oj.Target,
 
     ion.opt.y = math.sqrt(-rcross / (c.C_PI * layer.N[i])) / scat[ion.scatindex, snext.natom].a
     snext.d = -math.log(random_jit.rnd(0.0, 1.0, enums.RndPeriod.RIGHT)) / cross
+
+
+# c.MAXATOMS doesn't work in cuda.local.array(c.MAXATOMS, dtype=types.float64) for some reason
+c_MAXATOMS = c.MAXATOMS
+
+
+@cuda.jit()
+def next_scattering_cuda(g: oj.Global, ion: oj.Ion, target: oj.Target,
+                         scat: np.ndarray, snext: oj.SNext, rng_states: Any) -> None:
+    if g.nomc:
+        snext.d = 100.0 * c.C_NM
+        return
+
+    thread_id = cuda.grid(1)
+
+    cross = 0.0
+    # TODO: Array creation is slow in CUDA, is there a way to avoid this?
+    b = cuda.local.array(c_MAXATOMS, dtype=types.float64)
+    layer = target.layer[ion.tlayer]
+    for i in range(layer.natoms):
+        p = layer.atom[i]
+        b[i] = layer.N[i] * cross_section_jit.get_cross_cuda(ion, scat[ion.scatindex, p])
+        cross += b[i]
+
+    rcross = random_cuda.rnd(0.0, cross, rng_states, thread_id)
+    i = 0
+    while i < layer.natoms and rcross >= 0.0:
+        rcross -= b[i]
+        i += 1
+    # if i < 1 or i > layer.natoms:
+    #     raise IonSimulationError("Scattering atom calculated wrong")
+    i -= 1
+
+    snext.natom = layer.atom[i]
+
+    ion.opt.y = math.sqrt(-rcross / (c.C_PI * layer.N[i])) / scat[ion.scatindex, snext.natom].a
+    snext.d = -math.log(random_cuda.rnd(0.0, 1.0, rng_states, thread_id)) / cross
 
 
 @nb.njit(cache=True, nogil=True)
