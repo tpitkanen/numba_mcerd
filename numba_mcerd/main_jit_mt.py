@@ -354,98 +354,104 @@ def simulation_loop(g_main, thread_offset, g_arr, presimus_arr, master, ions_arr
 
         g.cion = i
 
-        # output.output_data(g)  # Only prints status info
+        inner_simulation_loop(g, ions, snext, erd_buf, range_buf, presimus, target, scat, detector)
 
-        cur_ion = ions[PRIMARY]
+    return trackid, ion_i, new_track
 
-        ion_simu_jit.create_ion(g, cur_ion, target)
-        if g.rough:
-            ion_simu_jit.move_target(target)
 
-        primary_finished = False
-        while not primary_finished:
-            ion_simu_jit.next_scattering(g, cur_ion, target, scat, snext)
-            nscat = ion_simu_jit.move_ion(g, cur_ion, target, snext)
+@nb.njit(cache=True, nogil=True)
+def inner_simulation_loop(g, ions, snext, erd_buf, range_buf, presimus, target, scat, detector):
+    # output.output_data(g)  # Only prints status info
 
-            if nscat == enums.ScatteringType.ERD_SCATTERING:
-                if erd_scattering_jit.erd_scattering(
-                        g, ions[PRIMARY], ions[SECONDARY], target, detector):
-                    cur_ion = ions[SECONDARY]
+    cur_ion = ions[PRIMARY]
 
-            if cur_ion.status == enums.IonStatus.FIN_RECOIL or cur_ion.status == enums.IonStatus.FIN_OUT_DET:
-                if g.simstage == enums.SimStage.PRE:
-                    pre_simulation_jit.finish_presimulation(g, presimus, detector, cur_ion)
-                    cur_ion = ions[PRIMARY]
-                else:
-                    erd_detector_jit.move_to_erd_detector(g, cur_ion, target, detector)
+    ion_simu_jit.create_ion(g, cur_ion, target)
+    if g.rough:
+        ion_simu_jit.move_target(target)
 
-            if (nscat == enums.ScatteringType.MC_SCATTERING
-                    and cur_ion.status == enums.IonStatus.NOT_FINISHED
-                    and not g.nomc):
-                if ion_simu_jit.mc_scattering(
-                        g, cur_ion, ions[SECONDARY], target, detector, scat, snext):  # ion_stack.next_ion()
-                    # This block is never reached in ERD mode
-                    cur_ion = ions[SECONDARY]  # ion_stack.next_ion()
-                    found = False
-                    for j in range(g.nions):
-                        if j == TARGET_ATOM and g.simtype == enums.SimType.RBS:
-                            continue
-                        if (round(ions[j].Z) == round(cur_ion.Z)
-                                and round(ions[j].A / c.C_U) == round(ions[j].A / c.C_U)):
-                            # FIXME: Comparing average mass by rounding is a bad idea.
-                            #        See the original code for more information.
-                            found = True
-                            cur_ion.scatindex = j
-                    if not found:
-                        # logging_jit.warning(
-                        #     f"Recoil cascade not possible, since recoiling ion Z={float(cur_ion.Z)} and A={float(cur_ion.A / c.C_U)} u are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
-                        logging_jit.warning(f"Recoil cascade not possible, since recoiling ion Z and A are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
-                        # FIXME: parallel=True prevents raising exceptions. Break doesn't work either
-                        # raise NotImplementedError
-                        # cur_ion = ion_stack.prev_ion()
-                    # TODO: Maybe multi-thread ion_i and trackid. They aren't particularly useful
-                    #   because they are only used in formatted debug messages, which aren't
-                    #   currently (Numba 0.55.0) possible.
-                    # else:
-                    #     ion_i += 1
-                    #     cur_ion.ion_i = ion_i
-                    #     cur_ion.trackid = trackid
+    primary_finished = False
+    while not primary_finished:
+        ion_simu_jit.next_scattering(g, cur_ion, target, scat, snext)
+        nscat = ion_simu_jit.move_ion(g, cur_ion, target, snext)
 
-                    # logging_jit.debug(...)
+        if nscat == enums.ScatteringType.ERD_SCATTERING:
+            if erd_scattering_jit.erd_scattering(
+                    g, ions[PRIMARY], ions[SECONDARY], target, detector):
+                cur_ion = ions[SECONDARY]
 
-            # debug: loop over layers, print cur_ion.tlayer and set prev_layer_debug
+        if cur_ion.status == enums.IonStatus.FIN_RECOIL or cur_ion.status == enums.IonStatus.FIN_OUT_DET:
+            if g.simstage == enums.SimStage.PRE:
+                pre_simulation_jit.finish_presimulation(g, presimus, detector, cur_ion)
+                cur_ion = ions[PRIMARY]
+            else:
+                erd_detector_jit.move_to_erd_detector(g, cur_ion, target, detector)
+
+        if (nscat == enums.ScatteringType.MC_SCATTERING
+                and cur_ion.status == enums.IonStatus.NOT_FINISHED
+                and not g.nomc):
+            if ion_simu_jit.mc_scattering(
+                    g, cur_ion, ions[SECONDARY], target, detector, scat, snext):  # ion_stack.next_ion()
+                # This block is never reached in ERD mode
+                cur_ion = ions[SECONDARY]  # ion_stack.next_ion()
+                found = False
+                for j in range(g.nions):
+                    if j == TARGET_ATOM and g.simtype == enums.SimType.RBS:
+                        continue
+                    if (round(ions[j].Z) == round(cur_ion.Z)
+                            and round(ions[j].A / c.C_U) == round(ions[j].A / c.C_U)):
+                        # FIXME: Comparing average mass by rounding is a bad idea.
+                        #        See the original code for more information.
+                        found = True
+                        cur_ion.scatindex = j
+                if not found:
+                    # logging_jit.warning(
+                    #     f"Recoil cascade not possible, since recoiling ion Z={float(cur_ion.Z)} and A={float(cur_ion.A / c.C_U)} u are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
+                    logging_jit.warning(
+                        f"Recoil cascade not possible, since recoiling ion Z and A are not in ion table (and therefore not in scattering table or stopping/straggling tables)")
+                    # FIXME: parallel=True prevents raising exceptions. Break doesn't work either
+                    # raise NotImplementedError
+                    # cur_ion = ion_stack.prev_ion()
+                # TODO: Maybe multi-thread ion_i and trackid. They aren't particularly useful
+                #   because they are only used in formatted debug messages, which aren't
+                #   currently (Numba 0.55.0) possible.
+                # else:
+                #     ion_i += 1
+                #     cur_ion.ion_i = ion_i
+                #     cur_ion.trackid = trackid
+
+                # logging_jit.debug(...)
+
+        # debug: loop over layers, print cur_ion.tlayer and set prev_layer_debug
 
         #     if g.output_trackpoints:
         #         raise NotImplementedError
 
-            if cur_ion.type == SECONDARY and cur_ion.status != enums.IonStatus.NOT_FINISHED:
-                update_finstat(g, SECONDARY, cur_ion)
+        if cur_ion.type == SECONDARY and cur_ion.status != enums.IonStatus.NOT_FINISHED:
+            update_finstat(g, SECONDARY, cur_ion)
 
-            while ion_simu_jit.ion_finished(g, cur_ion, target):
-                # logging_jit.debug(...)
+        while ion_simu_jit.ion_finished(g, cur_ion, target):
+            # logging_jit.debug(...)
 
-                # if g.output_trackpoints:
-                #     raise NotImplementedError
+            # if g.output_trackpoints:
+            #     raise NotImplementedError
 
-                # cur_ion.trackid = trackid if not new_track else 0
-                # # No new track is made if ion doesn't make it to the
-                # # energy detector or if it's a scaling ion
+            # cur_ion.trackid = trackid if not new_track else 0
+            # # No new track is made if ion doesn't make it to the
+            # # energy detector or if it's a scaling ion
 
-                if cur_ion.type <= SECONDARY:
-                    output_jit.output_erd(g, cur_ion, target, detector, erd_buf)
-                if cur_ion.type == PRIMARY:
-                    primary_finished = True
-                    break
-                cur_ion = ions[PRIMARY]  # ion_stack.prev_ion()
-                # if cur_ion.type != PRIMARY and g.output_trackpoints:
-                #     raise NotImplementedError
+            if cur_ion.type <= SECONDARY:
+                output_jit.output_erd(g, cur_ion, target, detector, erd_buf)
+            if cur_ion.type == PRIMARY:
+                primary_finished = True
+                break
+            cur_ion = ions[PRIMARY]  # ion_stack.prev_ion()
+            # if cur_ion.type != PRIMARY and g.output_trackpoints:
+            #     raise NotImplementedError
 
-        # logging_jit.debug(...)
+    # logging_jit.debug(...)
 
-        update_finstat(g, PRIMARY, cur_ion)
-        finish_ion_jit.finish_ion(g, cur_ion, range_buf)  # Output info if FIN_STOP or FIN_TRANS
-
-    return trackid, ion_i, new_track
+    update_finstat(g, PRIMARY, cur_ion)
+    finish_ion_jit.finish_ion(g, cur_ion, range_buf)  # Output info if FIN_STOP or FIN_TRANS
 
 
 if __name__ == '__main__':
