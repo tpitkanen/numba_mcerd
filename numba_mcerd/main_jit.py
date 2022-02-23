@@ -216,11 +216,10 @@ def main(args):
     print_timer = timer.SplitTimer.init_and_start()
     list_conversion.buffer_to_file(erd_buf, master["fperd"])
     list_conversion.buffer_to_file(range_buf, master["fprange"])
-    print_timer.stop()
-    print(f"print_timer: {print_timer}")
-
     finalize_jit.finalize(g, master)
     print(g.finstat)
+    print_timer.stop()
+    print(f"print_timer: {print_timer}")
 
 
 # TODO: (not njit)

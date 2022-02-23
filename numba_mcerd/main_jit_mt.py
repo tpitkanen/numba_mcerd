@@ -260,11 +260,10 @@ def main(args):
         list_conversion.buffer_to_file(buf, master["fperd"])
     for buf in range_buf_arr:
         list_conversion.buffer_to_file(buf, master["fprange"])
-    print_timer.stop()
-    print(f"print_timer: {print_timer}")
-
     finalize_jit.finalize(g, master)
     print(g.finstat)
+    print_timer.stop()
+    print(f"print_timer: {print_timer}")
 
 
 # TODO: (not njit)

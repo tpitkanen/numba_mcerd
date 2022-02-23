@@ -189,8 +189,10 @@ def main(args):
     main_simu_timer.stop()
     print(f"main_sim_timer: {main_simu_timer}")
 
+    print_timer = timer.SplitTimer.init_and_start()
     finalize.finalize(g)
     print(g.finstat)
+    print(f"print_timer: {print_timer}")
 
 
 def simulation_loop(g, ions, target, scat, snext, detector,
