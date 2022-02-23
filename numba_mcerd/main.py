@@ -171,18 +171,39 @@ def main(args):
     initialization_timer.stop()
     print(f"initialization_timer: {initialization_timer}")
 
-    # Debugging counters
-    outer_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
-    inner_loop_counts = np.zeros(shape=g.nsimu, dtype=np.int64)
-
     logging.info("Starting simulation")
 
-    presim_timer = timer.SplitTimer.init_and_start()
-    for i in range(g.nsimu):
-        g.cion = i
+    presimu_timer = timer.SplitTimer.init_and_start()
+    trackid, ion_i, new_track = simulation_loop(g, ions, target, scat, snext, detector, trackid, ion_i, new_track)
+    presimu_timer.stop()
+    print(f"presimu_timer: {presimu_timer}")
 
-        outer_loop_count = 0
-        inner_loop_count = 0
+    analysis_timer = timer.SplitTimer.init_and_start()
+    pre_simulation.analyze_presimulation(g, target, detector)
+    init_params.init_recoiling_angle(target)
+    analysis_timer.stop()
+    print(f"analysis_timer: {analysis_timer}")
+
+    main_simu_timer = timer.SplitTimer.init_and_start()
+    simulation_loop(g, ions, target, scat, snext, detector, trackid, ion_i, new_track)
+    main_simu_timer.stop()
+    print(f"main_sim_timer: {main_simu_timer}")
+
+    finalize.finalize(g)
+    print(g.finstat)
+
+
+def simulation_loop(g, ions, target, scat, snext, detector,
+                    trackid, ion_i, new_track):
+    if g.simstage == enums.SimStage.PRE:
+        start = 0
+        stop = g.npresimu
+    else:
+        start = g.npresimu
+        stop = g.nsimu
+
+    for i in range(start, stop):
+        g.cion = i
 
         output.output_data(g)
 
@@ -198,8 +219,6 @@ def main(args):
 
         primary_finished = False
         while not primary_finished:
-            outer_loop_count += 1
-
             ion_simu.next_scattering(g, cur_ion, target, scat, snext)
             nscat = ion_simu.move_ion(g, cur_ion, target, snext)
 
@@ -253,8 +272,6 @@ def main(args):
                 g.finstat[SECONDARY][cur_ion.status.value] += 1
 
             while ion_simu.ion_finished(g, cur_ion, target).value:
-                inner_loop_count += 1
-
                 # logging.debug(...)
 
                 if g.output_trackpoints:
@@ -273,29 +290,12 @@ def main(args):
                 if cur_ion.type.value != PRIMARY and g.output_trackpoints:
                     raise NotImplementedError
 
-        outer_loop_counts[g.cion] = outer_loop_count
-        inner_loop_counts[g.cion] = inner_loop_count
-
         # logging.debug(...)
 
         g.finstat[PRIMARY][cur_ion.status.value] += 1
         finish_ion.finish_ion(g, cur_ion)  # Print info if FIN_STOP or FIN_TRANS
 
-        # TODO: Separate loop to pre and main, move this in-between
-        if g.simstage == enums.SimStage.PRE and g.cion == g.npresimu - 1:
-            pre_simulation.analyze_presimulation(g, target, detector)
-            init_params.init_recoiling_angle(target)
-
-            presim_timer.stop()
-            print(f"presim_timer: {presim_timer}")
-
-            main_sim_timer = timer.SplitTimer.init_and_start()
-
-    finalize.finalize(g)  # Print statistics
-
-    # noinspection PyUnboundLocalVariable
-    main_sim_timer.stop()
-    print(f"main_sim_timer: {main_sim_timer}")
+    return trackid, ion_i, new_track
 
 
 if __name__ == '__main__':
