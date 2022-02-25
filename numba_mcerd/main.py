@@ -192,6 +192,7 @@ def main(args):
     print_timer = timer.SplitTimer.init_and_start()
     finalize.finalize(g)
     print(g.finstat)
+    print_timer.stop()
     print(f"print_timer: {print_timer}")
 
 
