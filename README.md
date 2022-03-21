@@ -6,7 +6,7 @@ Numba MCERD is a version of [MCERD](https://github.com/JYU-IBA/mcerd) in Python.
 
 Python 3.8 or newer is required. Git is required for version control and cloning the repository.
 
-These instructions are for Windows. Other operating systems use fundamentally similar commands, but the specifics differ.
+These instructions are for CMD on Windows. Other operating systems use fundamentally similar commands, but the specifics differ.
 
 1. Clone the repository
 ```
@@ -22,21 +22,16 @@ env\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. Run the program (normal version)
+3. Run the program:
 
 ```
 env\Scripts\activate
 set PYTHONPATH=%cd%
-python numba_mcerd\main.py
+cd numba_mcerd
+python main_jit.py
 ```
 
-or (Numba version)
-
-```
-env\Scripts\activate
-set PYTHONPATH=%cd%
-python numba_mcerd\main_jit.py 
-```
+Possible versions are: `main.py` (normal Python), `main_jit.py` (Numba), `main_jit_mt.py` (Numba with multithreading).
 
 Activating the virtual environment and setting the [`PYTHONPATH`](https://docs.python.org/3/using/cmdline.html#envvar-PYTHONPATH) is required once for each new shell session (window).
 
@@ -47,6 +42,7 @@ Activating the virtual environment and setting the [`PYTHONPATH`](https://docs.p
 There are currently two versions of Numba MCERD:
 - Normal Python: slow, easy to debug.
 - Just-in-time compiled: fast, harder to debug. Uses [Numba](https://numba.pydata.org/).
+- Just-in-time compiled multithreaded. Same as previous, but uses all cores.
 
 A CUDA-based version using Numba is planned.
 
@@ -54,11 +50,11 @@ Note that different versions have varying levels of completeness (the normal ver
 
 ## Data files
 
-Files under `data/input/` contain absolute paths. Update them to match their real location. Files with absolute paths:
+Files under `data/input/` contain file paths which may need to be updated to match their correct location. Both relative and absolute paths are supported. Files with paths:
 - Cl-Default
 - Cl-Default.erd_detector
 
-Absolute paths are used to match the original MCERD's behavior as closely as possible.
+As of 2022-03-21, [Potku](https://github.com/JYU-IBA/potku) generates settings files with absolute paths.
 
 ## Config
 
