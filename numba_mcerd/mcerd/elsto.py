@@ -32,9 +32,9 @@ const_gsto = {
 def calc_stopping_and_straggling_const(g: o.Global, ion: o.Ion, target: o.Target, nlayer: int, gsto_index: int) -> None:
     """Look up precalculated stopping and straggling energies from files in GSTO_ROOT"""
     if const_gsto["sto"] is None:
-        const_gsto["sto"] = np.loadtxt(config.EXPORT_ROOT + "/sto.txt")
+        const_gsto["sto"] = np.loadtxt(config.CONST_STO_PATH)
     if const_gsto["stragg"] is None:
-        const_gsto["stragg"] = np.loadtxt(config.EXPORT_ROOT + "/stragg.txt")
+        const_gsto["stragg"] = np.loadtxt(config.CONST_STRAGG_PATH)
 
     layer = target.layer[nlayer]
     sto = layer.sto[ion.scatindex]

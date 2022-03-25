@@ -302,6 +302,4 @@ def simulation_loop(g, ions, target, scat, snext, detector,
 
 
 if __name__ == '__main__':
-    # mcerd.exe is unused but included for similarity with original MCERD
-    main_args = ["mcerd.exe", f"{config.PROJECT_ROOT}/data/input/Cl-Default"]
-    main(main_args)
+    main(config.MAIN_ARGS)

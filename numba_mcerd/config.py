@@ -20,3 +20,11 @@ LOAD_PICKLE = False
 # Choose how many threads to use in parallel mode.
 # Must be between 1 and NUMBA_NUM_THREADS. If set to None, Numba defaults are used.
 PARALLEL_THREAD_COUNT = None
+
+# Set arguments here.
+# mcerd.exe is unused but included for similarity with original MCERD.
+MAIN_ARGS = ["mcerd.exe", rf"{PROJECT_ROOT}/data/input/O-Default"]
+
+# Generate gsto files manually (no instructions available for now) and set their path here
+CONST_STO_PATH = rf"{EXPORT_ROOT}/o_sto.txt"
+CONST_STRAGG_PATH = rf"{EXPORT_ROOT}/o_stragg.txt"
