@@ -106,8 +106,14 @@ def get_cross(ion: oj.Ion, scat: oj.Scattering) -> float:
     b = c.C_PI * b ** 2
 
     if not 0 < b < 1e-15:
-        # TODO: Print a warning
-        raise NotImplementedError
+        # Full print, not really compatible with Numba's prange multithreading (weird linebreaks):
+        # print("Cross section seems awfully low:")
+        # print(b)
+        # print(i, ion.E, scat.E2eps)
+        # print(e, scat.cross.emin, scat.cross.estep)
+        # print(scat.cross.b[i], scat.cross.b[i + 1], scat.a)
+
+        print("Cross section low:", b)
 
     return b
 
@@ -128,6 +134,6 @@ def get_cross_cuda(ion: oj.Ion, scat: oj.Scattering) -> float:
     b = c.C_PI * b ** 2
 
     # if not 0 < b < 1e-15:
-    #     raise NotImplementedError
+    #     raise NotImplementedError  # TODO
 
     return b
