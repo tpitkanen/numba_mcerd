@@ -22,7 +22,7 @@ from numba_mcerd.mcerd import (
     output_jit,
     potential_jit,
     pre_simulation_jit,
-    print_data_jit,
+    print_data,
     random_jit,
     read_input
 )
@@ -152,7 +152,7 @@ def main(args):
 
     init_detector.init_detector(g_o, detector_o)
 
-    print_data_jit.print_data(g_o)
+    print_data.print_data(g_o)
 
     if g_o.predata:
         init_params.init_recoiling_angle(target_o)
