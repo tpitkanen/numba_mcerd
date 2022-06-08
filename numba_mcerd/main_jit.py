@@ -6,6 +6,7 @@ import numpy as np
 from numba_mcerd import config, timer, patch_numba, logging_jit, list_conversion
 from numba_mcerd.mcerd import (
     cross_section_jit,
+    debug,
     elsto,
     enums,
     erd_detector_jit,
@@ -253,6 +254,9 @@ def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
         start = g.npresimu
         stop = g.nsimu
 
+    outer_loop_counts = np.zeros(stop - 0, dtype=np.int64)
+    inner_loop_counts = np.zeros(stop - 0, dtype=np.int64)
+
     for i in range(start, stop):
         if i % 10000 == 0:
             print(i)
@@ -269,6 +273,8 @@ def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
 
         primary_finished = False
         while not primary_finished:
+            outer_loop_counts[i] += 1
+
             ion_simu_jit.next_scattering(g, cur_ion, target, scat, snext)
             nscat = ion_simu_jit.move_ion(g, cur_ion, target, snext)
 
@@ -323,6 +329,8 @@ def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
                 g.finstat[SECONDARY, cur_ion.status] += 1
 
             while ion_simu_jit.ion_finished(g, cur_ion, target):
+                inner_loop_counts[i] += 1
+
                 # logging_jit.debug(...)
 
                 if g.output_trackpoints:
@@ -345,6 +353,10 @@ def simulation_loop(g, presimus, master, ions, target, scat, snext, detector,
 
         g.finstat[PRIMARY, cur_ion.status] += 1
         finish_ion_jit.finish_ion(g, cur_ion, range_buf)  # Output info if FIN_STOP or FIN_TRANS
+
+    with nb.objmode():
+        debug.print_array(outer_loop_counts[start:])
+        debug.print_array(inner_loop_counts[start:])
 
     return trackid, ion_i, new_track
 

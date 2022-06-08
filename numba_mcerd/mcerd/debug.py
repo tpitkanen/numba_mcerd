@@ -3,6 +3,11 @@ def print_ion_position(g, ion, label, flag):
     raise NotImplementedError
 
 
+def print_array(arr) -> None:
+    """Print NumPy array completely"""
+    print(arr.tolist())
+
+
 def out(*a, **k) -> None:
     """Helper function for debugging with numba.objmode context manager"""
     # simulation_loop parameters:
