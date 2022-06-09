@@ -6,6 +6,7 @@ import numpy as np
 from numba_mcerd import config, pickler, timer
 from numba_mcerd.mcerd import (
     cross_section,
+    debug,
     elsto,
     enums,
     erd_detector,
@@ -205,6 +206,9 @@ def simulation_loop(g, ions, target, scat, snext, detector,
         start = g.npresimu
         stop = g.nsimu
 
+    outer_loop_counts = np.zeros(stop - 0, dtype=np.int64)
+    inner_loop_counts = np.zeros(stop - 0, dtype=np.int64)
+
     for i in range(start, stop):
         g.cion = i
 
@@ -222,6 +226,8 @@ def simulation_loop(g, ions, target, scat, snext, detector,
 
         primary_finished = False
         while not primary_finished:
+            outer_loop_counts[i] += 1
+
             ion_simu.next_scattering(g, cur_ion, target, scat, snext)
             nscat = ion_simu.move_ion(g, cur_ion, target, snext)
 
@@ -275,6 +281,7 @@ def simulation_loop(g, ions, target, scat, snext, detector,
                 g.finstat[SECONDARY][cur_ion.status.value] += 1
 
             while ion_simu.ion_finished(g, cur_ion, target).value:
+                inner_loop_counts[i] += 1
                 # logging.debug(...)
 
                 if g.output_trackpoints:
@@ -297,6 +304,9 @@ def simulation_loop(g, ions, target, scat, snext, detector,
 
         g.finstat[PRIMARY][cur_ion.status.value] += 1
         finish_ion.finish_ion(g, cur_ion)  # Print info if FIN_STOP or FIN_TRANS
+
+    debug.print_array(outer_loop_counts)
+    debug.print_array(inner_loop_counts)
 
     return trackid, ion_i, new_track
 
