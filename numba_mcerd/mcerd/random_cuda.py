@@ -10,7 +10,6 @@ from numba import cuda
 from numba.cuda import random
 
 
-# TODO: Could this be @njit:ed?
 def seed_rnds(n, seed) -> Any:
     """Create and return RNG states"""
     return random.create_xoroshiro128p_states(n, seed=seed)

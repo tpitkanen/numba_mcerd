@@ -13,9 +13,6 @@ DEPS = 1e-7
 DISTEPS = 1e-6
 
 
-# TODO: Speed this up (with Numba or something else)
-
-
 @dataclass
 class Opt:
     x0: float = 0.0

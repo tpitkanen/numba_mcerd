@@ -207,8 +207,6 @@ def main(args):
     print(f"analysis_timer: {analysis_timer}")
 
     main_simu_timer = timer.SplitTimer.init_and_start()
-    # TODO: Don't pass presimus to main simulation.
-    #       Numba doesn't like it if presimus is replaced with None.
     simulation_loop(g, presimus, master, ions, target, scat, snext, detector, trackid, ion_i, new_track, erd_buf, range_buf)
     main_simu_timer.stop()
     print(f"main_sim_timer: {main_simu_timer}")
@@ -220,25 +218,6 @@ def main(args):
     print(g.finstat)
     print_timer.stop()
     print(f"print_timer: {print_timer}")
-
-
-# TODO: (not njit)
-def run_simulation(g, master, ions, target, scat, snext, detector,
-                   trackid, ion_i, new_track):
-    # <Convert objects>
-
-    # presim_timer = ...
-    # run_pre_simulation(...)
-    # presim_timer.split()
-    # analyze_presimulation(...)
-    # presim_timer.stop()
-
-    # main_sim_timer = ...
-    # run_main_simulation(...)
-    # main_sim_timer.split()
-    # finalize_jit.finalize(g, master)
-    # main_sim_timer.stop()
-    raise NotImplementedError
 
 
 @nb.njit(cache=True, nogil=True)
