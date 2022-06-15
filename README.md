@@ -1,6 +1,26 @@
 # Numba MCERD
 
-Numba MCERD is a version of [MCERD](https://github.com/JYU-IBA/mcerd) in Python.
+Numba MCERD is a port of [MCERD](https://github.com/JYU-IBA/mcerd) to Python with enhancements, such as native multi-threading and execution time information.
+
+```
+Copyright (C) 1996-2020 Kai Arstila, 2015-2020 Jaakko Julin, 
+2020-2022 Tuomas Pitkänen
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+```
+
+The GNU General Public License applies for all source code (including `*.py` and `*.md`), but not to the files in the [data/constants](data/constants) and [data/export](data/export) folders, because they originate from other sources. The files in [data/constants](data/constants) are from [JIBAL](https://github.com/JYU-IBA/jibal), which in turn has copied them from elsewhere. The files in [data/export](data/export) have been generated with JIBAL using the aforementioned constants files, except for `ran_pcg_first_20000.txt` which has been generated with the original MCERD's random number generator.
 
 ## Requirements and installation
 
@@ -17,15 +37,15 @@ cd numba_mcerd
 2. Install to a virtual environment
 
 ```
-py -3.8 -m venv env
-env\Scripts\activate
+py -3.8 -m venv venv
+venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
 3. Run the program:
 
 ```
-env\Scripts\activate
+venv\Scripts\activate
 set PYTHONPATH=%cd%
 cd numba_mcerd
 python main_jit.py
