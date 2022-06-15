@@ -1,6 +1,6 @@
 # Numba MCERD
 
-Numba MCERD is a port of [MCERD](https://github.com/JYU-IBA/mcerd) to Python with enhancements, such as native multi-threading and execution time information.
+Numba MCERD is a Python port of [MCERD](https://github.com/JYU-IBA/mcerd) with enhancements, such as native multi-threading and execution time information.
 
 ```
 Copyright (C) 1996-2020 Kai Arstila, 2015-2020 Jaakko Julin, 
